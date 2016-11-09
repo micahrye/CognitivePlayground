@@ -23,9 +23,10 @@ import canCharacter from "../../sprites/can/canCharacter";
 import bugfoodCharacter from "../../sprites/bugfood/bugfoodCharacter";
 // props
 import lever from '../../sprites/lever/leverCharacter';
-import signCharacter from '../../sprites/sign/signCharacter';
+import sign from '../../sprites/sign/signCharacter';
 // utils
 import { omnivoreUtils as monsterUtils } from './omnivoreUtils';
+import gameUtil from './gameUtil';
 
 const LEFT = 0;
 const MIDDLE = 1;
@@ -40,12 +41,16 @@ class MatchByColorGame extends React.Component {
       monsterAnimationIndex: [0],
       goatAnimationIndex: [0],
       mammalAnimationIndex: [0],
+      character: null,
+      characterAnimationIndex: [0],
       tweenCharacter: false,
       loadContent: false,
       dropFood: false,
       signsVisable: false,
       foodDisplayed: false,
     };
+
+    this.activeCharacter;
 
     this.monster = {tweenOptions: {}};
     this.goat = {tweenOptions: {}};
@@ -72,7 +77,9 @@ class MatchByColorGame extends React.Component {
       monster: randomstring({ length: 7 }),
       goat: randomstring({ length: 7 }),
       mammal: randomstring({ length: 7 }),
+      character: randomstring({ length: 7 }),
     };
+
     this.setState({
       monsterAnimationIndex: [0,1,2,3,4,5,6,7],
       goatAnimationIndex: [0,1,2,3,4,5,6,7],
@@ -81,6 +88,7 @@ class MatchByColorGame extends React.Component {
     }, () => {
 
     });
+
     this.setDefaultAnimationState = setTimeout(() => {
       this.setState({
         monsterAnimationIndex: [0],
@@ -95,6 +103,28 @@ class MatchByColorGame extends React.Component {
     this.leftFood.coords = [coords.top, coords.leftLeft];
     this.middleFood.coords = [coords.top, coords.middleLeft];
     this.rightFood.coords = [coords.top, coords.rightLeft];
+  }
+  /**
+   * used to load character image frames off screen so that image
+   * frames are in memory.
+   */
+  loadCharacter () {
+    // get character
+    this.activeCharacter = gameUtil.getCharacter('monster');
+    // want to load character offscreen
+    this.activeCharacter.coords = {
+      top: 400 * this.scale.screenHeight * this.scale.screenHeight,
+      left: -330 * this.scale.screenWidth * this.scale.screenWidth,
+    };
+    this.activeCharacter.loopAnimation = false;
+    this.activeCharacter.tweenOptions = {tweenOptions: {}};
+    this.setState({
+      character: this.activeCharacter,
+      characterAnimationIndex: this.activeCharacter.animationIndex('ALL'),
+      loadContent: true,
+    }, () => {
+
+    });
   }
 
   componentDidMount () {
@@ -289,155 +319,165 @@ class MatchByColorGame extends React.Component {
     }, 1500);
   }
 
+  foodSize (food, dimension) {
+    // scale to 120 x 120 or closest.
+    const widthScale = 120/food.character.size.width;
+    const heightScale = 120/food.character.size.height;
+    const scale = widthScale > heightScale ? heightScale : widthScale;
+    switch (dimension) {
+      case 'width':
+        return Math.floor((food.character.size.width * scale) * this.scale.image);
+      case 'height':
+        return Math.floor((food.character.size.height * scale) * this.scale.image);
+    }
+  }
+
   render () {
-    // console.warn('width = ', this.scale.screenWidth);
-    // console.warn('height = ', this.scale.screenHeight);
     return (
       <View style={styles.container}>
         <Image source={require('../../media/backgrounds/Game_2_Background_1280.png')}
-          style={styles.backgroundImage}>
+          style={styles.backgroundImage}
+        />
+        <AnimatedSprite
+          character={lever}
+          characterUID={this.characterUIDs.lever}
+          animationFrameIndex={[0]}
+          loopAnimation={false}
+          coordinates={{
+            top: 240 * this.scale.screenHeight,
+            left: 1080 * this.scale.screenWidth }}
+          size={{ width: lever.size.width * this.scale.image,
+            height: lever.size.height * this.scale.image}}
+          rotate={[{rotateY:'180deg'}]}
+          onPress={() => this.leverPress()}
+          onPressIn={() => this.leverPressIn()}
+          onPressOut={() => this.leverPressOut()}
+        />
 
+        <AnimatedSprite
+          character={sign}
+          ref={'leftSign'}
+          animationFrameIndex={[0]}
+          coordinates={{top: -300 * this.scale.screenHeight,
+            left: 350 * this.scale.screenWidth}}
+          size={{width: sign.size.width * this.scale.image,
+            height: sign.size.height * this.scale.image
+          }}
+          draggable={false}
+          tweenOptions={this.leftSign.tweenOptions}
+          tweenStart={'fromCode'}
+        />
+
+        <AnimatedSprite
+          character={sign}
+          ref={'middleSign'}
+          animationFrameIndex={[0]}
+          coordinates={{top: -300 * this.scale.screenHeight,
+            left: 550 * this.scale.screenWidth}}
+          size={{width: sign.size.width * this.scale.image,
+            height: sign.size.height * this.scale.image
+          }}
+          draggable={false}
+          tweenOptions={this.middleSign.tweenOptions}
+          tweenStart={'fromCode'}
+        />
+
+        <AnimatedSprite
+          character={sign}
+          ref={'rightSign'}
+          animationFrameIndex={[0]}
+          coordinates={{top: -300 * this.scale.screenHeight,
+            left: 750 * this.scale.screenWidth}}
+          size={{width: sign.size.width * this.scale.image,
+            height: sign.size.height * this.scale.image
+          }}
+          draggable={false}
+          tweenOptions={this.rightSign.tweenOptions}
+          tweenStart={'fromCode'}
+        />
+
+        {this.leftFood.character ?
           <AnimatedSprite
-            character={lever}
-            characterUID={this.characterUIDs.lever}
+            character={this.leftFood.character}
+            ref={'leftFood'}
+            key={this.leftFood.key}
             animationFrameIndex={[0]}
-            loopAnimation={false}
             coordinates={{
-              top: 240 * this.scale.screenHeight,
-              left: 1080 * this.scale.screenWidth }}
-            size={{ width: Math.floor(213 * this.scale.image),
-              height: Math.floor(189 * this.scale.image)}}
-            rotate={[{rotateY:'180deg'}]}
-            onPress={() => this.leverPress()}
-            onPressIn={() => this.leverPressIn()}
-            onPressOut={() => this.leverPressOut()}
-          />
-
-          <AnimatedSprite
-            character={signCharacter}
-            ref={'leftSign'}
-            animationFrameIndex={[0]}
-            coordinates={{top: -300 * this.scale.screenHeight,
-              left: 350 * this.scale.screenWidth}}
-            size={{width: 188 * this.scale.image,
-              height: 300 * this.scale.image}}
+              top: this.leftFood.coords[0],
+              left: this.leftFood.coords[1]
+            }}
+            size={{
+              width: this.foodSize(this.leftFood, 'width'),
+              height: this.foodSize(this.leftFood, 'height'),
+            }}
             draggable={false}
-            tweenOptions={this.leftSign.tweenOptions}
+            tweenOptions={this.leftFood.tweenOptions}
             tweenStart={'fromCode'}
+            onPress={() => this.foodPressed(LEFT)}
           />
+        : null}
 
+        {this.middleFood.character ?
           <AnimatedSprite
-            character={signCharacter}
-            ref={'middleSign'}
+            character={this.middleFood.character}
+            ref={'middleFood'}
+            key={this.middleFood.key}
             animationFrameIndex={[0]}
-            coordinates={{top: -300 * this.scale.screenHeight,
-              left: 550 * this.scale.screenWidth}}
-            size={{width: 188 * this.scale.image,
-              height: 300 * this.scale.image}}
+            coordinates={{
+              top: this.middleFood.coords[0],
+              left: this.middleFood.coords[1]}}
+            size={{
+              width: this.foodSize(this.middleFood, 'width') ,
+              height: this.foodSize(this.middleFood, 'height'),
+            }}
             draggable={false}
-            tweenOptions={this.middleSign.tweenOptions}
+            tweenOptions={this.middleFood.tweenOptions}
             tweenStart={'fromCode'}
+            onPress={() => this.foodPressed(MIDDLE)}
           />
+        : null}
 
+        {this.rightFood.character ?
           <AnimatedSprite
-            character={signCharacter}
-            ref={'rightSign'}
+            character={this.rightFood.character}
+            ref={'rightFood'}
+            key={this.rightFood.key}
             animationFrameIndex={[0]}
-            coordinates={{top: -300 * this.scale.screenHeight,
-              left: 750 * this.scale.screenWidth}}
-            size={{width: 188 * this.scale.image,
-              height: 300 * this.scale.image}}
+            coordinates={{
+              top: this.rightFood.coords[0],
+              left: this.rightFood.coords[1]}}
+            size={{
+              width: this.foodSize(this.rightFood, 'width'),
+              height: this.foodSize(this.rightFood, 'height'),
+            }}
             draggable={false}
-            tweenOptions={this.rightSign.tweenOptions}
+            tweenOptions={this.rightFood.tweenOptions}
             tweenStart={'fromCode'}
+            onPress={() => this.foodPressed(RIGHT)}
           />
+        : null}
 
-          {this.leftFood.character ?
-            <AnimatedSprite
-              character={this.leftFood.character}
-              ref={'leftFood'}
-              key={this.leftFood.key}
-              animationFrameIndex={[0]}
-              coordinates={{
-                top: this.leftFood.coords[0],
-                left: this.leftFood.coords[1]}}
-              size={{width: 100 * this.scale.image,
-                height: 108 * this.scale.image}}
-              draggable={false}
-              tweenOptions={this.leftFood.tweenOptions}
-              tweenStart={'fromCode'}
-              onPress={() => this.foodPressed(LEFT)}
-            />
-          : null}
-
-          {this.middleFood.character ?
-            <AnimatedSprite
-              character={this.middleFood.character}
-              ref={'middleFood'}
-              key={this.middleFood.key}
-              animationFrameIndex={[0]}
-              coordinates={{
-                top: this.middleFood.coords[0],
-                left: this.middleFood.coords[1]}}
-              size={{width: 120 * this.scale.image,
-                height: 120 * this.scale.image}}
-              draggable={false}
-              tweenOptions={this.middleFood.tweenOptions}
-              tweenStart={'fromCode'}
-              onPress={() => this.foodPressed(MIDDLE)}
-            />
-          : null}
-
-          {this.rightFood.character ?
-            <AnimatedSprite
-              character={this.rightFood.character}
-              ref={'rightFood'}
-              key={this.rightFood.key}
-              animationFrameIndex={[0]}
-              coordinates={{
-                top: this.rightFood.coords[0],
-                left: this.rightFood.coords[1]}}
-                size={{width: 120 * this.scale.image,
-                  height: 120 * this.scale.image}}
-              draggable={false}
-              tweenOptions={this.rightFood.tweenOptions}
-              tweenStart={'fromCode'}
-              onPress={() => this.foodPressed(RIGHT)}
-            />
-          : null}
-
-          <AnimatedSprite
-            ref={'monsterRef'}
-            character={monsterCharacter}
-            characterUID={this.characterUIDs.monster}
-            style={{opacity: 1}}
-            animationFrameIndex={this.state.monsterAnimationIndex}
-            loopAnimation={this.monster.loopAnimation}
-            coordinates={{top: 400 * this.scale.screenHeight,
-              left: -330 * this.scale.screenWidth}}
-            size={{ width: 330 * this.scale.image,
-              height: 330 * this.scale.image}}
-            rotate={[{rotateY:'180deg'}]}
-            tweenOptions={this.monster.tweenOptions}
-            tweenStart={'fromCode'}
-            onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
-          />
-
-          <AnimatedSprite
-            ref={'goatRef'}
-            character={goatLiteCharacter}
-            characterUID={this.characterUIDs.goat}
-            style={{opacity: 1}}
-            animationFrameIndex={this.state.goatAnimationIndex}
-            loopAnimation={this.goat.loopAnimation}
-            coordinates={{top: 420, left: -300 }}
-            size={{ width: 300,height: 252 }}
-            tweenOptions={this.goat.tweenOptions}
-            tweenStart={'fromCode'}
-            onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-          />
-
-        </Image>
+        <AnimatedSprite
+          ref={'monsterRef'}
+          character={this.state.character}
+          characterUID={this.characterUIDs.character}
+          style={{opacity: 1}}
+          animationFrameIndex={this.state.characterAnimationIndex}
+          loopAnimation={this.activeCharacter.loopAnimation }
+          coordinates={{
+            top: this.activeCharacter.coords.top,
+            left: this.activeCharacter.coords.left,
+          }}
+          size={{
+            width: this.activeCharacter.size.width * this.scale.image,
+            height: this.activeCharacter.size.height * this.scale.image
+          }}
+          rotate={[{rotateY:'180deg'}]}
+          tweenOptions={this.activeCharacter.tweenOptions}
+          tweenStart={'fromCode'}
+          onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
+        />
+      
       </View>
     );
   }
@@ -466,3 +506,21 @@ MatchByColorGame.propTypes = {
 reactMixin.onClass(MatchByColorGame, TimerMixin);
 
 export default MatchByColorGame;
+
+
+// <AnimatedSprite
+//   ref={'monsterRef'}
+//   character={monsterCharacter}
+//   characterUID={this.characterUIDs.monster}
+//   style={{opacity: 1}}
+//   animationFrameIndex={this.state.monsterAnimationIndex}
+//   loopAnimation={this.monster.loopAnimation}
+//   coordinates={{top: 400 * this.scale.screenHeight,
+//     left: -330 * this.scale.screenWidth}}
+//   size={{ width: 330 * this.scale.image,
+//     height: 330 * this.scale.image}}
+//   rotate={[{rotateY:'180deg'}]}
+//   tweenOptions={this.monster.tweenOptions}
+//   tweenStart={'fromCode'}
+//   onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
+// />
