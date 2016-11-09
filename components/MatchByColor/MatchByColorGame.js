@@ -12,10 +12,6 @@ import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
 import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
-// game characters
-import monsterCharacter from '../../sprites/monster/monsterCharacter';
-import goatLiteCharacter from '../../sprites/goat/goatCharacter';
-import dogCharacter from '../../sprites/dog/dogCharacter';
 // foods
 import appleCharacter from "../../sprites/apple/appleCharacter";
 import grassCharacter from "../../sprites/grass/grassCharacter";
@@ -26,6 +22,7 @@ import lever from '../../sprites/lever/leverCharacter';
 import sign from '../../sprites/sign/signCharacter';
 // utils
 import { omnivoreUtils as monsterUtils } from './omnivoreUtils';
+// game character related utils
 import gameUtil from './gameUtil';
 
 const LEFT = 0;
@@ -33,34 +30,27 @@ const MIDDLE = 1;
 const RIGHT = 2;
 
 class MatchByColorGame extends React.Component {
-
   constructor (props) {
     super(props);
-    // customizable function for dropping food/signs into the frame
     this.state = {
-      monsterAnimationIndex: [0],
-      goatAnimationIndex: [0],
-      mammalAnimationIndex: [0],
       character: null,
       characterAnimationIndex: [0],
-      tweenCharacter: false,
-      loadContent: false,
+      loadingCharacter: false,
       dropFood: false,
       signsVisable: false,
       foodDisplayed: false,
+      level: 0,
     };
 
     this.activeCharacter;
 
-    this.monster = {tweenOptions: {}};
-    this.goat = {tweenOptions: {}};
-    this.mammal = {tweenOptions: {}};
     this.leftSign = {tweenOptions: {}};
     this.middleSign = {tweenOptions: {}};
     this.rightSign = {tweenOptions: {}};
     this.leftFood = {tweenOptions: {}};
     this.middleFood = {tweenOptions: {}};
     this.rightFood = {tweenOptions: {}};
+
     this.scale = this.props.scale;
     this.baseFoodLocation = [150, 400];
     this.foodLeftShift = 200;
@@ -74,29 +64,9 @@ class MatchByColorGame extends React.Component {
   componentWillMount () {
     this.characterUIDs = {
       lever: randomstring({ length: 7 }),
-      monster: randomstring({ length: 7 }),
-      goat: randomstring({ length: 7 }),
-      mammal: randomstring({ length: 7 }),
-      character: randomstring({ length: 7 }),
     };
 
-    this.setState({
-      monsterAnimationIndex: [0,1,2,3,4,5,6,7],
-      goatAnimationIndex: [0,1,2,3,4,5,6,7],
-      mammalAnimationIndex: [0,1,2,3,4,5,6],
-      loadContent: true,
-    }, () => {
-
-    });
-
-    this.setDefaultAnimationState = setTimeout(() => {
-      this.setState({
-        monsterAnimationIndex: [0],
-        goatAnimationIndex: [0],
-        mammalAnimationIndex: [0],
-        loadContent: false,
-      });
-    }, 2000);
+    this.loadCharacter('dog');
 
     // set offscreen
     const coords = this.foodDisplayAtLocation(-150);
@@ -104,13 +74,26 @@ class MatchByColorGame extends React.Component {
     this.middleFood.coords = [coords.top, coords.middleLeft];
     this.rightFood.coords = [coords.top, coords.rightLeft];
   }
+
+  componentDidMount () {
+
+  }
+
+  componentWillUnmount () {
+    clearInterval(this.setDefaultAnimationState);
+    clearInterval(this.eatInterval);
+    clearInterval(this.switchCharacterInterval);
+  }
+
   /**
    * used to load character image frames off screen so that image
    * frames are in memory.
    */
-  loadCharacter () {
+  loadCharacter (characterName) {
     // get character
-    this.activeCharacter = gameUtil.getCharacter('monster');
+    this.characterUIDs.character = randomstring({ length: 7 });
+
+    this.activeCharacter = gameUtil.getCharacter(characterName);
     // want to load character offscreen
     this.activeCharacter.coords = {
       top: 400 * this.scale.screenHeight * this.scale.screenHeight,
@@ -118,17 +101,20 @@ class MatchByColorGame extends React.Component {
     };
     this.activeCharacter.loopAnimation = false;
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
+
     this.setState({
       character: this.activeCharacter,
       characterAnimationIndex: this.activeCharacter.animationIndex('ALL'),
-      loadContent: true,
+      loadingCharacter: true,
     }, () => {
-
+      clearInterval(this.setDefaultAnimationState);
+      this.setDefaultAnimationState = setTimeout(() => {
+        this.setState({
+          characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
+          loadingCharacter: false,
+        });
+      }, 2000);
     });
-  }
-
-  componentDidMount () {
-
   }
 
   makeMoveTween (startXY=[40, 400], endXY=[600, 400], duration=1500) {
@@ -144,25 +130,12 @@ class MatchByColorGame extends React.Component {
     );
   }
 
-  onTweenFinish (characterUID) {
-    switch (characterUID) {
-      case this.characterUIDs.monster:
-        this.setState({monsterAnimationIndex: monsterUtils.normalIndx});
-        break;
-    }
-  }
-
   onCharacterTweenFinish (characterUID) {
     switch (characterUID) {
-      case this.characterUIDs.monster:
-      //  this.monster.loopAnimation = false;
-        this.setState({monsterAnimationIndex: monsterUtils.normalIndx});
+      case this.characterUIDs.character:
+        this.setState({characterAnimationIndex: this.activeCharacter.animationIndex('IDLE')});
         break;
     }
-  }
-
-  leverPressIn () {
-    // console.warn('leverPressIn');
   }
 
   foodDisplayAtLocation (top = 150, left = 400, shift = 200) {
@@ -186,29 +159,30 @@ class MatchByColorGame extends React.Component {
     this.rightSign.tweenOptions = this.makeMoveTween([750, 0], [750, -300], 800);
   }
 
+  leverPressIn () {
+    // console.warn('leverPressIn');
+  }
+
   leverPress () {
-    if (this.state.loadContent || this.state.signsVisable) {
+    if (this.state.loadingCharacter || this.state.signsVisable) {
       return;
     }
 
     // creature enter from left
-    this.monster.tweenOptions = this.makeMoveTween([-300, 400], [150, 400]);
-    // this.goat.tweenOptions = this.makeMoveTween([-300, 400], [150, 400]);
+    this.activeCharacter.tweenOptions = this.makeMoveTween([-300, 400], [150, 400]);
 
     this.initializeMoveDownTweensForSignsAndFoods();
 
-    this.monster.loopAnimation = true;
-    // this.goat.loopAnimation = true;
+    this.activeCharacter.loopAnimation = true;
 
     this.setState({
-      monsterAnimationIndex: monsterUtils.walkIndx,
-      tweenCharacter: true,
+      characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
       signsVisable: true},
       () => {
         this.refs.leftSign.startTween();
         this.refs.middleSign.startTween();
         this.refs.rightSign.startTween();
-        this.refs.monsterRef.startTween();
+        this.refs.characterRef.startTween();
         // then interval to make food appear on sign.
         clearInterval(this.showFoodInterval);
         this.showFoodInterval = setInterval(() => {
@@ -217,6 +191,10 @@ class MatchByColorGame extends React.Component {
           clearInterval(this.showFoodInterval)
         }, 1000);
       });
+  }
+
+  leverPressOut () {
+    // console.warn('leverPressOut');
   }
 
   showFoods (coords, displayFood, setState = true) {
@@ -241,10 +219,6 @@ class MatchByColorGame extends React.Component {
     if (setState) {
       this.setState({foodDisplayed: displayFood});
     }
-  }
-
-  leverPressOut () {
-    // console.warn('leverPressOut');
   }
 
   foodDrop (food, starXY, endXY, duration) {
@@ -277,13 +251,13 @@ class MatchByColorGame extends React.Component {
         break;
     }
 
+    this.activeCharacter.loopAnimation = false;
     clearInterval(this.eatInterval);
     this.eatInterval = setInterval(() => {
-      this.monster.loopAnimation = false;
-      // this.goat.loopAnimation = false;
+      this.activeCharacter.loopAnimation = false;
       this.setState({
         dropFood: false,
-        monsterAnimationIndex: monsterUtils.eatIndx,
+        characterAnimationIndex: this.activeCharacter.animationIndex('EAT'),
       }, () => {
         this.liftSigns();
       });
@@ -295,25 +269,32 @@ class MatchByColorGame extends React.Component {
   liftSigns () {
     this.initializeMoveUpTweensForSignsAndFoods();
 
-    this.monster.tweenOptions = this.makeMoveTween([150, 400], [1280, 400], 2000);
-    this.monster.loopAnimation = true;
+    const timeToExit = 2000;
+    this.activeCharacter.tweenOptions = this.makeMoveTween([150, 400], [1280, 400], timeToExit);
+    this.activeCharacter.loopAnimation = true;
 
-    // this.goat.tweenOptions = this.makeMoveTween([150, 400], [1280, 400], 2000);
-    // this.goat.loopAnimation = true;
+    //hide foods
     const coords = this.foodDisplayAtLocation(-150);
     this.showFoods(coords, false, false);
+
     clearInterval(this.signInterval);
     this.signInterval = setInterval(() => {
       this.setState({
-        monsterAnimationIndex: monsterUtils.walkIndx,
-        tweenCharacter: true,
+        characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         foodDisplayed: false,
       }, () => {
         this.refs.leftSign.startTween();
         this.refs.middleSign.startTween();
         this.refs.rightSign.startTween();
-        this.refs.monsterRef.startTween();
+        this.refs.characterRef.startTween();
+        clearInterval(this.switchCharacterInterval)
+        this.switchCharacterInterval = setInterval(() => {
+          const characters = ['monster', 'dog', 'goat'];
+          const indx = Math.floor(Math.random() * 3);
+          this.loadCharacter(characters[indx]);
+          clearInterval(this.switchCharacterInterval)
+        }, timeToExit);
       });
       clearInterval(this.signInterval);
     }, 1500);
@@ -329,6 +310,18 @@ class MatchByColorGame extends React.Component {
         return Math.floor((food.character.size.width * scale) * this.scale.image);
       case 'height':
         return Math.floor((food.character.size.height * scale) * this.scale.image);
+    }
+  }
+
+  characterSize (character, dimension) {
+    const widthScale = 300/character.size.width;
+    const heightScale = 300/character.size.height;
+    const scale = widthScale > heightScale ? heightScale : widthScale;
+    switch (dimension) {
+      case 'width':
+        return Math.floor((character.size.width * scale) * this.scale.image);
+      case 'height':
+        return Math.floor((character.size.height * scale) * this.scale.image);
     }
   }
 
@@ -458,26 +451,27 @@ class MatchByColorGame extends React.Component {
         : null}
 
         <AnimatedSprite
-          ref={'monsterRef'}
+          ref={'characterRef'}
           character={this.state.character}
           characterUID={this.characterUIDs.character}
+          key={this.characterUIDs.character}
           style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
-          loopAnimation={this.activeCharacter.loopAnimation }
+          loopAnimation={this.activeCharacter.loopAnimation}
           coordinates={{
             top: this.activeCharacter.coords.top,
             left: this.activeCharacter.coords.left,
           }}
           size={{
-            width: this.activeCharacter.size.width * this.scale.image,
-            height: this.activeCharacter.size.height * this.scale.image
+            width: this.characterSize(this.activeCharacter, 'width'),
+            height: this.characterSize(this.activeCharacter, 'height')
           }}
-          rotate={[{rotateY:'180deg'}]}
+          rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
           tweenStart={'fromCode'}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
         />
-      
+
       </View>
     );
   }
@@ -506,21 +500,3 @@ MatchByColorGame.propTypes = {
 reactMixin.onClass(MatchByColorGame, TimerMixin);
 
 export default MatchByColorGame;
-
-
-// <AnimatedSprite
-//   ref={'monsterRef'}
-//   character={monsterCharacter}
-//   characterUID={this.characterUIDs.monster}
-//   style={{opacity: 1}}
-//   animationFrameIndex={this.state.monsterAnimationIndex}
-//   loopAnimation={this.monster.loopAnimation}
-//   coordinates={{top: 400 * this.scale.screenHeight,
-//     left: -330 * this.scale.screenWidth}}
-//   size={{ width: 330 * this.scale.image,
-//     height: 330 * this.scale.image}}
-//   rotate={[{rotateY:'180deg'}]}
-//   tweenOptions={this.monster.tweenOptions}
-//   tweenStart={'fromCode'}
-//   onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
-// />
