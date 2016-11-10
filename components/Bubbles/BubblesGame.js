@@ -18,6 +18,7 @@ import monsterCharacter from '../../sprites/monster/monsterCharacter';
 import lever from '../../sprites/lever/leverCharacter';
 import fountain from '../../sprites/fountain/fountainCharacter';
 import canCharacter from '../../sprites/can/canCharacter';
+import {omnivoreUtils as monsterUtils} from '../MatchByColor/omnivoreUtils';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -26,7 +27,7 @@ const SCALE = {
   height: Dimensions.get('window').height / 800,
 };
 // TODO: do we need offset?
-const OFFSET = 80;
+const OFFSET = 25;
 const GAME_TIME_OUT = 115000;
 const MAX_NUMBER_BUBBLES = 15;
 const FOUTAIN_LOCATION = {top: 0, left: 0};
@@ -50,6 +51,7 @@ class BubblesGame extends React.Component {
     this.bubbleFountainInterval;
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
+    this.monsterCharacter = {tweenOptions: {}};
     FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (FOUTAIN_SIZE.height + OFFSET);
     FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (FOUTAIN_SIZE.width/2);
     this.scale = this.props.scale;
@@ -72,8 +74,7 @@ class BubblesGame extends React.Component {
         bubbleAnimationIndex: [0],
         omnivoreAnimationIndex: [0],
         loadContent: false,
-      });
-      this.setState({});
+      }, ()=>{this.characterWalkOn();});
     }, 1500);
   }
 
@@ -89,7 +90,24 @@ class BubblesGame extends React.Component {
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
   }
+  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500){
+    return({
+      tweenType: "linear-move",
+      startXY: [startXY[0]*this.scale.screenWidth, startXY[1]*this.scale.screenHeight],
+      endXY: [endXY[0]*this.scale.screenWidth, endXY[1]*this.scale.screenHeight],
+      duration:duration,
+      loop: false,
+    });
+  }
 
+  characterWalkOn() {
+    this.monsterCharacter.tweenOptions = this.makeMoveTween([-300,500], [40,500]);
+    this.monsterCharacter.loopAnimation = true;
+    this.setState({
+      omnivoreAnimationIndex: monsterUtils.walkIndx,
+      tweenCharacter: true
+    }, ()=> {this.refs.monsterRef.startTween();});
+  }
   // random time for background bubbles to be on screen, between 2 and 6 seconds
   getRandomDuration () {
     return (Math.floor(Math.random() *  (4000)) + 2000) * this.scale.screenWidth;
@@ -103,6 +121,15 @@ class BubblesGame extends React.Component {
       return true;
     });
     this.setState({bubbleArray: remainingBubbles});
+  }
+
+  onCharacterTweenFinish (characterUID) {
+    switch (characterUID) {
+      case this.characterUIDs.monsterCharacter:
+        this.monsterCharacter.loopAnimation = false;
+        this.setState({omnivoreAnimationIndex: monsterUtils.normalIndx});
+        break;
+    }
   }
   // populate array of background bubbles
   createBubbles () {
@@ -225,7 +252,7 @@ class BubblesGame extends React.Component {
     clearInterval(this.eatInterval)
     this.eatInterval = setInterval(() => {
       this.setState({
-        omnivoreAnimationIndex: [0,4,0,5],
+        omnivoreAnimationIndex: monsterUtils.eatIndx,
       });
       clearInterval(this.eatInterval);
     }, 600);
@@ -284,12 +311,7 @@ class BubblesGame extends React.Component {
   render () {
     return (
       <Image source={require('../../media/backgrounds/Game_7_Background_1280.png')} style={styles.backgroundImage}>
-          <View style={styles.topBar}>
-            <TouchableOpacity style={styles.button} onPress={this.buttonPress}>
-            </TouchableOpacity>
-          </View>
           <View style={styles.gameWorld}>
-
             <AnimatedSprite
               character={lever}
               characterUID={this.characterUIDs.lever}
@@ -314,19 +336,23 @@ class BubblesGame extends React.Component {
                 animationFrameIndex={this.state.bubbleAnimationIndex}
                 loopAnimation={false}
                 coordinates={{top: 400 * this.scale.screenHeight,
-                  left: 40 * this.scale.screenWidth}}
+                  left: -300 * this.scale.screenWidth}}
                 size={{ width: Math.floor(300 * this.scale.image),
                   height: Math.floor(285 * this.scale.image)}}
               />
             : null}
 
             <AnimatedSprite
+              ref={'monsterRef'}
               character={monsterCharacter}
               characterUID={this.characterUIDs.omnivore}
               animationFrameIndex={this.state.omnivoreAnimationIndex}
+              tweenStart={'fromCode'}
+              tweenOptions={this.monsterCharacter.tweenOptions}
+              onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
               loopAnimation={false}
-              coordinates={{top: (400-80) * this.scale.screenHeight,
-                left: 40 * this.scale.screenWidth}}
+              coordinates={{top: (500) * this.scale.screenHeight,
+                left: -300 * this.scale.screenWidth}}
               size={{ width: Math.floor(300 * this.scale.image),
                 height: Math.floor(285 * this.scale.screenHeight)}}
               rotate={[{rotateY:'180deg'}]}
@@ -375,13 +401,6 @@ class BubblesGame extends React.Component {
               size={{ width: FOUTAIN_SIZE.width,
                 height: FOUTAIN_SIZE.height}}
             />
-
-            <View style={styles.row}>
-              <TouchableOpacity style={styles.button} onPress={this.homeBtn}>
-                  <Text>{'Home'}</Text>
-              </TouchableOpacity>
-            </View>
-
           </View>
       </Image>
     );
