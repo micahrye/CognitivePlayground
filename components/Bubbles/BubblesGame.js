@@ -207,7 +207,6 @@ class BubblesGame extends React.Component {
 
   foodFall (startX, startY) {
     debugger;
-    debugger;
     this.food.tweenOptions = {
       tweenType: 'sine-wave',
       startXY: [startX, startY],

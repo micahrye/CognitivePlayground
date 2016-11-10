@@ -1,5 +1,5 @@
 const dogCharacter = {
-  name:"dogCharacter",
+  name:"dog",
   size: {width: 168, height: 220},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
   all: [

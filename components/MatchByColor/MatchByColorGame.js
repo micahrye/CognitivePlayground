@@ -131,6 +131,7 @@ class MatchByColorGame extends React.Component {
   }
 
   onCharacterTweenFinish (characterUID) {
+    this.activeCharacter.loopAnimation = false;
     switch (characterUID) {
       case this.characterUIDs.character:
         this.setState({characterAnimationIndex: this.activeCharacter.animationIndex('IDLE')});
