@@ -1,3 +1,5 @@
+// @flow
+
 import React from 'react';
 import {
   View,
@@ -16,9 +18,9 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 class Main extends React.Component {
-  constructor (props) {
+  constructor (props: Object) {
     super(props);
-    this.iconList = [
+    const iconList: Object[] = [
       {
         name: 'BUBBLE',
         imgSrc: require('./media/icons/game7_icon_color.png'),
@@ -55,6 +57,7 @@ class Main extends React.Component {
         location: {top: 420, left: 940},
       },
     ];
+    this.iconList = iconList;
   }
 
   componentWillMount () {}
@@ -66,7 +69,7 @@ class Main extends React.Component {
     this.props.navigator.replace({id: gameId});
   }
 
-  launchGame (game) {
+  launchGame (game: string) {
     switch (game) {
       case 'BUBBLE':
         this.goToGame('BubblesGame');
