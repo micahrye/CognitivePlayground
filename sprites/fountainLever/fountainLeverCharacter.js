@@ -1,10 +1,10 @@
 
-const fountainCharacter = {
-  name:"fauntain",
-  size: {width: 487, height: 266},
+const fountainLeverCharacter = {
+  name:"fauntainLever",
+  size: {width: 128, height: 112},
   animationTypes: ['IDLE', 'ALL'],
   all:[
-    require("./bubble_machine.png"),
+    require("./bubble_machine_handle.png"),
   ],
   animationIndex: function getAnimationIndex (animationType){
     switch (animationType) {
@@ -16,4 +16,4 @@ const fountainCharacter = {
   },
 };
 
-export default fountainCharacter;
+export default fountainLeverCharacter;

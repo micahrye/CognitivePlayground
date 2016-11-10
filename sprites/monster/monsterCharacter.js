@@ -1,6 +1,6 @@
 
 const monsterCharacter = {
-  name:"monsterCharacter",
+  name:"monster",
   size: {width: 220, height: 220},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
   all: [
@@ -20,6 +20,14 @@ const monsterCharacter = {
         return [0];
       case 'WALK':
         return [1,2,3,0];
+      case 'EAT':
+        return [4,5,4,0];
+      case 'CELEBRATE':
+        return [6,7,6,0];
+      case 'DISGUST':
+        return [0,8,8,8,8,0];
+      case 'ALL':
+        return [0,1,2,3,4,5,6,7,8];
     }
   },
 };
