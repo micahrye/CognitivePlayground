@@ -16,3 +16,13 @@
   * change food drop to location based on character
 * Sign related
   * programatically choose which is active sign
+
+
+
+
+## BugZap Game
+
+* Timed level (longer to shorter)
+
+* Bee level
+* Spotlight level
