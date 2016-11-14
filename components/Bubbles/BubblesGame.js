@@ -19,7 +19,6 @@ import lever from '../../sprites/lever/leverCharacter';
 import fountain from '../../sprites/fountain/fountainCharacter';
 import fountainLever from '../../sprites/fountainLever/fountainLeverCharacter';
 import canCharacter from '../../sprites/can/canCharacter';
-import {omnivoreUtils as monsterUtils} from '../MatchByColor/omnivoreUtils';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -32,8 +31,8 @@ const OFFSET = 10;
 const GAME_TIME_OUT = 115000;
 const MAX_NUMBER_BUBBLES = 15;
 const FOUTAIN_LOCATION = {top: 0, left: 0};
-const FOUTAIN_SIZE = { width: 270 * SCALE.width, height: 258 * SCALE.height};
 const LEVER_LOCATION = {top: 0, left: 0};
+const FOUTAIN_SIZE = {width: 0, height: 0};
 
 class BubblesGame extends React.Component {
   constructor (props) {
@@ -59,6 +58,7 @@ class BubblesGame extends React.Component {
     LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 60;
     LEVER_LOCATION.left = FOUTAIN_LOCATION.left + (fountain.size.width - 40);
     this.scale = this.props.scale;
+    FOUTAIN_SIZE = { width: 270 * this.scale.screenWidth, height: 258 * this.scale.screenHeight};
   }
 
   componentWillMount () {
@@ -94,6 +94,7 @@ class BubblesGame extends React.Component {
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
   }
+
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500){
     return({
       tweenType: "linear-move",
@@ -108,10 +109,11 @@ class BubblesGame extends React.Component {
     this.monster.tweenOptions = this.makeMoveTween([-300,510], [40,510]);
     this.monster.loopAnimation = true;
     this.setState({
-      monsterAnimationIndex: monsterUtils.walkIndx,
+      monsterAnimationIndex: monster.animationIndex('WALK'),
       tweenCharacter: true,
     }, ()=> {this.refs.monsterRef.startTween();});
   }
+
   // random time for background bubbles to be on screen, between 2 and 6 seconds
   getRandomDuration () {
     return (Math.floor(Math.random() *  (4000)) + 2000) * this.scale.screenWidth;
@@ -127,14 +129,11 @@ class BubblesGame extends React.Component {
     this.setState({bubbleArray: remainingBubbles});
   }
 
-  onCharacterTweenFinish (characterUID) {
-    switch (characterUID) {
-      case this.characterUIDs.monster:
-        this.monster.loopAnimation = false;
-        this.setState({monsterAnimationIndex: monsterUtils.normalIndx});
-        break;
-    }
+  onCharacterTweenFinish () {
+    this.monster.loopAnimation = false;
+    this.setState({monsterAnimationIndex: monster.animationIndex('IDLE')});
   }
+
   // populate array of background bubbles
   createBubbles () {
     const uid = randomstring({ length: 7 });
@@ -256,7 +255,7 @@ class BubblesGame extends React.Component {
     this.eatInterval = setInterval(() => {
       console.warn('eating');
       this.setState({
-        monsterAnimationIndex: monsterUtils.eatIndx,
+        monsterAnimationIndex: monster.animationIndex('EAT'),
       });
       clearInterval(this.eatInterval);
     }, 600);
@@ -319,8 +318,8 @@ class BubblesGame extends React.Component {
                 top: LEVER_LOCATION.top,
                 left: LEVER_LOCATION.left}}
               size={{
-                width: Math.floor(214 * this.scale.image),
-                height: Math.floor(189 * this.scale.image)}}
+                width: Math.floor(lever.size.width * this.scale.image),
+                height: Math.floor(lever.size.height * this.scale.image)}}
               rotate={[{rotateY:'0deg'}, {rotateX: '10deg'}]}
               onPress={() => this.leverPress()}
               onPressIn={() => this.leverPressIn()}
