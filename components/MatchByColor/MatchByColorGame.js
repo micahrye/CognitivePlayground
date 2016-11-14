@@ -230,6 +230,17 @@ class MatchByColorGame extends React.Component {
     });
   }
 
+  foodEndLocation (activeCharacter) {
+    switch (activeCharacter.name) {
+      case 'monster':
+        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
+      case 'goat':
+        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
+      case 'dog':
+        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight]
+    }
+  }
+
   foodPressed (foodId) {
     if (this.state.dropFood || !(foodId === this.targetFoodPosition)) {
       return;
@@ -239,7 +250,7 @@ class MatchByColorGame extends React.Component {
     const foodDropTime = 800;
     const coords = this.foodDisplayAtLocation();
     // this will depend on the character [left, top]
-    const endLocation = [300, 540];
+    const endLocation = this.foodEndLocation(this.activeCharacter);
     switch (this.targetFoodPosition) {
       case LEFT:
         this.foodDrop('leftFood', [coords.leftLeft, 150], endLocation, foodDropTime);
