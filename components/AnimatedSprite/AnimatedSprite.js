@@ -162,6 +162,10 @@ class AnimatedSprite extends React.Component {
             this.frameIndex = 0;
         } else {
           clearInterval(this.defaultAnimationInterval);
+          if (this.props.onAnimationFinish) {
+             this.props.onAnimationFinish(this.props.characterUID);
+          }
+          return;
         }
       }
       const index = this.props.animationFrameIndex[this.frameIndex];
