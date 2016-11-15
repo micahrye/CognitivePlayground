@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Image,
-  StyleSheet,
   View,
 } from 'react-native';
 
@@ -16,18 +15,18 @@ import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
 import appleCharacter from "../../sprites/apple/appleCharacter";
 import grassCharacter from "../../sprites/grass/grassCharacter";
 import canCharacter from "../../sprites/can/canCharacter";
-import bugfoodCharacter from "../../sprites/bugfood/bugfoodCharacter";
 // props
 import lever from '../../sprites/lever/leverCharacter';
 import sign from '../../sprites/sign/signCharacter';
-// utils
-import { omnivoreUtils as monsterUtils } from './omnivoreUtils';
 // game character related utils
 import gameUtil from './gameUtil';
+// styles
+import styles from './styles';
 
 const LEFT = 0;
 const MIDDLE = 1;
 const RIGHT = 2;
+
 
 class MatchByColorGame extends React.Component {
   constructor (props) {
@@ -39,7 +38,7 @@ class MatchByColorGame extends React.Component {
       dropFood: false,
       signsVisable: false,
       foodDisplayed: false,
-      level: 0,
+      level: 1,
     };
 
     this.activeCharacter;
@@ -66,8 +65,8 @@ class MatchByColorGame extends React.Component {
       lever: randomstring({ length: 7 }),
     };
 
-    this.loadCharacter('dog');
-
+    const name = gameUtil.getValidCharacterNameForLevel(this.state.level);
+    this.loadCharacter(name);
     // set offscreen
     const coords = this.foodDisplayAtLocation(-150);
     this.leftFood.coords = [coords.top, coords.leftLeft];
@@ -93,7 +92,7 @@ class MatchByColorGame extends React.Component {
     // get character
     this.characterUIDs.character = randomstring({ length: 7 });
 
-    this.activeCharacter = gameUtil.getCharacter(characterName);
+    this.activeCharacter = gameUtil.getCharacterObject(characterName);
     // want to load character offscreen
     this.activeCharacter.coords = {
       top: 400 * this.scale.screenHeight * this.scale.screenHeight,
@@ -160,6 +159,22 @@ class MatchByColorGame extends React.Component {
     this.rightSign.tweenOptions = this.makeMoveTween([750, 0], [750, -300], 800);
   }
 
+  startSignsTween (level) {
+    switch (level) {
+      case 1:
+      case 2:
+        this.refs.leftSign.startTween();
+        this.refs.middleSign.startTween();
+        // this.refs.rightSign.startTween();
+        break;
+      case 3:
+        this.refs.leftSign.startTween();
+        this.refs.middleSign.startTween();
+        this.refs.rightSign.startTween();
+        break;
+    }
+  }
+
   leverPressIn () {
     // console.warn('leverPressIn');
   }
@@ -180,16 +195,14 @@ class MatchByColorGame extends React.Component {
       characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
       signsVisable: true},
       () => {
-        this.refs.leftSign.startTween();
-        this.refs.middleSign.startTween();
-        this.refs.rightSign.startTween();
+        this.startSignsTween(this.state.level);
         this.refs.characterRef.startTween();
         // then interval to make food appear on sign.
         clearInterval(this.showFoodInterval);
         this.showFoodInterval = setInterval(() => {
           const coords = this.foodDisplayAtLocation();
           this.showFoods(coords, true);
-          clearInterval(this.showFoodInterval)
+          clearInterval(this.showFoodInterval);
         }, 1000);
       });
   }
@@ -237,7 +250,7 @@ class MatchByColorGame extends React.Component {
       case 'goat':
         return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
       case 'dog':
-        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight]
+        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
     }
   }
 
@@ -245,8 +258,6 @@ class MatchByColorGame extends React.Component {
     if (this.state.dropFood || !(foodId === this.targetFoodPosition)) {
       return;
     }
-    console.log(`foodID =  ${foodId}`);
-    debugger;
     const foodDropTime = 800;
     const coords = this.foodDisplayAtLocation();
     // this will depend on the character [left, top]
@@ -300,12 +311,11 @@ class MatchByColorGame extends React.Component {
         this.refs.middleSign.startTween();
         this.refs.rightSign.startTween();
         this.refs.characterRef.startTween();
-        clearInterval(this.switchCharacterInterval)
+        clearInterval(this.switchCharacterInterval);
         this.switchCharacterInterval = setInterval(() => {
-          const characters = ['monster', 'dog', 'goat'];
-          const indx = Math.floor(Math.random() * 3);
-          this.loadCharacter(characters[indx]);
-          clearInterval(this.switchCharacterInterval)
+          const name = gameUtil.getValidCharacterNameForLevel(this.state.level);
+          this.loadCharacter(name);
+          clearInterval(this.switchCharacterInterval);
         }, timeToExit);
       });
       clearInterval(this.signInterval);
@@ -366,7 +376,7 @@ class MatchByColorGame extends React.Component {
           coordinates={{top: -300 * this.scale.screenHeight,
             left: 350 * this.scale.screenWidth}}
           size={{width: sign.size.width * this.scale.image,
-            height: sign.size.height * this.scale.image
+            height: sign.size.height * this.scale.image,
           }}
           draggable={false}
           tweenOptions={this.leftSign.tweenOptions}
@@ -380,7 +390,7 @@ class MatchByColorGame extends React.Component {
           coordinates={{top: -300 * this.scale.screenHeight,
             left: 550 * this.scale.screenWidth}}
           size={{width: sign.size.width * this.scale.image,
-            height: sign.size.height * this.scale.image
+            height: sign.size.height * this.scale.image,
           }}
           draggable={false}
           tweenOptions={this.middleSign.tweenOptions}
@@ -394,7 +404,7 @@ class MatchByColorGame extends React.Component {
           coordinates={{top: -300 * this.scale.screenHeight,
             left: 750 * this.scale.screenWidth}}
           size={{width: sign.size.width * this.scale.image,
-            height: sign.size.height * this.scale.image
+            height: sign.size.height * this.scale.image,
           }}
           draggable={false}
           tweenOptions={this.rightSign.tweenOptions}
@@ -409,7 +419,7 @@ class MatchByColorGame extends React.Component {
             animationFrameIndex={[0]}
             coordinates={{
               top: this.leftFood.coords[0],
-              left: this.leftFood.coords[1]
+              left: this.leftFood.coords[1],
             }}
             size={{
               width: this.foodSize(this.leftFood, 'width'),
@@ -476,7 +486,7 @@ class MatchByColorGame extends React.Component {
           }}
           size={{
             width: this.characterSize(this.activeCharacter, 'width'),
-            height: this.characterSize(this.activeCharacter, 'height')
+            height: this.characterSize(this.activeCharacter, 'height'),
           }}
           rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
@@ -488,20 +498,6 @@ class MatchByColorGame extends React.Component {
     );
   }
 }
-
-const styles = StyleSheet.create({
-  // styles for background png image/basic black backgroundColor
-  // to go behind it
-  container: {
-      flex: 1,
-      backgroundColor: 'black',
-  },
-  backgroundImage: {
-      flex: 1,
-      width: null,
-      height: null,
-  },
-});
 
 MatchByColorGame.propTypes = {
   route: React.PropTypes.object,

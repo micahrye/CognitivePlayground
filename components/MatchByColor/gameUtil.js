@@ -1,23 +1,40 @@
 
-import monsterCharacter from '../../sprites/monster/monsterCharacter';
-import goatCharacter from '../../sprites/goat/goatCharacter';
-import dogCharacter from '../../sprites/dog/dogCharacter';
+import _ from 'lodash';
+import monster from '../../sprites/monster/monsterCharacter';
+import goat from '../../sprites/goat/goatCharacter';
+import dog from '../../sprites/dog/dogCharacter';
 
-const getCharacter = function chooseCharacter (characterName) {
+function getCharacterObject (characterName) {
   switch (characterName) {
     case 'monster':
     // TODO: make this Object.assign do not mutate.
-      monsterCharacter.rotate = [{rotateY:'180deg'}];
-      return monsterCharacter;
+      monster.rotate = [{rotateY:'180deg'}];
+      return monster;
     case 'goat':
-      goatCharacter.rotate = [{rotateY:'0deg'}];
-      return goatCharacter;
+      goat.rotate = [{rotateY:'0deg'}];
+      return goat;
     case 'dog':
-      dogCharacter.rotate = [{rotateY:'180deg'}];
-      return dogCharacter;
+      dog.rotate = [{rotateY:'180deg'}];
+      return dog;
   }
 }
 
+function getValidCharacterNameForLevel (level) {
+  let index;
+  switch (level) {
+    case 1:
+      const names = [monster.name, goat.name, dog.name];
+      index = _.random(0, names.length-1);
+      return names[index];
+  }
+}
+
+function getFoodsToDisplay () {
+  // return array of foods to show.
+  return [];
+}
+
 export default {
-  getCharacter,
+  getCharacterObject,
+  getValidCharacterNameForLevel,
 };
