@@ -23,6 +23,8 @@ function getValidCharacterNameForLevel (level) {
   let index;
   switch (level) {
     case 1:
+    case 2:
+    case 3:
       const names = [monster.name, goat.name, dog.name];
       index = _.random(0, names.length-1);
       return names[index];

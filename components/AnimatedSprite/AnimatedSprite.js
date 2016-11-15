@@ -272,7 +272,6 @@ class AnimatedSprite extends React.Component {
   }
 
   render () {
-    console.log('animated sprite render');
     return (
       <Animated.View
         {...this.panResponder.panHandlers}

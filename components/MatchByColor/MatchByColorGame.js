@@ -38,7 +38,7 @@ class MatchByColorGame extends React.Component {
       dropFood: false,
       signsVisable: false,
       foodDisplayed: false,
-      level: 1,
+      level: 3,
     };
 
     this.activeCharacter;
@@ -55,9 +55,10 @@ class MatchByColorGame extends React.Component {
     this.foodLeftShift = 200;
     this.foodTargetLocation = [300, 550];
     this.foods = [appleCharacter, grassCharacter, canCharacter];
-    this.eatInterval;
+    this.eatTimeout;
     this.signInterval;
     this.targetFoodPosition;
+    this.signDropTime = 1500 * this.props.scale.screenHeight;
   }
 
   componentWillMount () {
@@ -68,7 +69,7 @@ class MatchByColorGame extends React.Component {
     const name = gameUtil.getValidCharacterNameForLevel(this.state.level);
     this.loadCharacter(name);
     // set offscreen
-    const coords = this.foodDisplayAtLocation(-150);
+    const coords = this.foodSignDisplayLocations(-150);
     this.leftFood.coords = [coords.top, coords.leftLeft];
     this.middleFood.coords = [coords.top, coords.middleLeft];
     this.rightFood.coords = [coords.top, coords.rightLeft];
@@ -79,9 +80,9 @@ class MatchByColorGame extends React.Component {
   }
 
   componentWillUnmount () {
-    clearInterval(this.setDefaultAnimationState);
-    clearInterval(this.eatInterval);
-    clearInterval(this.switchCharacterInterval);
+    clearTimeout(this.setDefaultAnimationState);
+    clearTimeout(this.eatTimeout);
+    clearTimeout(this.switchCharacterTimeout);
   }
 
   /**
@@ -100,13 +101,14 @@ class MatchByColorGame extends React.Component {
     };
     this.activeCharacter.loopAnimation = false;
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
-
+    console.log('load all')
     this.setState({
       character: this.activeCharacter,
       characterAnimationIndex: this.activeCharacter.animationIndex('ALL'),
       loadingCharacter: true,
     }, () => {
-      clearInterval(this.setDefaultAnimationState);
+      console.log('load IDEL')
+      clearTimeout(this.setDefaultAnimationState);
       this.setDefaultAnimationState = setTimeout(() => {
         this.setState({
           characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
@@ -133,24 +135,52 @@ class MatchByColorGame extends React.Component {
     this.activeCharacter.loopAnimation = false;
     switch (characterUID) {
       case this.characterUIDs.character:
+        console.log('onCharacterTweenFinish IDLE')
         this.setState({characterAnimationIndex: this.activeCharacter.animationIndex('IDLE')});
         break;
     }
   }
 
-  foodDisplayAtLocation (top = 150, left = 400, shift = 200) {
+  onFoodTweenFinish (foodCharacter) {
+    console.log(`onFoodTweenFinish, food = ${foodCharacter}`);
+    switch (foodCharacter) {
+      case LEFT:
+        this.leftFood.character = null;
+        break;
+      case MIDDLE:
+        this.middleFood.character = null;
+        break;
+      case RIGHT:
+        this.rightFood.character = null;
+        break;
+    }
+    this.setState({});
+  }
+
+  foodSignDisplayLocations (top = 140, left = 400, shift = 200) {
     return {
-      top: top,
-      leftLeft: left,
-      middleLeft: left + shift,
-      rightLeft: left + 2 * shift,
+      top: top * this.scale.screenHeight,
+      leftLeft: left * this.scale.screenWidth,
+      middleLeft: (left + shift) * this.scale.screenWidth,
+      rightLeft: (left + 2 * shift) * this.scale.screenWidth,
     };
   }
 
-  initializeMoveDownTweensForSignsAndFoods () {
-    this.leftSign.tweenOptions = this.makeMoveTween([350, -300], [350, 0], 1000);
-    this.middleSign.tweenOptions = this.makeMoveTween([550, -300], [550, 0], 1000);
-    this.rightSign.tweenOptions = this.makeMoveTween([750, -300], [750, 0], 1000);
+  signDropTween () {
+    return {
+      tweenType: "bounce-drop",
+      startY: -300,
+      endY: -10 * this.props.scale.screenHeight,
+      duration: this.signDropTime,
+      repeatable: false,
+      loop: false,
+    };
+  }
+
+  initializeSignsDropTween () {
+    this.leftSign.tweenOptions = this.signDropTween();
+    this.middleSign.tweenOptions = this.signDropTween();
+    this.rightSign.tweenOptions = this.signDropTween();
   }
 
   initializeMoveUpTweensForSignsAndFoods () {
@@ -176,7 +206,7 @@ class MatchByColorGame extends React.Component {
   }
 
   leverPressIn () {
-    // console.warn('leverPressIn');
+    // console.log('leverPressIn');
   }
 
   leverPress () {
@@ -187,10 +217,10 @@ class MatchByColorGame extends React.Component {
     // creature enter from left
     this.activeCharacter.tweenOptions = this.makeMoveTween([-300, 400], [150, 400]);
 
-    this.initializeMoveDownTweensForSignsAndFoods();
+    this.initializeSignsDropTween();
 
     this.activeCharacter.loopAnimation = true;
-
+    console.log('leverPress WALK')
     this.setState({
       characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
       signsVisable: true},
@@ -200,23 +230,24 @@ class MatchByColorGame extends React.Component {
         // then interval to make food appear on sign.
         clearInterval(this.showFoodInterval);
         this.showFoodInterval = setInterval(() => {
-          const coords = this.foodDisplayAtLocation();
+          const coords = this.foodSignDisplayLocations();
           this.showFoods(coords, true);
           clearInterval(this.showFoodInterval);
-        }, 1000);
+        }, this.signDropTime);
       });
   }
 
   leverPressOut () {
-    // console.warn('leverPressOut');
+    // console.log('leverPressOut');
   }
 
   showFoods (coords, displayFood, setState = true) {
     // can be case that this.setState is beeing called and setting
     // food key and location is suffecient. In other cases want to explicitly
     // call this.setState.
+    const numFoods = this.state.level === 3 ? 3 : 2;
     if (displayFood) {
-      this.targetFoodPosition = Math.floor(Math.random() * 3);
+      this.targetFoodPosition = Math.floor(Math.random() * numFoods);
     }
     // random order of food in signs.
     const order = _.shuffle([0, 1, 2]);
@@ -226,11 +257,13 @@ class MatchByColorGame extends React.Component {
     this.leftFood.key = randomstring({length: 7});
     this.middleFood.key = randomstring({length: 7});
     this.rightFood.key = randomstring({length: 7});
-
     this.leftFood.coords = [coords.top, coords.leftLeft];
     this.middleFood.coords = [coords.top, coords.middleLeft];
-    this.rightFood.coords = [coords.top, coords.rightLeft];
+    if (numFoods === 3) {
+      this.rightFood.coords = [coords.top, coords.rightLeft];
+    }
     if (setState) {
+      console.log('showFoods setState');
       this.setState({foodDisplayed: displayFood});
     }
   }
@@ -259,7 +292,7 @@ class MatchByColorGame extends React.Component {
       return;
     }
     const foodDropTime = 800;
-    const coords = this.foodDisplayAtLocation();
+    const coords = this.foodSignDisplayLocations();
     // this will depend on the character [left, top]
     const endLocation = this.foodEndLocation(this.activeCharacter);
     switch (this.targetFoodPosition) {
@@ -275,16 +308,19 @@ class MatchByColorGame extends React.Component {
     }
 
     this.activeCharacter.loopAnimation = false;
-    clearInterval(this.eatInterval);
-    this.eatInterval = setInterval(() => {
+    clearTimeout(this.eatTimeout);
+    this.eatTimeout = setTimeout(() => {
       this.activeCharacter.loopAnimation = false;
+      console.log('EAT')
       this.setState({
         dropFood: false,
         characterAnimationIndex: this.activeCharacter.animationIndex('EAT'),
       }, () => {
-        this.liftSigns();
+        clearTimeout(this.eatTimeout);
+        this.eatTimeout = setTimeout(() => {
+          this.liftSigns();
+        }, 500);
       });
-      clearInterval(this.eatInterval);
     }, foodDropTime - 500);
 
   }
@@ -297,25 +333,24 @@ class MatchByColorGame extends React.Component {
     this.activeCharacter.loopAnimation = true;
 
     //hide foods
-    const coords = this.foodDisplayAtLocation(-150);
+    const coords = this.foodSignDisplayLocations(-150);
     this.showFoods(coords, false, false);
 
     clearInterval(this.signInterval);
     this.signInterval = setInterval(() => {
+      console.log('liftSigns WALK')
       this.setState({
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         foodDisplayed: false,
       }, () => {
-        this.refs.leftSign.startTween();
-        this.refs.middleSign.startTween();
-        this.refs.rightSign.startTween();
+        this.startSignsTween(this.state.level);
         this.refs.characterRef.startTween();
-        clearInterval(this.switchCharacterInterval);
-        this.switchCharacterInterval = setInterval(() => {
+        clearTimeout(this.switchCharacterTimeout);
+        this.switchCharacterTimeout = setInterval(() => {
           const name = gameUtil.getValidCharacterNameForLevel(this.state.level);
           this.loadCharacter(name);
-          clearInterval(this.switchCharacterInterval);
+          clearTimeout(this.switchCharacterTimeout);
         }, timeToExit);
       });
       clearInterval(this.signInterval);
@@ -429,6 +464,7 @@ class MatchByColorGame extends React.Component {
             tweenOptions={this.leftFood.tweenOptions}
             tweenStart={'fromCode'}
             onPress={() => this.foodPressed(LEFT)}
+            onTweenFinish={() => this.onFoodTweenFinish(LEFT)}
           />
         : null}
 
@@ -449,6 +485,7 @@ class MatchByColorGame extends React.Component {
             tweenOptions={this.middleFood.tweenOptions}
             tweenStart={'fromCode'}
             onPress={() => this.foodPressed(MIDDLE)}
+            onTweenFinish={() => this.onFoodTweenFinish(MIDDLE)}
           />
         : null}
 
@@ -469,6 +506,7 @@ class MatchByColorGame extends React.Component {
             tweenOptions={this.rightFood.tweenOptions}
             tweenStart={'fromCode'}
             onPress={() => this.foodPressed(RIGHT)}
+            onTweenFinish={(ref) => this.onFoodTweenFinish(RIGHT)}
           />
         : null}
 
