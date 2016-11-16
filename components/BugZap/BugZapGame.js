@@ -78,8 +78,7 @@ class BugZapGame extends React.Component {
       }
       // this.setCharacterHopOn();
 
-    }
-    else {
+    } else {
       // first trial, run through all animations once
       this.setCharacterAnimations();
     }
