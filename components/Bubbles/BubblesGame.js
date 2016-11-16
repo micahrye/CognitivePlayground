@@ -106,7 +106,7 @@ class BubblesGame extends React.Component {
   }
 
   characterWalkOn() {
-    this.monster.tweenOptions = this.makeMoveTween([-300,510], [40,510]);
+    this.monster.tweenOptions = this.makeMoveTween([-300,505], [40,505]);
     this.monster.loopAnimation = true;
     this.setState({
       monsterAnimationIndex: monster.animationIndex('WALK'),
@@ -253,7 +253,6 @@ class BubblesGame extends React.Component {
 
     clearInterval(this.eatInterval)
     this.eatInterval = setInterval(() => {
-      console.warn('eating');
       this.setState({
         monsterAnimationIndex: monster.animationIndex('EAT'),
       });
@@ -348,7 +347,7 @@ class BubblesGame extends React.Component {
               tweenOptions={this.monster.tweenOptions}
               onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
               loopAnimation={this.monster.loopAnimation}
-              coordinates={{top: (510) * this.scale.screenHeight,
+              coordinates={{top: (505) * this.scale.screenHeight,
                 left: -300 * this.scale.screenWidth}}
               size={{ width: Math.floor(300 * this.scale.image),
                 height: Math.floor(285 * this.scale.screenHeight)}}
