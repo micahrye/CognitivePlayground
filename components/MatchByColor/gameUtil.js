@@ -3,6 +3,10 @@ import _ from 'lodash';
 import monster from '../../sprites/monster/monsterCharacter';
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
+// foods
+import appleCharacter from "../../sprites/apple/appleCharacter";
+import grassCharacter from "../../sprites/grass/grassCharacter";
+import canCharacter from "../../sprites/can/canCharacter";
 
 function getCharacterObject (characterName) {
   switch (characterName) {
@@ -31,12 +35,33 @@ function getValidCharacterNameForLevel (level) {
   }
 }
 
-function getFoodsToDisplay () {
+function getFoodsToDisplay (characterName) {
   // return array of foods to show.
-  return [];
+  switch (characterName) {
+    case 'monster':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'goat':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'dog':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+  }
+}
+
+function favoriteFood (characterName) {
+  switch (characterName) {
+    case 'monster':
+        const food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
+        return food.name;
+    case 'goat':
+      return canCharacter.name;
+    case 'dog':
+      return grassCharacter.name;
+  }
 }
 
 export default {
   getCharacterObject,
   getValidCharacterNameForLevel,
+  getFoodsToDisplay,
+  favoriteFood,
 };

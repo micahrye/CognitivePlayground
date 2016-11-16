@@ -11,10 +11,7 @@ import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
 import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
-// foods
-import appleCharacter from "../../sprites/apple/appleCharacter";
-import grassCharacter from "../../sprites/grass/grassCharacter";
-import canCharacter from "../../sprites/can/canCharacter";
+
 // props
 import lever from '../../sprites/lever/leverCharacter';
 import sign from '../../sprites/sign/signCharacter';
@@ -26,7 +23,7 @@ import styles from './styles';
 const LEFT = 0;
 const MIDDLE = 1;
 const RIGHT = 2;
-
+const TRIAL_TIMEOUT = 5000;
 
 class MatchByColorGame extends React.Component {
   constructor (props) {
@@ -54,11 +51,12 @@ class MatchByColorGame extends React.Component {
     this.baseFoodLocation = [150, 400];
     this.foodLeftShift = 200;
     this.foodTargetLocation = [300, 550];
-    this.foods = [appleCharacter, grassCharacter, canCharacter];
-    this.eatTimeout;
-    this.signInterval;
     this.targetFoodPosition;
     this.signDropTime = 1500 * this.props.scale.screenHeight;
+
+    this.eatTimeout;
+    this.signInterval;
+    this.trialTimer;
   }
 
   componentWillMount () {
@@ -92,22 +90,19 @@ class MatchByColorGame extends React.Component {
   loadCharacter (characterName) {
     // get character
     this.characterUIDs.character = randomstring({ length: 7 });
-
     this.activeCharacter = gameUtil.getCharacterObject(characterName);
     // want to load character offscreen
     this.activeCharacter.coords = {
       top: 400 * this.scale.screenHeight * this.scale.screenHeight,
       left: -330 * this.scale.screenWidth * this.scale.screenWidth,
     };
-    this.activeCharacter.loopAnimation = false;
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
-    console.log('load all')
     this.setState({
       character: this.activeCharacter,
       characterAnimationIndex: this.activeCharacter.animationIndex('ALL'),
       loadingCharacter: true,
+      characterAnimationLoop: false,
     }, () => {
-      console.log('load IDEL')
       clearTimeout(this.setDefaultAnimationState);
       this.setDefaultAnimationState = setTimeout(() => {
         this.setState({
@@ -132,11 +127,13 @@ class MatchByColorGame extends React.Component {
   }
 
   onCharacterTweenFinish (characterUID) {
-    this.activeCharacter.loopAnimation = false;
     switch (characterUID) {
       case this.characterUIDs.character:
         console.log('onCharacterTweenFinish IDLE')
-        this.setState({characterAnimationIndex: this.activeCharacter.animationIndex('IDLE')});
+        this.setState({
+          characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
+          characterAnimationLoop: false,
+        });
         break;
     }
   }
@@ -204,6 +201,12 @@ class MatchByColorGame extends React.Component {
         break;
     }
   }
+  startTrialTimer () {
+    clearTimeout(this.trialTimer);
+    this.trialTimer = setTimeout(()=>{
+      this.clearScene();
+    }, TRIAL_TIMEOUT);
+  }
 
   leverPressIn () {
     // console.log('leverPressIn');
@@ -213,28 +216,27 @@ class MatchByColorGame extends React.Component {
     if (this.state.loadingCharacter || this.state.signsVisable) {
       return;
     }
-
+    clearTimeout(this.trialTimer);
     // creature enter from left
     this.activeCharacter.tweenOptions = this.makeMoveTween([-300, 400], [150, 400]);
 
     this.initializeSignsDropTween();
 
-    this.activeCharacter.loopAnimation = true;
-    console.log('leverPress WALK')
     this.setState({
       characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
-      signsVisable: true},
-      () => {
-        this.startSignsTween(this.state.level);
-        this.refs.characterRef.startTween();
-        // then interval to make food appear on sign.
-        clearInterval(this.showFoodInterval);
-        this.showFoodInterval = setInterval(() => {
-          const coords = this.foodSignDisplayLocations();
-          this.showFoods(coords, true);
-          clearInterval(this.showFoodInterval);
-        }, this.signDropTime);
-      });
+      signsVisable: true,
+      characterAnimationLoop: true,
+    }, () => {
+      this.startSignsTween(this.state.level);
+      this.refs.characterRef.startTween();
+      // then interval to make food appear on sign.
+      clearTimeout(this.showFoodInterval);
+      this.showFoodInterval = setTimeout(() => {
+        const coords = this.foodSignDisplayLocations();
+        this.showFoods(coords, true, this.activeCharacter.name);
+        this.startTrialTimer();
+      }, this.signDropTime);
+    });
   }
 
   leverPressOut () {
@@ -245,22 +247,30 @@ class MatchByColorGame extends React.Component {
     // can be case that this.setState is beeing called and setting
     // food key and location is suffecient. In other cases want to explicitly
     // call this.setState.
+    const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
+    const foodPref = gameUtil.favoriteFood(this.activeCharacter.name);
+    const targetFoodIndex = _.findIndex(foods, (food) => food.name === foodPref);
     const numFoods = this.state.level === 3 ? 3 : 2;
-    if (displayFood) {
-      this.targetFoodPosition = Math.floor(Math.random() * numFoods);
+    let order = _.shuffle([0, 1, 2]);
+    if (this.state.level < 3) {
+      const index = _([0, 1, 2]).difference([targetFoodIndex]).shuffle().value().pop();
+      order = _.shuffle([index, targetFoodIndex]);
+    } else {
+      order = _.shuffle([0, 1, 2]);
     }
-    // random order of food in signs.
-    const order = _.shuffle([0, 1, 2]);
-    this.leftFood.character = this.foods[order[0]];
-    this.middleFood.character = this.foods[order[1]];
-    this.rightFood.character = this.foods[order[2]];
+    this.targetFoodPosition = _.findIndex(order, (val) => val === targetFoodIndex);
+    this.leftFood.character = foods[order[0]];
+    this.middleFood.character = foods[order[1]];
+
     this.leftFood.key = randomstring({length: 7});
     this.middleFood.key = randomstring({length: 7});
-    this.rightFood.key = randomstring({length: 7});
+    // only set those foods that will show.
     this.leftFood.coords = [coords.top, coords.leftLeft];
     this.middleFood.coords = [coords.top, coords.middleLeft];
     if (numFoods === 3) {
       this.rightFood.coords = [coords.top, coords.rightLeft];
+      this.rightFood.character = foods[order[2]];
+      this.rightFood.key = randomstring({length: 7});
     }
     if (setState) {
       console.log('showFoods setState');
@@ -291,6 +301,8 @@ class MatchByColorGame extends React.Component {
     if (this.state.dropFood || !(foodId === this.targetFoodPosition)) {
       return;
     }
+    clearTimeout(this.trialTimer);
+
     const foodDropTime = 800;
     const coords = this.foodSignDisplayLocations();
     // this will depend on the character [left, top]
@@ -307,30 +319,29 @@ class MatchByColorGame extends React.Component {
         break;
     }
 
-    this.activeCharacter.loopAnimation = false;
     clearTimeout(this.eatTimeout);
     this.eatTimeout = setTimeout(() => {
-      this.activeCharacter.loopAnimation = false;
       console.log('EAT')
       this.setState({
         dropFood: false,
         characterAnimationIndex: this.activeCharacter.animationIndex('EAT'),
+        characterAnimationLoop: false,
       }, () => {
         clearTimeout(this.eatTimeout);
         this.eatTimeout = setTimeout(() => {
-          this.liftSigns();
+          this.clearScene();
         }, 500);
       });
     }, foodDropTime - 500);
 
   }
 
-  liftSigns () {
+  clearScene () {
+    clearTimeout(this.trialTimer);
     this.initializeMoveUpTweensForSignsAndFoods();
 
     const timeToExit = 2000;
     this.activeCharacter.tweenOptions = this.makeMoveTween([150, 400], [1280, 400], timeToExit);
-    this.activeCharacter.loopAnimation = true;
 
     //hide foods
     const coords = this.foodSignDisplayLocations(-150);
@@ -338,11 +349,12 @@ class MatchByColorGame extends React.Component {
 
     clearInterval(this.signInterval);
     this.signInterval = setInterval(() => {
-      console.log('liftSigns WALK')
+      console.log('clearScene WALK')
       this.setState({
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         foodDisplayed: false,
+        characterAnimationLoop: true,
       }, () => {
         this.startSignsTween(this.state.level);
         this.refs.characterRef.startTween();
@@ -517,7 +529,7 @@ class MatchByColorGame extends React.Component {
           key={this.characterUIDs.character}
           style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
-          loopAnimation={this.activeCharacter.loopAnimation}
+          loopAnimation={this.state.characterAnimationLoop}
           coordinates={{
             top: this.activeCharacter.coords.top,
             left: this.activeCharacter.coords.left,
