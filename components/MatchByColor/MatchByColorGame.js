@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  TouchableOpacity,
   Image,
   View,
 } from 'react-native';
@@ -437,6 +438,10 @@ class MatchByColorGame extends React.Component {
     }
   }
 
+  homeBtnPressed () {
+    this.props.navigator.replace({ id: 'Main' });
+  }
+
   render () {
     console.log('MatchByColor Render');
     return (
@@ -587,6 +592,22 @@ class MatchByColorGame extends React.Component {
           tweenStart={'fromCode'}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
         />
+
+        <TouchableOpacity
+          activeOpacity={1.0}
+          style={{width: 150,
+            height: 150,
+            top:0, left: 0,
+            position: 'absolute',
+          }}
+          onPress={() => this.homeBtnPressed()}>
+          <Image
+            source={require('../../media/icons/home_btn.png')}
+            style={{width: 150,
+              height: 150,
+            }}
+          />
+        </TouchableOpacity>
 
       </View>
     );
