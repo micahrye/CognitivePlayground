@@ -6,16 +6,15 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 
 ## Match By Color or Shape game
 
-### 11-16-16
+### 11-17-16
 * Level specific features
   * lever fade out if not touchable
 * Character related
-  * add celebration
   * change character placement based on active character
   * on character exit fix character position drops down
-  * character eat food timing
 * Food related
 * Sign related
+* Make home button component
 
 
 ## BugZap Game

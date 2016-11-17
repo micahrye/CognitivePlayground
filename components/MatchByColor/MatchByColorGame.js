@@ -12,7 +12,7 @@ import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
 import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
-
+import HomeButton from '../HomeButton/HomeButton';
 // props
 import lever from '../../sprites/lever/leverCharacter';
 import sign from '../../sprites/sign/signCharacter';
@@ -593,21 +593,10 @@ class MatchByColorGame extends React.Component {
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
         />
 
-        <TouchableOpacity
-          activeOpacity={1.0}
-          style={{width: 150,
-            height: 150,
-            top:0, left: 0,
-            position: 'absolute',
-          }}
-          onPress={() => this.homeBtnPressed()}>
-          <Image
-            source={require('../../media/icons/home_btn.png')}
-            style={{width: 150,
-              height: 150,
-            }}
-          />
-        </TouchableOpacity>
+      <HomeButton
+        route={this.props.route}
+        navigator={this.props.navigator}
+      />
 
       </View>
     );
@@ -623,3 +612,19 @@ MatchByColorGame.propTypes = {
 reactMixin.onClass(MatchByColorGame, TimerMixin);
 
 export default MatchByColorGame;
+
+// <TouchableOpacity
+//   activeOpacity={1.0}
+//   style={{width: 150,
+//     height: 150,
+//     top:0, left: 0,
+//     position: 'absolute',
+//   }}
+//   onPress={() => this.homeBtnPressed()}>
+//   <Image
+//     source={require('../../media/icons/home_btn.png')}
+//     style={{width: 150,
+//       height: 150,
+//     }}
+//   />
+// </TouchableOpacity>
