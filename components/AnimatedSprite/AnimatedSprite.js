@@ -162,6 +162,10 @@ class AnimatedSprite extends React.Component {
             this.frameIndex = 0;
         } else {
           clearInterval(this.defaultAnimationInterval);
+          if (this.props.onAnimationFinish) {
+             this.props.onAnimationFinish(this.props.characterUID);
+          }
+          return;
         }
       }
       const index = this.props.animationFrameIndex[this.frameIndex];
@@ -268,7 +272,7 @@ class AnimatedSprite extends React.Component {
   }
 
   render () {
-    console.log('animated sprite render');
+    console.log('AnimatedSprite Render');
     return (
       <Animated.View
         {...this.panResponder.panHandlers}
