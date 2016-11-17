@@ -8,6 +8,7 @@ import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
+import HomeButton from '../HomeButton/HomeButton';
 // import characters for AnimatedSprite to use
 import frogCharacter from '../../sprites/frog/frogCharacter';
 import bugCharacter from '../../sprites/bug/bugCharacter';
@@ -494,6 +495,11 @@ class BugZapGame extends React.Component {
           : null}
           </View>
       : null}
+
+      <HomeButton
+        route={this.props.route}
+        navigator={this.props.navigator}
+      />
 
   </Image>
 

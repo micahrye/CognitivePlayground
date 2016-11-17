@@ -22,7 +22,7 @@ const dogCharacter = {
       case 'EAT':
         return [3,4,5,4,0];
       case 'CELEBRATE':
-        return [7,6,7,0];
+        return [7,6,7,0,7,6,7,0];
       case 'DISGUST':
         return [0,8,8,8,0];
       case 'ALL':

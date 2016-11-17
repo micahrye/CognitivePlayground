@@ -7,6 +7,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "lodash": "^4.17.2",
     "random-string": "^0.1.2",
     "react": "15.3.2",
     "react-mixin": "^3.0.5",

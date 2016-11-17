@@ -3,6 +3,10 @@ import _ from 'lodash';
 import monster from '../../sprites/monster/monsterCharacter';
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
+// foods
+import appleCharacter from "../../sprites/apple/appleCharacter";
+import grassCharacter from "../../sprites/grass/grassCharacter";
+import canCharacter from "../../sprites/can/canCharacter";
 
 function getCharacterObject (characterName) {
   switch (characterName) {
@@ -31,12 +35,61 @@ function getValidCharacterNameForLevel (level) {
   }
 }
 
-function getFoodsToDisplay () {
+function getFoodsToDisplay (characterName) {
   // return array of foods to show.
-  return [];
+  switch (characterName) {
+    case 'monster':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'goat':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'dog':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+  }
+}
+
+function favoriteFood (characterName) {
+  switch (characterName) {
+    case 'monster':
+        const food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
+        return food.name;
+    case 'goat':
+      return canCharacter.name;
+    case 'dog':
+      return grassCharacter.name;
+  }
+}
+
+function characterMouthLocation (characterComponent) {
+  const width = characterComponent.props.size.width;
+  const height = characterComponent.props.size.height;
+  switch (characterComponent.props.character.name) {
+    case 'monster':
+      // top, left
+      return [(height * 0.5), (width * 0.45)];
+    case 'goat':
+      return [(height * 0.35), (width * 0.65)];
+    case 'dog':
+      return [(height * 0.2), (width * 0.5)];
+  }
+}
+
+function startEatingPriorToFoodDropEnd (characterName) {
+  switch (characterName) {
+    case 'monster':
+      // top, left
+      return 400;
+    case 'goat':
+      return 350;
+    case 'dog':
+      return 300;
+  }
 }
 
 export default {
   getCharacterObject,
   getValidCharacterNameForLevel,
+  getFoodsToDisplay,
+  favoriteFood,
+  characterMouthLocation,
+  startEatingPriorToFoodDropEnd,
 };

@@ -13,6 +13,7 @@ import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
+import HomeButton from '../HomeButton/HomeButton';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monster from '../../sprites/monster/monsterCharacter';
 import lever from '../../sprites/lever/leverCharacter';
@@ -398,6 +399,11 @@ class BubblesGame extends React.Component {
                 height: fountain.size.height * this.scale.image}}
             />
           </View>
+
+          <HomeButton
+            route={this.props.route}
+            navigator={this.props.navigator}
+          />
       </Image>
     );
   }
