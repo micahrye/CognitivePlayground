@@ -14,16 +14,18 @@ import frogCharacter from '../../sprites/frog/frogCharacter';
 import bugCharacter from '../../sprites/bug/bugCharacter';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
-import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
+// import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
 
 import styles from "./BugZapStyles";
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEVEL1A_TRIALS = 2; // what trial number level1a lasts until
-const LEVEL1B_TRIALS = 4;
-const LEVEL2_TRIALS = 8;
+const LEVEL1A_TRIALS = 1; // what trial number level1a lasts until
+const LEVEL1B_TRIALS = 2;
+const LEVEL2_TRIALS = 3;
+const LEVEL3A_TRIALS = 4;
+const LEVEL3B_TRIALS = 8;
 
 class BugZapGame extends React.Component {
   constructor (props) {
@@ -59,6 +61,7 @@ class BugZapGame extends React.Component {
     this.retractingSign = false;
     this.frogLanded = false;
     this.givenTime = 3500; // given this many seconds on timed trials to start with
+    this.blackout = false;
     this.state = {
       bugTweenOptions: null,
       showBugLeft: true,
@@ -69,6 +72,8 @@ class BugZapGame extends React.Component {
       leftSignTweenOptions: null,
       rightSignTweenOptions: null,
       showSplashCharacter: false,
+      showBlackout: false,
+      showSpotlight: false,
     };
   }
 
@@ -82,13 +87,17 @@ class BugZapGame extends React.Component {
       }
       if (this.trialNumber > LEVEL1B_TRIALS) {
         // now given certain amount of time to tap, decreasing over trials
-        console.log("route given time" + this.props.route.givenTime);
         this.givenTime = this.props.route.givenTime - 500;
+      }
+      if (this.trialNumber > LEVEL2_TRIALS) {
+        this.blackout = true;
       }
     } else {
       // first trial, run through all animations once
       this.setCharacterAnimations();
     }
+
+
     this.setCharacterDirection();
     this.setBugTween();
     this.signBounceDown();
@@ -154,10 +163,16 @@ class BugZapGame extends React.Component {
   }
 
   startRipple () {
-    this.setState({
-      showSplashCharacter: true,
-      splashAnimationIndex: [3,4,5],
-    });
+    if (this.blackout) {
+      this.setBlackout();
+      this.characterHopOn();
+    }
+    else {
+      this.setState({
+        showSplashCharacter: true,
+        splashAnimationIndex: [3,4,5],
+      });
+    }
   }
 
   setBugTween () {
@@ -211,7 +226,6 @@ class BugZapGame extends React.Component {
 
   // level 2 has timeouts
   bugTapTimeout () {
-    console.log(this.givenTime);
     this.characterDissapear = setTimeout (() => {
       this.characterHopOff();
     }, this.givenTime);
@@ -245,7 +259,7 @@ class BugZapGame extends React.Component {
         }
         break;
       case 'character':
-        if (this.trialNumber > LEVEL1B_TRIALS && this.trialNumber < LEVEL2_TRIALS) {
+        if (this.trialNumber > LEVEL1B_TRIALS && this.trialNumber <= LEVEL2_TRIALS) {
           this.bugTapTimeout();
         }
         this.setState({
@@ -386,6 +400,51 @@ class BugZapGame extends React.Component {
     }, 1000);
   }
 
+  // screen goes black
+  setBlackout () {
+    this.setState({showBlackout: true});
+    this.flashSpotlight = setTimeout(() => {
+      // after 1000ms show spotlight
+      this.setState({showSpotlight: true});
+      this.removeSpotlight = setTimeout(() => {
+        // after another 1500ms remove spotlight
+        this.setState({showSpotlight: false});
+        this.removeBlackout = setTimeout(() => {
+          // after another 500ms remove blackout
+          this.setState({showBlackout: false});
+        }, 500);
+      }, 1500);
+    }, 1000);
+  }
+
+  getSpotLightStyle () {
+    // for first few blackout trials, spotlight is consistent with frog side
+    let posX = 300 * this.props.scale.screenWidth;
+    if (this.trialNumber > LEVEL3A_TRIALS && this.trialNumber <= LEVEL3B_TRIALS) {
+      if (this.characterDirection === 'left') {
+        posX = 800 * this.props.scale.screenWidth;
+      }
+    }
+    else {
+      const side = Math.random();
+      if (side < .5) {
+        posX = 800 * this.props.scale.screenWidth;
+      }
+    }
+    return (
+      {
+        flex: 1,
+        backgroundColor: 'white',
+        height: 150,
+        width: 150,
+        left: posX,
+        top: 450 * this.props.scale.screenHeight,
+        position: 'absolute',
+        borderRadius: 100,
+      }
+    );
+  }
+
   render () {
     return (
       <Image
@@ -416,7 +475,7 @@ class BugZapGame extends React.Component {
       <AnimatedSprite
         characterUID={'splash'}
         character={splashCharacter}
-        coordinates={{top: SCREEN_HEIGHT - 200 * this.props.scale.screenHeight,
+        coordinates={{top: SCREEN_HEIGHT - (200 * this.props.scale.screenHeight),
           left: this.splashPos}}
         size={{
             width: 340 * this.props.scale.image,
@@ -433,7 +492,7 @@ class BugZapGame extends React.Component {
       characterUID={'signLeft'}
       character={signCharacter}
       coordinates={{top: -10 * this.props.scale.screenHeight, left: this.leftSignXPos}}
-      size={{width: 140 * this.props.scale.screenWidth, height: 230 * this.props.scale.screenHeight}}
+      size={{width: 140 * this.props.scale.image, height: 230 * this.props.scale.image}}
       animationFrameIndex={[0]}
       tweenOptions={this.state.leftSignTweenOptions}
       onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
@@ -446,7 +505,7 @@ class BugZapGame extends React.Component {
         ref={'bugLeftRef'}
         characterUID={'bugLeft'}
         coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (370 * this.props.scale.screenWidth)}}
-        size={{width: 150 * this.props.scale.screenWidth, height: 150 * this.props.scale.screenHeight}}
+        size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
         tweenOptions={this.state.bugTweenOptions}
         tweenStart={'fromCode'}
         onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
@@ -462,7 +521,7 @@ class BugZapGame extends React.Component {
           character={signCharacter}
           characterUID={'signRight'}
           coordinates={{top: -10 * this.props.scale.screeHeight, left: this.rightSignXPos}}
-          size={{width: 140 * this.props.scale.screenWidth, height: 230* this.props.scale.screenHeight}}
+          size={{width: 140 * this.props.scale.image, height: 230* this.props.scale.image}}
           animationFrameIndex={[0]}
           tweenOptions={this.state.rightSignTweenOptions}
           tweenStart={'auto'}
@@ -473,7 +532,7 @@ class BugZapGame extends React.Component {
             ref={'bugRightRef'}
             characterUID={'bugRight'}
             coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 + (200 * this.props.scale.screenWidth)}}
-            size={{width: 150 * this.props.scale.screenWidth, height: 150 * this.props.scale.screenHeight}}
+            size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
             character={bugCharacter}
             tweenOptions={this.state.bugTweenOptions}
             tweenStart={'fromCode'}
@@ -485,18 +544,12 @@ class BugZapGame extends React.Component {
         </View>
     : null}
 
+    {this.state.showBlackout ?
+      <View style={styles.blackout} />
+    : null}
 
-    {this.state.showLightbulb ?
-      <AnimatedSprite
-        character={lightbulbCharacter}
-        characterUID={'lightbulb'}
-        coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (370 * this.props.scale.screenWidth)}}
-        size={{width: 150 * this.props.scale.screenWidth, height: 150 * this.props.scale.screenHeight}}
-        tweenOptions={this.state.lightbulbTweenOptions}
-        tweenStart={'auto'}
-        onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-        animationFrameIndex={[1]}
-      />
+    {this.state.showSpotlight ?
+      <View style={this.getSpotLightStyle()} />
     : null}
 
 

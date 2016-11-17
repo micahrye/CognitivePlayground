@@ -35,7 +35,7 @@ const BugZapStyles = StyleSheet.create ({
     height: SCREEN_HEIGHT,
     width: SCREEN_WIDTH,
     position: 'absolute',
-    top: -SCREEN_HEIGHT,
+    // top: -SCREEN_HEIGHT,
   },
 });
 

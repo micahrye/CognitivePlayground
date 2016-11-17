@@ -19,7 +19,10 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 
 ## BugZap Game
 
-* Timed level (longer to shorter)
+* Scaling issues on height with smaller screen
+* Change splash/hopon/off animations to what Tinsley and I talked about
 
 * Bee level
 * Spotlight level
+  * fix spotlight appearing on correct side at first
+  * add in lightbulb
