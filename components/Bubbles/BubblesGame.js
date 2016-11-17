@@ -137,7 +137,7 @@ class BubblesGame extends React.Component {
   // populate array of background bubbles
   createBubbles () {
     const uid = randomstring({ length: 7 });
-    const displayTargetBubble = Math.random() < 0.4;
+    const displayTargetBubble = Math.random() < 0.5;
     let createTargetBubble = displayTargetBubble && !this.state.targetBubbleActive;
 
     let bubbles = [];
