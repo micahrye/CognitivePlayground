@@ -59,9 +59,37 @@ function favoriteFood (characterName) {
   }
 }
 
+function characterMouthLocation (characterComponent) {
+  const width = characterComponent.props.size.width;
+  const height = characterComponent.props.size.height;
+  switch (characterComponent.props.character.name) {
+    case 'monster':
+      // top, left
+      return [(height * 0.5), (width * 0.45)];
+    case 'goat':
+      return [(height * 0.35), (width * 0.65)];
+    case 'dog':
+      return [(height * 0.2), (width * 0.5)];
+  }
+}
+
+function startEatingPriorToFoodDropEnd (characterName) {
+  switch (characterName) {
+    case 'monster':
+      // top, left
+      return 400;
+    case 'goat':
+      return 350;
+    case 'dog':
+      return 300;
+  }
+}
+
 export default {
   getCharacterObject,
   getValidCharacterNameForLevel,
   getFoodsToDisplay,
   favoriteFood,
+  characterMouthLocation,
+  startEatingPriorToFoodDropEnd,
 };

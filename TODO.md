@@ -12,6 +12,8 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 * Character related
   * add celebration
   * change character placement based on active character
+  * on character exit fix character position drops down
+  * character eat food timing
 * Food related
 * Sign related
 

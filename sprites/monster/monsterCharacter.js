@@ -23,7 +23,7 @@ const monsterCharacter = {
       case 'EAT':
         return [4,5,4,0];
       case 'CELEBRATE':
-        return [6,7,6,0];
+        return [6,7,6,0,6,7,6,0];
       case 'DISGUST':
         return [0,8,8,8,8,0];
       case 'ALL':
