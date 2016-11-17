@@ -21,11 +21,11 @@ import styles from "./BugZapStyles";
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEVEL1A_TRIALS = 1; // what trial number level1a lasts until
-const LEVEL1B_TRIALS = 2;
-const LEVEL2_TRIALS = 3;
-const LEVEL3A_TRIALS = 4;
-const LEVEL3B_TRIALS = 8;
+const LEVEL1A_TRIALS = 2; // what trial number level1a lasts until
+const LEVEL1B_TRIALS = 4;
+const LEVEL2_TRIALS = 7;
+const LEVEL3A_TRIALS = 9;
+const LEVEL3B_TRIALS = 11;
 
 class BugZapGame extends React.Component {
   constructor (props) {
