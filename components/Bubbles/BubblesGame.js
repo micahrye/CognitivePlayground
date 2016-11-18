@@ -403,6 +403,8 @@ class BubblesGame extends React.Component {
           <HomeButton
             route={this.props.route}
             navigator={this.props.navigator}
+            routeId={{ id: 'Main' }}
+            styles={{ width: 150,height: 150,top:0, left: 0, position: 'absolute' }}
           />
       </Image>
     );

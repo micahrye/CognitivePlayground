@@ -438,7 +438,7 @@ class MatchByColorGame extends React.Component {
     }
   }
 
-  homeBtnPressed () {
+  homeButtonPressed () {
     this.props.navigator.replace({ id: 'Main' });
   }
 
@@ -596,6 +596,8 @@ class MatchByColorGame extends React.Component {
       <HomeButton
         route={this.props.route}
         navigator={this.props.navigator}
+        routeId={{ id: 'Main' }}
+        styles={{ width: 150,height: 150,top:0, left: 0, position: 'absolute' }}
       />
 
       </View>
@@ -612,19 +614,3 @@ MatchByColorGame.propTypes = {
 reactMixin.onClass(MatchByColorGame, TimerMixin);
 
 export default MatchByColorGame;
-
-// <TouchableOpacity
-//   activeOpacity={1.0}
-//   style={{width: 150,
-//     height: 150,
-//     top:0, left: 0,
-//     position: 'absolute',
-//   }}
-//   onPress={() => this.homeBtnPressed()}>
-//   <Image
-//     source={require('../../media/icons/home_btn.png')}
-//     style={{width: 150,
-//       height: 150,
-//     }}
-//   />
-// </TouchableOpacity>
