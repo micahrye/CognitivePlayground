@@ -25,7 +25,7 @@ const LEVEL1A_TRIALS = 2; // what trial number level1a lasts until
 const LEVEL1B_TRIALS = 4;
 const LEVEL2_TRIALS = 7;
 const LEVEL3A_TRIALS = 9;
-const LEVEL3B_TRIALS = 11;
+// const LEVEL3B_TRIALS = 11;
 
 class BugZapGame extends React.Component {
   constructor (props) {
@@ -36,7 +36,7 @@ class BugZapGame extends React.Component {
     this.characterPos = 550 * this.props.scale.screenWidth;
     this.characterTo = 10 * this.props.scale.screenWidth;
     this.characterPosY = 200 * this.props.scale.screenHeight;
-    this.splashPos = 850 * this.props.scale.screenWidth;
+    this.splashPos = 800 * this.props.scale.screenWidth;
     this.bugStartX = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
     this.characterStartX = 900 * this.props.scale.screenWidth,
     this.rotate = undefined;
@@ -132,7 +132,8 @@ class BugZapGame extends React.Component {
     this.fps = 20;
     this.setState({
       characterAnimationIndex: [1,2,3,4,5,6,7],
-    });    // reset characters to default state
+      splashAnimationIndex: [3,4,5],
+    });    // reset character to default state
     this.setDefaultAnimationState = setTimeout(() => {
       this.fps = 8;
       this.character.style = {opacity: 1};
@@ -157,7 +158,7 @@ class BugZapGame extends React.Component {
         this.bugStartX = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
         this.characterStartX = 10 * this.props.scale.screenWidth;
         this.rotate = [{rotateY: '180deg'}];
-        this.splashPos = 100 * this.props.scale.screenWidth;
+        this.splashPos = 150 * this.props.scale.screenWidth;
       }
     }
   }
@@ -352,7 +353,6 @@ class BugZapGame extends React.Component {
   }
 
   whichBugTapped () {
-    // console.warn('in which bug tapped');
     if ((this.whichBug === 'bugLeft' && this.characterDirection === 'left') ||
         (this.whichBug === 'bugRight' && this.characterDirection === 'right')) {
       this.correctBugTapped();
@@ -420,7 +420,7 @@ class BugZapGame extends React.Component {
   getSpotLightStyle () {
     // for first few blackout trials, spotlight is consistent with frog side
     let posX = 300 * this.props.scale.screenWidth;
-    if (this.trialNumber > LEVEL3A_TRIALS && this.trialNumber <= LEVEL3B_TRIALS) {
+    if (this.trialNumber > LEVEL2_TRIALS && this.trialNumber <= LEVEL3A_TRIALS) {
       if (this.characterDirection === 'left') {
         posX = 800 * this.props.scale.screenWidth;
       }
@@ -475,7 +475,7 @@ class BugZapGame extends React.Component {
       <AnimatedSprite
         characterUID={'splash'}
         character={splashCharacter}
-        coordinates={{top: SCREEN_HEIGHT - (200 * this.props.scale.screenHeight),
+        coordinates={{top: 580 * this.props.scale.screenHeight,
           left: this.splashPos}}
         size={{
             width: 340 * this.props.scale.image,

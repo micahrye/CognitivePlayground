@@ -21,8 +21,9 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 
 * Scaling issues on height with smaller screen
 * Change splash/hopon/off animations to what Tinsley and I talked about
+* Why splash janky at first load?
 
 * Bee level
 * Spotlight level
-  * fix spotlight appearing on correct side at first
   * add in lightbulb
+  * spotlight shows splash?
