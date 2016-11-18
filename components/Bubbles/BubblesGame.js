@@ -1,11 +1,8 @@
 import React from 'react';
 import {
   StyleSheet,
-  Text,
   View,
   Image,
-  TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -20,20 +17,16 @@ import monster from '../../sprites/monster/monsterCharacter';
 import fountain from '../../sprites/fountain/fountainCharacter';
 import lever from '../../sprites/fountainLever/fountainLeverCharacter';
 import canCharacter from '../../sprites/can/canCharacter';
+//import styles from './styles';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
-const SCALE = {
-  width: Dimensions.get('window').width / 1280,
-  height: Dimensions.get('window').height / 800,
-};
 // TODO: do we need offset?
 const OFFSET = 10;
 const GAME_TIME_OUT = 115000;
 const MAX_NUMBER_BUBBLES = 15;
 const FOUTAIN_LOCATION = {top: 0, left: 0};
 const LEVER_LOCATION = {top: 0, left: 0};
-const FOUTAIN_SIZE = {width: 0, height: 0};
 
 class BubblesGame extends React.Component {
   constructor (props) {
@@ -54,12 +47,11 @@ class BubblesGame extends React.Component {
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
-  	FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountain.size.height + OFFSET);
+    FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountain.size.height + OFFSET);
     FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (fountain.size.width/2);
     LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 20;
     LEVER_LOCATION.left = FOUTAIN_LOCATION.left + (fountain.size.width - 40);
     this.scale = this.props.scale;
-    FOUTAIN_SIZE = { width: 270 * this.scale.screenWidth, height: 258 * this.scale.screenHeight};
   }
 
   componentWillMount () {
@@ -96,8 +88,8 @@ class BubblesGame extends React.Component {
     clearTimeout(this.timeoutGameOver);
   }
 
-  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500){
-    return({
+  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
+    return ({
       tweenType: "linear-move",
       startXY: [startXY[0]*this.scale.screenWidth, startXY[1]*this.scale.screenHeight],
       endXY: [endXY[0]*this.scale.screenWidth, endXY[1]*this.scale.screenHeight],
@@ -106,7 +98,7 @@ class BubblesGame extends React.Component {
     });
   }
 
-  characterWalkOn() {
+  characterWalkOn () {
     this.monster.tweenOptions = this.makeMoveTween([-300,505], [40,505]);
     this.monster.loopAnimation = true;
     this.setState({
@@ -234,7 +226,6 @@ class BubblesGame extends React.Component {
   }
 
   foodFall (startX, startY) {
-    debugger;
     this.food.tweenOptions = {
       tweenType: 'sine-wave',
       startXY: [startX, startY],
@@ -252,7 +243,7 @@ class BubblesGame extends React.Component {
     this.food.size = {width: 109 * this.scale.screenWidth, height: 116 * this.scale.screenHeight};
     this.setState({showFood: true});
 
-    clearInterval(this.eatInterval)
+    clearInterval(this.eatInterval);
     this.eatInterval = setInterval(() => {
       this.setState({
         monsterAnimationIndex: monster.animationIndex('EAT'),
@@ -282,7 +273,6 @@ class BubblesGame extends React.Component {
     this.targetBubble.opacity = 0;
     this.setState({targetBubbleActive: true});
     // time to play pop sound
-    debugger;
     this.foodFall(stopValueX, stopValueY);
   }
 
@@ -406,7 +396,6 @@ class BubblesGame extends React.Component {
     );
   }
 }
-
 const styles = StyleSheet.create({
   topLevel :{
     alignItems: 'center',

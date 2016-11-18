@@ -1,12 +1,7 @@
 import React from 'react';
-import {
-  TouchableOpacity,
-  Image,
-  Dimensions
-} from 'react-native';
 import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
-import fountainLever from '../../sprites/fountainLever/fountainLeverCharacter';
-import lever from '../../sprites/lever/leverCharacter';
+//import fountainLever from '../../sprites/fountainLever/fountainLeverCharacter';
+//import lever from '../../sprites/lever/leverCharacter';
 
 
 class Lever extends React.Component {
@@ -27,7 +22,7 @@ class Lever extends React.Component {
     };
   }
   render () {
-    return(
+    return (
       <AnimatedSprite
         character={this.state.character}
         animationFrameIndex={[0]}
@@ -42,8 +37,7 @@ class Lever extends React.Component {
         rotate={this.state.rotate}
         onPress={this.props.onPress}
         onPressIn={this.props.onPressIn}
-        onPressOut={this.props.onPressOut}
-      >
+        onPressOut={this.props.onPressOut}>
         </AnimatedSprite>
       );
   }
