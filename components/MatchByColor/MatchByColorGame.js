@@ -14,6 +14,7 @@ import randomstring from 'random-string';
 import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
 import HomeButton from '../HomeButton/HomeButton';
 // props
+import Lever from '../Lever/Lever';
 import lever from '../../sprites/lever/leverCharacter';
 import sign from '../../sprites/sign/signCharacter';
 // game character related utils
@@ -449,15 +450,14 @@ class MatchByColorGame extends React.Component {
         <Image source={require('../../media/backgrounds/Game_2_Background_1280.png')}
           style={styles.backgroundImage}
         />
-        <AnimatedSprite
+        <Lever
           character={lever}
           characterUID={this.characterUIDs.lever}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
           coordinates={{
             top: 240 * this.scale.screenHeight,
             left: 1080 * this.scale.screenWidth }}
-          size={{ width: lever.size.width * this.scale.image,
+          size = {{
+            width: lever.size.width * this.scale.image,
             height: lever.size.height * this.scale.image}}
           rotate={[{rotateY:'180deg'}]}
           onPress={() => this.leverPress()}

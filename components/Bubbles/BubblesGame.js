@@ -14,11 +14,11 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
+import Lever from '../Lever/Lever';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monster from '../../sprites/monster/monsterCharacter';
-import lever from '../../sprites/lever/leverCharacter';
 import fountain from '../../sprites/fountain/fountainCharacter';
-import fountainLever from '../../sprites/fountainLever/fountainLeverCharacter';
+import lever from '../../sprites/fountainLever/fountainLeverCharacter';
 import canCharacter from '../../sprites/can/canCharacter';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
@@ -56,7 +56,7 @@ class BubblesGame extends React.Component {
     this.monster = {tweenOptions: {}};
   	FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountain.size.height + OFFSET);
     FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (fountain.size.width/2);
-    LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 60;
+    LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 20;
     LEVER_LOCATION.left = FOUTAIN_LOCATION.left + (fountain.size.width - 40);
     this.scale = this.props.scale;
     FOUTAIN_SIZE = { width: 270 * this.scale.screenWidth, height: 258 * this.scale.screenHeight};
@@ -309,23 +309,20 @@ class BubblesGame extends React.Component {
     return (
       <Image source={require('../../media/backgrounds/Game_7_Background_1280.png')} style={styles.backgroundImage}>
           <View style={styles.gameWorld}>
-            <AnimatedSprite
-              character={lever}
-              characterUID={this.characterUIDs.lever}
-              animationFrameIndex={[0]}
-              loopAnimation={false}
-              coordinates={{
-                top: LEVER_LOCATION.top,
-                left: LEVER_LOCATION.left}}
-              size={{
-                width: Math.floor(lever.size.width * this.scale.image),
-                height: Math.floor(lever.size.height * this.scale.image)}}
-              rotate={[{rotateY:'0deg'}, {rotateX: '10deg'}]}
-              onPress={() => this.leverPress()}
-              onPressIn={() => this.leverPressIn()}
-              onPressOut={() => this.leverPressOut()}
-            />
-
+          <Lever
+            character={lever}
+            coordinates={{
+              top: LEVER_LOCATION.top,
+              left: LEVER_LOCATION.left}}
+            characterUID={this.characterUIDs.lever}
+            size = {{
+              width: lever.size.width * this.scale.image,
+              height: lever.size.height * this.scale.image}}
+            rotate={[{rotateY:'0deg'}, {rotateX: '10deg'}]}
+            onPress={() => this.leverPress()}
+            onPressIn={() => this.leverPressIn()}
+            onPressOut={() => this.leverPressOut()}
+          />
             {this.state.loadContent ?
               <AnimatedSprite
                 character={bubbleCharacter}
@@ -404,6 +401,7 @@ class BubblesGame extends React.Component {
             route={this.props.route}
             navigator={this.props.navigator}
           />
+
       </Image>
     );
   }
@@ -417,12 +415,12 @@ const styles = StyleSheet.create({
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
     borderStyle: 'solid',
-    borderWidth: 2,
+    borderWidth: 0,
   },
   backgroundImage: {
     flex: 1,
-    width: null,
-    height: null,
+    width: SCREEN_WIDTH,
+    height: SCREEN_HEIGHT,
   },
   topBar: {
     alignItems: 'center',
