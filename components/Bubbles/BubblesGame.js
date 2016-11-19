@@ -96,8 +96,8 @@ class BubblesGame extends React.Component {
     clearTimeout(this.timeoutGameOver);
   }
 
-  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500){
-    return({
+  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
+    return ({
       tweenType: "linear-move",
       startXY: [startXY[0]*this.scale.screenWidth, startXY[1]*this.scale.screenHeight],
       endXY: [endXY[0]*this.scale.screenWidth, endXY[1]*this.scale.screenHeight],
@@ -106,7 +106,7 @@ class BubblesGame extends React.Component {
     });
   }
 
-  characterWalkOn() {
+  characterWalkOn () {
     this.monster.tweenOptions = this.makeMoveTween([-300,505], [40,505]);
     this.monster.loopAnimation = true;
     this.setState({
