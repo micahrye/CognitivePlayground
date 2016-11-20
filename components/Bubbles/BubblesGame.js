@@ -54,6 +54,7 @@ class BubblesGame extends React.Component {
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
+    // This all needs to be adjusted
   	FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountain.size.height + OFFSET);
     FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (fountain.size.width/2);
     LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 60;
@@ -404,7 +405,10 @@ class BubblesGame extends React.Component {
             route={this.props.route}
             navigator={this.props.navigator}
             routeId={{ id: 'Main' }}
-            styles={{ width: 150,height: 150,top:0, left: 0, position: 'absolute' }}
+            styles={{
+              width: 150 * this.scale.image,
+              height: 150 * this.scale.image,
+              top:0, left: 0, position: 'absolute' }}
           />
       </Image>
     );

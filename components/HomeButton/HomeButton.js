@@ -29,6 +29,7 @@ HomeButton.propTypes = {
   navigator: React.PropTypes.object.isRequired,
   routeId: React.PropTypes.object.isRequired,
   styles: React.PropTypes.object.isRequired,
+  scale: React.PropTypes.number,
 };
 
 // {width: 150,

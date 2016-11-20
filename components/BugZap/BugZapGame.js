@@ -500,7 +500,10 @@ class BugZapGame extends React.Component {
         route={this.props.route}
         navigator={this.props.navigator}
         routeId={{ id: 'Main' }}
-        styles={{ width: 150,height: 150,top:0, left: 0, position: 'absolute' }}
+        styles={{
+          width: 150 * this.props.scale.image,
+          height: 150 * this.props.scale.image,
+          top:0, left: 0, position: 'absolute' }}
       />
 
   </Image>
