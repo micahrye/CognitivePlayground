@@ -446,9 +446,10 @@ class BubblesGame extends React.Component {
               characterUID={this.characterUIDs.fountain}
               animationFrameIndex={[0]}
               loopAnimation={false}
-              coordinates={this.fountainLocation()}
-              size={{ width: fountainCharacter.size.width * this.scale.image,
-                height: fountainCharacter.size.height * this.scale.image}}
+              coordinates={{top: FOUNTAIN_LOCATION.top,
+                left: FOUNTAIN_LOCATION.left}}
+              size={{ width: fountain.size.width * this.scale.image,
+                height: fountain.size.height * this.scale.image}}
             />
           </View>
 
