@@ -117,7 +117,7 @@ class BugZapGame extends React.Component {
     this.character.style = {opacity: 0};
     this.fps = 20;
     this.setState({
-      characterAnimationIndex: [1,2,3,4,5,6,7],
+      characterAnimationIndex: frogCharacter.animationIndex('ALL'),
     });    // reset characters to default state
     this.setDefaultAnimationState = setTimeout(() => {
       this.fps = 8;
@@ -499,6 +499,11 @@ class BugZapGame extends React.Component {
       <HomeButton
         route={this.props.route}
         navigator={this.props.navigator}
+        routeId={{ id: 'Main' }}
+        styles={{
+          width: 150 * this.props.scale.image,
+          height: 150 * this.props.scale.image,
+          top:0, left: 0, position: 'absolute' }}
       />
 
   </Image>

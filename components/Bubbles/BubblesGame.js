@@ -15,25 +15,21 @@ import randomstring from 'random-string';
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
-import monster from '../../sprites/monster/monsterCharacter';
-import lever from '../../sprites/lever/leverCharacter';
-import fountain from '../../sprites/fountain/fountainCharacter';
-import fountainLever from '../../sprites/fountainLever/fountainLeverCharacter';
+import monsterCharacter from '../../sprites/monster/monsterCharacter';
+import leverCharacter from '../../sprites/lever/leverCharacter';
+import fountainCharacter from '../../sprites/fountain/fountainCharacter';
 import canCharacter from '../../sprites/can/canCharacter';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
-const SCALE = {
-  width: Dimensions.get('window').width / 1280,
-  height: Dimensions.get('window').height / 800,
-};
-// TODO: do we need offset?
-const OFFSET = 10;
+const TOP_OFFSET = 20;
+
 const GAME_TIME_OUT = 115000;
 const MAX_NUMBER_BUBBLES = 15;
 const FOUTAIN_LOCATION = {top: 0, left: 0};
 const LEVER_LOCATION = {top: 0, left: 0};
 const FOUTAIN_SIZE = {width: 0, height: 0};
+
 
 class BubblesGame extends React.Component {
   constructor (props) {
@@ -47,6 +43,7 @@ class BubblesGame extends React.Component {
       loadContent: false,
       showFood: false,
     };
+    this.scale = this.props.scale;
     this.characterUIDs = {};
     this.animations = ['eat', 'bubble', 'bubbleCan', 'bubbleBug', 'bubbleGrass'];
     this.setDefaultAnimationState;
@@ -54,11 +51,12 @@ class BubblesGame extends React.Component {
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
-  	FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountain.size.height + OFFSET);
-    FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (fountain.size.width/2);
-    LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 60;
-    LEVER_LOCATION.left = FOUTAIN_LOCATION.left + (fountain.size.width - 40);
-    this.scale = this.props.scale;
+    // This all needs to be adjusted
+    FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountainCharacter.size.height*this.scale.screenHeight);
+    FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (fountainCharacter.size.width/2)*this.scale.screenWidth;
+    LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 60 ;
+    LEVER_LOCATION.left = FOUTAIN_LOCATION.left + (fountainCharacter.size.width - 40 );
+
     FOUTAIN_SIZE = { width: 270 * this.scale.screenWidth, height: 258 * this.scale.screenHeight};
   }
 
@@ -96,28 +94,27 @@ class BubblesGame extends React.Component {
     clearTimeout(this.timeoutGameOver);
   }
 
-  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500){
-    return({
+  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
+    return ({
       tweenType: "linear-move",
-      startXY: [startXY[0]*this.scale.screenWidth, startXY[1]*this.scale.screenHeight],
-      endXY: [endXY[0]*this.scale.screenWidth, endXY[1]*this.scale.screenHeight],
+      startXY: [startXY[0], startXY[1]],
+      endXY: [endXY[0], endXY[1]],
       duration:duration,
       loop: false,
     });
   }
 
-  characterWalkOn() {
-    this.monster.tweenOptions = this.makeMoveTween([-300,505], [40,505]);
+  characterWalkOn () {
+    const monstStartLoc = this.monsterStartLocation();
+    const monstEndLoc = this.monsterEndLocation();
+    const startXY = [monstStartLoc.left, monstStartLoc.top];
+    const endXY = [monstEndLoc.left, monstEndLoc.top];
+    this.monster.tweenOptions = this.makeMoveTween(startXY, endXY);
     this.monster.loopAnimation = true;
     this.setState({
-      monsterAnimationIndex: monster.animationIndex('WALK'),
+      monsterAnimationIndex: monsterCharacter.animationIndex('WALK'),
       tweenCharacter: true,
     }, ()=> {this.refs.monsterRef.startTween();});
-  }
-
-  // random time for background bubbles to be on screen, between 2 and 6 seconds
-  getRandomDuration () {
-    return (Math.floor(Math.random() *  (4000)) + 2000) * this.scale.screenWidth;
   }
 
   onTweenFinish (characterUID) {
@@ -132,13 +129,18 @@ class BubblesGame extends React.Component {
 
   onCharacterTweenFinish () {
     this.monster.loopAnimation = false;
-    this.setState({monsterAnimationIndex: monster.animationIndex('IDLE')});
+    this.setState({monsterAnimationIndex: monsterCharacter.animationIndex('IDLE')});
+  }
+
+  // random time for background bubbles to be on screen, between 2 and 6 seconds
+  getRandomDuration () {
+    return (Math.floor(Math.random() *  (4000)) + 2000);
   }
 
   // populate array of background bubbles
   createBubbles () {
     const uid = randomstring({ length: 7 });
-    const displayTargetBubble = Math.random() < 0.4;
+    const displayTargetBubble = Math.random() < 0.5;
     let createTargetBubble = displayTargetBubble && !this.state.targetBubbleActive;
 
     let bubbles = [];
@@ -150,15 +152,17 @@ class BubblesGame extends React.Component {
     } else {
       bubbleDeminsions = Math.floor(Math.random()* 100) + 50;
     }
-    // const startLeft = Math.floor(Math.random() * SCREEN_WIDTH - bubbleDeminsions);
-    const fountainCenter = (FOUTAIN_LOCATION.left + fountain.size.width/2);
-    const startLeft = fountainCenter - (bubbleDeminsions/2 - 50);
-    const startTop = FOUTAIN_LOCATION.top - (bubbleDeminsions * 0.7);
-
     bubbleSize = {
       width: Math.floor(bubbleDeminsions * this.scale.image),
       height: Math.floor(bubbleDeminsions * this.scale.image),
     };
+    const fountainSize = this.foutainSize();
+    const fountainLoc = this.fountainLocation();
+    const fountainCenter = (fountainLoc.left + fountainSize.width/2);
+    const offsetLeft = 80 * this.scale.screenWidth;
+    const startLeft = fountainCenter - (bubbleSize.width/2 - offsetLeft);
+    const startTop = fountainLoc.top - (bubbleSize.width * 0.7);
+
     const plusOrMinus = Math.random() < 0.5 ? -1 : 1;
     const minusOrPlus = plusOrMinus > 0 ? -1 : 1;
     locSequence = [
@@ -176,7 +180,8 @@ class BubblesGame extends React.Component {
       startXY: [startLeft, startTop],
       xTo: locSequence,
       yTo: [-bubbleDeminsions],
-      duration: createTargetBubble ? 4000 * this.scale.screenWidth : this.getRandomDuration(),
+      duration: createTargetBubble
+        ? 4000 : this.getRandomDuration(),
       loop: false,
     };
 
@@ -233,14 +238,23 @@ class BubblesGame extends React.Component {
     }
   }
 
+  monsterMouthLocation () {
+    const monstLoc = this.monsterEndLocation();
+    const monstSize = this.monsterSize();
+    const x = monstLoc.left + monstSize.width/2;
+    const y = monstLoc.top + monstSize.height/2;
+    debugger;
+    return [x, y];
+  }
   foodFall (startX, startY) {
+    const mouthLoc = this.monsterMouthLocation();
     debugger;
     this.food.tweenOptions = {
       tweenType: 'sine-wave',
       startXY: [startX, startY],
-      xTo: [150 * this.scale.screenWidth],
-      yTo: [500 * this.scale.screenHeight],
-      duration: 1000 * this.scale.screenWidth,
+      xTo: [mouthLoc[0]],
+      yTo: [mouthLoc[1]],
+      duration: 1000,
       loop: false,
     };
 
@@ -255,7 +269,7 @@ class BubblesGame extends React.Component {
     clearInterval(this.eatInterval)
     this.eatInterval = setInterval(() => {
       this.setState({
-        monsterAnimationIndex: monster.animationIndex('EAT'),
+        monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
       });
       clearInterval(this.eatInterval);
     }, 600);
@@ -268,9 +282,9 @@ class BubblesGame extends React.Component {
   }
 
   popBubble (stopValues) {
-    // NOTE: b/c of bug and use of opacity it is possible to pop the transparent
-    // bubbble, since this should not happen we check if targetBubble.opacity == 0
-    // and ignore.
+    // NOTE: b/c of bug and use of opacity it is possible to pop the
+    // transparent bubbble, since this should not happen we check if
+    // targetBubble.opacity == 0 and ignore.
     if (!this.targetBubble.opacity) {
       return;
     }
@@ -282,7 +296,6 @@ class BubblesGame extends React.Component {
     this.targetBubble.opacity = 0;
     this.setState({targetBubbleActive: true});
     // time to play pop sound
-    debugger;
     this.foodFall(stopValueX, stopValueY);
   }
 
@@ -304,22 +317,66 @@ class BubblesGame extends React.Component {
   leverPressOut () {
     clearInterval(this.bubbleFountainInterval);
   }
+  foutainSize () {
+    return ({
+      width: fountainCharacter.size.width * this.scale.image,
+      height: fountainCharacter.size.height * this.scale.image,
+    });
+  }
+  fountainLocation () {
+    //placement for fountain and lever
+    const size = this.foutainSize();
+    const left = ((SCREEN_WIDTH - size.width)/2);
+    const top = (SCREEN_HEIGHT - size.height) - TOP_OFFSET;
+    return ({top, left});
+  }
+  leverSize () {
+    return ({
+      width: leverCharacter.size.width * this.scale.image,
+      height: leverCharacter.size.height * this.scale.image,
+    });
+  }
+  leverLocation () {
+    const locatoinFoutain = this.fountainLocation();
+    const foutainSize = this.foutainSize();
+    const leverSize = this.leverSize();
+    const left = locatoinFoutain.left + foutainSize.width - 15 * this.scale.screenWidth;
+    const top = (SCREEN_HEIGHT - leverSize.height*1.2) - TOP_OFFSET;
+    return {top, left};
+  }
+
+  monsterSize () {
+    return {
+      width: monsterCharacter.size.width * this.scale.image,
+      height: monsterCharacter.size.height * this.scale.image,
+    };
+  }
+
+  monsterStartLocation () {
+    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
+    const left = -300 * this.scale.screenWidth;
+    return {top, left};
+  }
+
+  monsterEndLocation () {
+    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
+    const left = 40 * this.scale.screenWidth;
+    return {top, left};
+  }
 
   render () {
     return (
       <Image source={require('../../media/backgrounds/Game_7_Background_1280.png')} style={styles.backgroundImage}>
           <View style={styles.gameWorld}>
             <AnimatedSprite
-              character={lever}
+              character={leverCharacter}
               characterUID={this.characterUIDs.lever}
               animationFrameIndex={[0]}
               loopAnimation={false}
-              coordinates={{
-                top: LEVER_LOCATION.top,
-                left: LEVER_LOCATION.left}}
+              coordinates={this.leverLocation()}
               size={{
-                width: Math.floor(lever.size.width * this.scale.image),
-                height: Math.floor(lever.size.height * this.scale.image)}}
+                width: Math.floor(leverCharacter.size.width * this.scale.image),
+                height: Math.floor(leverCharacter.size.height * this.scale.image)}}
               rotate={[{rotateY:'0deg'}, {rotateX: '10deg'}]}
               onPress={() => this.leverPress()}
               onPressIn={() => this.leverPressIn()}
@@ -338,22 +395,6 @@ class BubblesGame extends React.Component {
                   height: Math.floor(285 * this.scale.image)}}
               />
             : null}
-
-            <AnimatedSprite
-              ref={'monsterRef'}
-              character={monster}
-              characterUID={this.characterUIDs.monster}
-              animationFrameIndex={this.state.monsterAnimationIndex}
-              tweenStart={'fromCode'}
-              tweenOptions={this.monster.tweenOptions}
-              onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
-              loopAnimation={this.monster.loopAnimation}
-              coordinates={{top: (505) * this.scale.screenHeight,
-                left: -300 * this.scale.screenWidth}}
-              size={{ width: Math.floor(300 * this.scale.image),
-                height: Math.floor(285 * this.scale.screenHeight)}}
-              rotate={[{rotateY:'180deg'}]}
-            />
 
             {this.state.bubbleArray}
 
@@ -389,20 +430,39 @@ class BubblesGame extends React.Component {
             : null}
 
             <AnimatedSprite
-              character={fountain}
+              ref={'monsterRef'}
+              character={monsterCharacter}
+              characterUID={this.characterUIDs.monster}
+              animationFrameIndex={this.state.monsterAnimationIndex}
+              tweenStart={'fromCode'}
+              tweenOptions={this.monster.tweenOptions}
+              onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
+              loopAnimation={this.monster.loopAnimation}
+              coordinates={this.monsterStartLocation()}
+              size={{ width: Math.floor(300 * this.scale.image),
+                height: Math.floor(285 * this.scale.screenHeight)}}
+              rotate={[{rotateY:'180deg'}]}
+            />
+
+            <AnimatedSprite
+              character={fountainCharacter}
               characterUID={this.characterUIDs.fountain}
               animationFrameIndex={[0]}
               loopAnimation={false}
-              coordinates={{top: FOUTAIN_LOCATION.top,
-                left: FOUTAIN_LOCATION.left}}
-              size={{ width: fountain.size.width * this.scale.image,
-                height: fountain.size.height * this.scale.image}}
+              coordinates={this.fountainLocation()}
+              size={{ width: fountainCharacter.size.width * this.scale.image,
+                height: fountainCharacter.size.height * this.scale.image}}
             />
           </View>
 
           <HomeButton
             route={this.props.route}
             navigator={this.props.navigator}
+            routeId={{ id: 'Main' }}
+            styles={{
+              width: 150 * this.scale.image,
+              height: 150 * this.scale.image,
+              top:0, left: 0, position: 'absolute' }}
           />
       </Image>
     );
@@ -416,8 +476,6 @@ const styles = StyleSheet.create({
   gameWorld: {
     width: SCREEN_WIDTH,
     height: SCREEN_HEIGHT,
-    borderStyle: 'solid',
-    borderWidth: 2,
   },
   backgroundImage: {
     flex: 1,

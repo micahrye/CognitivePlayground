@@ -41,7 +41,11 @@ class CognitivePlayground extends React.Component {
 
   renderScene (route, navigator) {
     if (route.id === 'Main') {
-      return <Main navigator={navigator} />;
+      return <Main
+        navigator={navigator}
+        route={route}
+        scale={this.scale}
+      />;
     } else if (route.id === 'BubblesGame') {
       return (
         <BubblesGame
