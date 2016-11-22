@@ -237,12 +237,7 @@ class BubblesGame extends React.Component {
       }
     }
   }
-  monsterSize () {
-    return {
-      width: monsterCharacter.size.width * this.scale.image,
-      height: monsterCharacter.size.height * this.scale.image,
-    }
-  }
+
   monsterMouthLocation () {
     const monstLoc = this.monsterEndLocation();
     const monstSize = this.monsterSize();
@@ -350,16 +345,23 @@ class BubblesGame extends React.Component {
     return {top, left};
   }
 
+  monsterSize () {
+    return {
+      width: monsterCharacter.size.width * this.scale.image,
+      height: monsterCharacter.size.height * this.scale.image,
+    };
+  }
+
   monsterStartLocation () {
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height)
+    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
     const left = -300 * this.scale.screenWidth;
-    return {top, left}
+    return {top, left};
   }
 
   monsterEndLocation () {
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height)
+    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
     const left = 40 * this.scale.screenWidth;
-    return {top, left}
+    return {top, left};
   }
 
   render () {
