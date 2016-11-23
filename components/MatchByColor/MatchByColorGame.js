@@ -14,12 +14,15 @@ import randomstring from 'random-string';
 import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
 import HomeButton from '../HomeButton/HomeButton';
 // props
-import lever from '../../sprites/lever/leverCharacter';
+import leverSprite from '../../sprites/lever/leverCharacter';
 import sign from '../../sprites/sign/signCharacter';
 // game character related utils
 import gameUtil from './gameUtil';
 // styles
 import styles from './styles';
+
+const SCREEN_WIDTH = require('Dimensions').get('window').width;
+const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
 const LEFT = 0;
 const MIDDLE = 1;
@@ -32,6 +35,7 @@ class MatchByColorGame extends React.Component {
     this.state = {
       character: null,
       characterAnimationIndex: [0],
+      leverAnimationIndex: [0],
       loadingCharacter: false,
       dropFood: false,
       signsVisable: false,
@@ -74,6 +78,9 @@ class MatchByColorGame extends React.Component {
     this.leftFood.coords = [coords.top, coords.leftLeft];
     this.middleFood.coords = [coords.top, coords.middleLeft];
     this.rightFood.coords = [coords.top, coords.rightLeft];
+
+    this.leverSprite = leverSprite;
+    this.leverSprite.tweenOptions = {tweenOptions: {}};
   }
 
   componentDidMount () {
@@ -109,10 +116,11 @@ class MatchByColorGame extends React.Component {
       clearTimeout(this.setDefaultAnimationState);
       this.setDefaultAnimationState = setTimeout(() => {
         this.setState({
+          leverAnimationIndex: this.leverSprite.animationIndex('WIGGLE'),
           characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
           loadingCharacter: false,
         });
-      }, 2000);
+      }, 1200);
     });
   }
 
@@ -219,11 +227,11 @@ class MatchByColorGame extends React.Component {
     }, TRIAL_TIMEOUT);
   }
 
-  leverPressIn () {
+  leverPress () {
     // console.log('leverPressIn');
   }
 
-  leverPress () {
+  leverPressIn () {
     if (this.state.loadingCharacter
       || this.state.signsVisable || this.clearingScene) {
       return;
@@ -237,6 +245,7 @@ class MatchByColorGame extends React.Component {
     this.initializeSignsDropTween();
 
     this.setState({
+      leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_ON'),
       characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
       signsVisable: true,
       characterAnimationLoop: true,
@@ -403,6 +412,7 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.signInterval);
     this.signInterval = setTimeout(() => {
       this.setState({
+        leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF'),
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         foodDisplayed: false,
@@ -458,7 +468,16 @@ class MatchByColorGame extends React.Component {
   homeButtonPressed () {
     this.props.navigator.replace({ id: 'Main' });
   }
-
+  leverLocation () {
+    const size = this.leverSize();
+    const left = SCREEN_WIDTH - size.width;
+    const top = (SCREEN_HEIGHT - size.height) / 2;
+    return {top, left};
+  }
+  leverSize () {
+    return { width: leverSprite.size.width * this.scale.image,
+      height: leverSprite.size.height * this.scale.image};
+  }
   render () {
     console.log('MatchByColor Render');
     return (
@@ -468,16 +487,15 @@ class MatchByColorGame extends React.Component {
           height: 800 * this.scale.screenHeight, flex: 1}}
         />
         <AnimatedSprite
-          character={lever}
+          character={leverSprite}
           characterUID={this.characterUIDs.lever}
-          animationFrameIndex={[0]}
+          animationFrameIndex={this.state.leverAnimationIndex}
           loopAnimation={false}
-          coordinates={{
-            top: 240 * this.scale.screenHeight,
-            left: 1080 * this.scale.screenWidth }}
-          size={{ width: lever.size.width * this.scale.image,
-            height: lever.size.height * this.scale.image}}
-          rotate={[{rotateY:'180deg'}]}
+          tweenOptions={this.leverSprite.tweenOptions}
+          tweenStart={'fromCode'}
+          coordinates={this.leverLocation()}
+          size={this.leverSize()}
+          rotate={[{rotateY:'0deg'}]}
           onPress={() => this.leverPress()}
           onPressIn={() => this.leverPressIn()}
           onPressOut={() => this.leverPressOut()}

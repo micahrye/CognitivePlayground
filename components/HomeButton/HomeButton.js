@@ -18,7 +18,7 @@ const HomeButton = function (props) {
       style={props.styles}
       onPress={() => props.navigator.replace(props.routeId)}>
       <Image
-        source={require('../../media/icons/home_btn.png')}
+        source={require('../../media/icons/home_btn02.png')}
         style={{width: props.styles.width, height: props.styles.height}}
       />
     </TouchableOpacity>
