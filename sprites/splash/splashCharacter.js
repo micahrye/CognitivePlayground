@@ -10,7 +10,7 @@ const splashCharacter = {
     require('./splash02.png'),
     require('./splash03.png'),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'RIPPLE':
         return [0,1,0];

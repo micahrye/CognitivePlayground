@@ -16,7 +16,7 @@ import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
-import leverCharacter from '../../sprites/lever/leverCharacter';
+import leverCharacter from '../../sprites/fountainLever/fountainLeverCharacter';
 import fountainCharacter from '../../sprites/fountain/fountainCharacter';
 import canCharacter from '../../sprites/can/canCharacter';
 
@@ -37,6 +37,7 @@ class BubblesGame extends React.Component {
     this.state = {
       spriteAnimationKey: 'all',
       spriteAnimationKeyIndex: 0,
+      leverAnimationIndex: [0],
       bubbleArray: [],
       bubbleAnimationIndex: [0],
       monsterAnimationIndex: [0],
@@ -305,6 +306,9 @@ class BubblesGame extends React.Component {
   }
 
   leverPressIn () {
+    this.setState({
+      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_ON'),
+    });
     this.bubbleFountainInterval = setInterval(() => {
       this.createBubbles();
     }, 200);
@@ -315,6 +319,9 @@ class BubblesGame extends React.Component {
   }
 
   leverPressOut () {
+    this.setState({
+      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_OFF'),
+    });
     clearInterval(this.bubbleFountainInterval);
   }
   foutainSize () {
@@ -331,17 +338,19 @@ class BubblesGame extends React.Component {
     return ({top, left});
   }
   leverSize () {
+    const scaleLever = 1.5;
     return ({
-      width: leverCharacter.size.width * this.scale.image,
-      height: leverCharacter.size.height * this.scale.image,
+      width: leverCharacter.size.width * scaleLever * this.scale.image,
+      height: leverCharacter.size.height * scaleLever * this.scale.image,
     });
   }
   leverLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
     const leverSize = this.leverSize();
-    const left = locatoinFoutain.left + foutainSize.width - 15 * this.scale.screenWidth;
-    const top = (SCREEN_HEIGHT - leverSize.height*1.2) - TOP_OFFSET;
+    const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
+    const top = SCREEN_HEIGHT - foutainSize.height * 1.05;
+
     return {top, left};
   }
 
@@ -353,13 +362,15 @@ class BubblesGame extends React.Component {
   }
 
   monsterStartLocation () {
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
+    const characterOffset = 100 * this.scale.screenHeight;
+    const top = (SCREEN_HEIGHT - monsterCharacter.size.height - characterOffset);
     const left = -300 * this.scale.screenWidth;
     return {top, left};
   }
 
   monsterEndLocation () {
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
+    const characterOffset = 100 * this.scale.screenHeight;
+    const top = (SCREEN_HEIGHT - monsterCharacter.size.height - characterOffset);
     const left = 40 * this.scale.screenWidth;
     return {top, left};
   }
@@ -371,13 +382,11 @@ class BubblesGame extends React.Component {
             <AnimatedSprite
               character={leverCharacter}
               characterUID={this.characterUIDs.lever}
-              animationFrameIndex={[0]}
+              animationFrameIndex={this.state.leverAnimationIndex}
               loopAnimation={false}
               coordinates={this.leverLocation()}
-              size={{
-                width: Math.floor(leverCharacter.size.width * this.scale.image),
-                height: Math.floor(leverCharacter.size.height * this.scale.image)}}
-              rotate={[{rotateY:'0deg'}, {rotateX: '10deg'}]}
+              size={this.leverSize()}
+              rotate={[{rotateY:'0deg'}]}
               onPress={() => this.leverPress()}
               onPressIn={() => this.leverPressIn()}
               onPressOut={() => this.leverPressOut()}
