@@ -12,18 +12,20 @@ import HomeButton from '../HomeButton/HomeButton';
 // import characters for AnimatedSprite to use
 import frogCharacter from '../../sprites/frog/frogCharacter';
 import bugCharacter from '../../sprites/bug/bugCharacter';
-// import omnivoreLite from '../../sprites/omnivoreLite/omnivoreLite';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
+// import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
 
 import styles from "./BugZapStyles";
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEVEL1A_TRIAL = 2;
-const LEVEL1B_TRIAL = 4;
-const LEVEL_2 = 6
+const LEVEL1A_TRIALS = 2; // what trial number level1a lasts until
+const LEVEL1B_TRIALS = 4;
+const LEVEL2_TRIALS = 7;
+const LEVEL3A_TRIALS = 9;
+// const LEVEL3B_TRIALS = 11;
 
 class BugZapGame extends React.Component {
   constructor (props) {
@@ -34,15 +36,16 @@ class BugZapGame extends React.Component {
     this.characterPos = 550 * this.props.scale.screenWidth;
     this.characterTo = 10 * this.props.scale.screenWidth;
     this.characterPosY = 200 * this.props.scale.screenHeight;
-    this.splashPos = 850 * this.props.scale.screenWidth;
+    this.splashPos = 800 * this.props.scale.screenWidth;
     this.bugStartX = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
     this.characterStartX = 900 * this.props.scale.screenWidth,
     this.rotate = undefined;
     this.characterDirection = 'left';
     this.trialNumber = 1;
-    this.directionMaySwitch = true;
+    this.directionMaySwitch = false;
     this.fps = 8;
-    this.showOtherBugSign = true;
+    this.showOtherBugSign = false;
+    this.showLightbulb = true;
     this.idle = 0;
     // this.eat1 = 3;
     // this.eat2 = 4;
@@ -57,6 +60,8 @@ class BugZapGame extends React.Component {
     this.readyToCelebrate = false;
     this.retractingSign = false;
     this.frogLanded = false;
+    this.givenTime = 3500; // given this many seconds on timed trials to start with
+    this.blackout = false;
     this.state = {
       bugTweenOptions: null,
       showBugLeft: true,
@@ -67,22 +72,32 @@ class BugZapGame extends React.Component {
       leftSignTweenOptions: null,
       rightSignTweenOptions: null,
       showSplashCharacter: false,
+      showBlackout: false,
+      showSpotlight: false,
     };
   }
 
   componentWillMount () {
     if (this.props.route.trialNumber != undefined) {
       this.trialNumber = this.props.route.trialNumber + 1;
-      if (this.trialNumber > LEVEL1A_TRIAL) {
+      if (this.trialNumber > LEVEL1A_TRIALS) {
+        // now two bug choices
         this.directionMaySwitch = true;
         this.showOtherBugSign = true;
       }
-      // this.setCharacterHopOn();
-
+      if (this.trialNumber > LEVEL1B_TRIALS) {
+        // now given certain amount of time to tap, decreasing over trials
+        this.givenTime = this.props.route.givenTime - 500;
+      }
+      if (this.trialNumber > LEVEL2_TRIALS) {
+        this.blackout = true;
+      }
     } else {
       // first trial, run through all animations once
       this.setCharacterAnimations();
     }
+
+
     this.setCharacterDirection();
     this.setBugTween();
     this.signBounceDown();
@@ -95,7 +110,7 @@ class BugZapGame extends React.Component {
   }
 
   signBounceDown () {
-    signTweenOptions = {
+    let signTweenOptions = {
       tweenType: "bounce-drop",
       startY: -300,
       endY: -10 * this.props.scale.screenHeight,
@@ -106,7 +121,6 @@ class BugZapGame extends React.Component {
     this.setState({
       showBugLeft: false,
       showBugRight: false,
-      // signKey: Math.random(),
       leftSignTweenOptions: signTweenOptions,
       rightSignTweenOptions: signTweenOptions,
     });
@@ -118,7 +132,8 @@ class BugZapGame extends React.Component {
     this.fps = 20;
     this.setState({
       characterAnimationIndex: frogCharacter.animationIndex('ALL'),
-    });    // reset characters to default state
+      splashAnimationIndex: [3,4,5],
+    });    // reset character to default state
     this.setDefaultAnimationState = setTimeout(() => {
       this.fps = 8;
       this.character.style = {opacity: 1};
@@ -132,7 +147,6 @@ class BugZapGame extends React.Component {
   setCharacterDirection () {
     if (this.directionMaySwitch) {
       let direction = Math.floor(Math.random() * 2);
-      // this.characterDirection = 'left';
 
       if (direction === 0) {
         this.characterDirection = 'right';
@@ -144,16 +158,22 @@ class BugZapGame extends React.Component {
         this.bugStartX = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
         this.characterStartX = 10 * this.props.scale.screenWidth;
         this.rotate = [{rotateY: '180deg'}];
-        this.splashPos = 100 * this.props.scale.screenWidth;
+        this.splashPos = 150 * this.props.scale.screenWidth;
       }
     }
   }
 
   startRipple () {
-    this.setState({
-      showSplashCharacter: true,
-      splashAnimationIndex: [3,4,5],
-    });
+    if (this.blackout) {
+      this.setBlackout();
+      this.characterHopOn();
+    }
+    else {
+      this.setState({
+        showSplashCharacter: true,
+        splashAnimationIndex: splashCharacter.animationIndex("SPLASH"),
+      });
+    }
   }
 
   setBugTween () {
@@ -177,23 +197,19 @@ class BugZapGame extends React.Component {
   }
 
   characterHopOn () {
-    // if (!this.characterOnScreen) {
-      this.setState({
-        characterKey: Math.random(),
-        characterTweenOptions: {
-          tweenType: "linear-move",
-          startXY: [this.characterStartX, SCREEN_HEIGHT],
-          endXY: [this.characterPos, 300 * this.props.scale.screenHeight],
-          duration: 1000 * this.props.scale.screenHeight,
-          loop: false,
-        },
-      });
-    //   this.characterOnScreen = true;
-    // }
+    this.setState({
+      characterKey: Math.random(),
+      characterTweenOptions: {
+        tweenType: "linear-move",
+        startXY: [this.characterStartX, SCREEN_HEIGHT],
+        endXY: [this.characterPos, 300 * this.props.scale.screenHeight],
+        duration: 1000 * this.props.scale.screenHeight,
+        loop: false,
+      },
+    });
   }
 
   characterHopOff () {
-    // console.warn('in character hop off');
     this.setState({
       characterKey: Math.random(),
       characterAnimationIndex: this.hopOff,
@@ -211,11 +227,9 @@ class BugZapGame extends React.Component {
 
   // level 2 has timeouts
   bugTapTimeout () {
-    // console.warn('here');
-    // this will change once we have the jumping on/off the lily pad going
     this.characterDissapear = setTimeout (() => {
       this.characterHopOff();
-    }, 2000);
+    }, this.givenTime);
   }
 
   onTweenFinish (characterUID) {
@@ -231,7 +245,6 @@ class BugZapGame extends React.Component {
         });
         break;
       case 'signLeft':
-        // this.setCharacterHopOn();
         if (!this.retractingSign) {
           this.startRipple();
           this.setState({
@@ -247,13 +260,14 @@ class BugZapGame extends React.Component {
         }
         break;
       case 'character':
-        if (this.trialNumber > LEVEL1B_TRIAL) {
+        if (this.trialNumber > LEVEL1B_TRIALS && this.trialNumber <= LEVEL2_TRIALS) {
           this.bugTapTimeout();
         }
         this.setState({
           characterAnimationIndex: [this.idle],
         });
         if (this.bugPressed && !this.frogLanded) {
+          clearTimeout(this.characterDissapear);
           this.whichBugTapped();
         }
         this.frogLanded = true;
@@ -262,7 +276,6 @@ class BugZapGame extends React.Component {
   }
 
   onAnimationFinish (characterUID) {
-    // console.warn('in animation finish');
     if (characterUID === 'splash') {
       this.setState ({
         showSplashCharacter: false,
@@ -270,13 +283,12 @@ class BugZapGame extends React.Component {
       this.characterHopOn();
     }
     else if (characterUID === 'character' && this.readyToCelebrate) {
-      index = [5,6,6,6,0]
+      let index = [5,6,6,6,0];
       this.setState({
         characterAnimationIndex: index,
       });
       this.readyToCelebrate = false;
       this.readyToHopOff = true;
-      // this.goToNextTrial();
     }
     else if (characterUID === 'character' && this.readyToHopOff) {
       this.characterHopOff();
@@ -285,17 +297,16 @@ class BugZapGame extends React.Component {
   }
 
   goToNextTrial () {
-    // console.warn('here');
     this.nextTrialTimeout = setTimeout (() => {
       this.props.navigator.replace({
         id: 'BugZapGame',
         trialNumber: this.trialNumber,
+        givenTime: this.givenTime,
       });
     }, 2500);
   }
 
   onBugPress (whichBug) {
-    // console.warn("in onbugpress");
     if (this.loadingContent || this.bugPressed) {
       return true;
     }
@@ -317,7 +328,7 @@ class BugZapGame extends React.Component {
       start = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
     }
 
-    signTweenOptions = {
+    let signTweenOptions = {
       tweenType: "linear-move",
       startXY: [start, -10 * this.props.scale.screenHeight],
       endXY: [start, -300],
@@ -342,7 +353,6 @@ class BugZapGame extends React.Component {
   }
 
   whichBugTapped () {
-    // console.warn('in which bug tapped');
     if ((this.whichBug === 'bugLeft' && this.characterDirection === 'left') ||
         (this.whichBug === 'bugRight' && this.characterDirection === 'right')) {
       this.correctBugTapped();
@@ -353,7 +363,6 @@ class BugZapGame extends React.Component {
   }
 
   correctBugTapped () {
-    // console.warn('in correct bug tapped');
     let index = [0,3,3,4,0];
     let delay = (700 * this.props.scale.screenWidth);
 
@@ -375,7 +384,6 @@ class BugZapGame extends React.Component {
   }
 
   wrongBugTapped () {
-    // console.warn('in wrong bug tapped');
     let index = [7,7,7,0];
     let delay = 100;
 
@@ -388,9 +396,53 @@ class BugZapGame extends React.Component {
 
     this.interval = setInterval(() => {
       clearInterval(this.interval);
-      // this.goToNextTrial();
       this.characterHopOff();
     }, 1000);
+  }
+
+  // screen goes black
+  setBlackout () {
+    this.setState({showBlackout: true});
+    this.flashSpotlight = setTimeout(() => {
+      // after 1000ms show spotlight
+      this.setState({showSpotlight: true});
+      this.removeSpotlight = setTimeout(() => {
+        // after another 1500ms remove spotlight
+        this.setState({showSpotlight: false});
+        this.removeBlackout = setTimeout(() => {
+          // after another 500ms remove blackout
+          this.setState({showBlackout: false});
+        }, 500);
+      }, 1500);
+    }, 1000);
+  }
+
+  getSpotLightStyle () {
+    // for first few blackout trials, spotlight is consistent with frog side
+    let posX = 300 * this.props.scale.screenWidth;
+    if (this.trialNumber > LEVEL2_TRIALS && this.trialNumber <= LEVEL3A_TRIALS) {
+      if (this.characterDirection === 'left') {
+        posX = 800 * this.props.scale.screenWidth;
+      }
+    }
+    else {
+      const side = Math.random();
+      if (side < .5) {
+        posX = 800 * this.props.scale.screenWidth;
+      }
+    }
+    return (
+      {
+        flex: 1,
+        backgroundColor: 'white',
+        height: 150,
+        width: 150,
+        left: posX,
+        top: 450 * this.props.scale.screenHeight,
+        position: 'absolute',
+        borderRadius: 100,
+      }
+    );
   }
 
   render () {
@@ -423,7 +475,7 @@ class BugZapGame extends React.Component {
       <AnimatedSprite
         characterUID={'splash'}
         character={splashCharacter}
-        coordinates={{top: SCREEN_HEIGHT - 200 * this.props.scale.screenHeight,
+        coordinates={{top: 580 * this.props.scale.screenHeight,
           left: this.splashPos}}
         size={{
             width: 340 * this.props.scale.image,
@@ -435,76 +487,82 @@ class BugZapGame extends React.Component {
     : null}
 
 
-       <View style={styles.itemContainer}>
-          <AnimatedSprite
-            key={this.state.leftSignKey}
-            characterUID={'signLeft'}
-            character={signCharacter}
-            coordinates={{top: -10 * this.props.scale.screenHeight, left: this.leftSignXPos}}
-            size={{width: 140 * this.props.scale.screenWidth, height: 230 * this.props.scale.screenHeight}}
-            animationFrameIndex={[0]}
-            tweenOptions={this.state.leftSignTweenOptions}
-            onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-            tweenStart={'auto'}
-          />
-      </View>
+    <AnimatedSprite
+      key={this.state.leftSignKey}
+      characterUID={'signLeft'}
+      character={signCharacter}
+      coordinates={{top: -10 * this.props.scale.screenHeight, left: this.leftSignXPos}}
+      size={{width: 140 * this.props.scale.image, height: 230 * this.props.scale.image}}
+      animationFrameIndex={[0]}
+      tweenOptions={this.state.leftSignTweenOptions}
+      onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+      tweenStart={'auto'}
+    />
 
-      {this.state.showBugLeft ?
-        <AnimatedSprite
-          character={bugCharacter}
-          ref={'bugLeftRef'}
-          characterUID={'bugLeft'}
-          coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (370 * this.props.scale.screenWidth)}}
-          size={{width: 150 * this.props.scale.screenWidth, height: 150 * this.props.scale.screenHeight}}
-          tweenOptions={this.state.bugTweenOptions}
-          tweenStart={'fromCode'}
-          onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-          onPress={(characterUID) => this.onBugPress(characterUID)}
-          animationFrameIndex={[1]}
-        />
-      : null}
-
-      {this.showOtherBugSign ?
-        <View>
-          <View style={styles.itemContainer}>
-              <AnimatedSprite
-                key={this.state.rightSignKey}
-                character={signCharacter}
-                characterUID={'signRight'}
-                coordinates={{top: -10 * this.props.scale.screeHeight, left: this.rightSignXPos}}
-                size={{width: 140 * this.props.scale.screenWidth, height: 230* this.props.scale.screenHeight}}
-                animationFrameIndex={[0]}
-                tweenOptions={this.state.rightSignTweenOptions}
-                tweenStart={'auto'}
-                onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-              />
-          </View>
-          {this.state.showBugRight ?
-            <AnimatedSprite
-              ref={'bugRightRef'}
-              characterUID={'bugRight'}
-              coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 + (200 * this.props.scale.screenWidth)}}
-              size={{width: 150 * this.props.scale.screenWidth, height: 150 * this.props.scale.screenHeight}}
-              character={bugCharacter}
-              tweenOptions={this.state.bugTweenOptions}
-              tweenStart={'fromCode'}
-              onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-              onPress={(characterUID) => this.onBugPress(characterUID)}
-              animationFrameIndex={[2]}
-            />
-          : null}
-          </View>
-      : null}
-
-      <HomeButton
-        route={this.props.route}
-        navigator={this.props.navigator}
-        routeId={{ id: 'Main' }}
-        styles={{
-          width: 150 * this.props.scale.image,
-          height: 150 * this.props.scale.image,
-          top:0, left: 0, position: 'absolute' }}
+    {this.state.showBugLeft ?
+      <AnimatedSprite
+        character={bugCharacter}
+        ref={'bugLeftRef'}
+        characterUID={'bugLeft'}
+        coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (370 * this.props.scale.screenWidth)}}
+        size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
+        tweenOptions={this.state.bugTweenOptions}
+        tweenStart={'fromCode'}
+        onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+        onPress={(characterUID) => this.onBugPress(characterUID)}
+        animationFrameIndex={[1]}
       />
+    : null}
+
+    {this.showOtherBugSign ?
+      <View>
+        <AnimatedSprite
+          key={this.state.rightSignKey}
+          character={signCharacter}
+          characterUID={'signRight'}
+          coordinates={{top: -10 * this.props.scale.screeHeight, left: this.rightSignXPos}}
+          size={{width: 140 * this.props.scale.image, height: 230* this.props.scale.image}}
+          animationFrameIndex={[0]}
+          tweenOptions={this.state.rightSignTweenOptions}
+          tweenStart={'auto'}
+          onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+        />
+
+        {this.state.showBugRight ?
+          <AnimatedSprite
+            ref={'bugRightRef'}
+            characterUID={'bugRight'}
+            coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 + (200 * this.props.scale.screenWidth)}}
+            size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
+            character={bugCharacter}
+            tweenOptions={this.state.bugTweenOptions}
+            tweenStart={'fromCode'}
+            onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+            onPress={(characterUID) => this.onBugPress(characterUID)}
+            animationFrameIndex={[2]}
+          />
+        : null}
+        </View>
+    : null}
+
+    {this.state.showBlackout ?
+      <View style={styles.blackout} />
+    : null}
+
+    {this.state.showSpotlight ?
+      <View style={this.getSpotLightStyle()} />
+    : null}
+
+
+    <HomeButton
+      route={this.props.route}
+      navigator={this.props.navigator}
+      routeId={{ id: 'Main' }}
+      styles={{
+        width: 150 * this.props.scale.image,
+        height: 150 * this.props.scale.image,
+        top:0, left: 0, position: 'absolute' }}
+    />
 
   </Image>
 
