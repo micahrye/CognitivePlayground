@@ -38,7 +38,7 @@ class BugZapGame extends React.Component {
     this.characterPosY = 200 * this.props.scale.screenHeight;
     this.splashPos = 800 * this.props.scale.screenWidth;
     this.bugStartX = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
-    this.characterStartX = 900 * this.props.scale.screenWidth,
+    this.characterStartX = 900 * this.props.scale.screenWidth;
     this.rotate = undefined;
     this.characterDirection = 'left';
     this.trialNumber = 1;
@@ -510,7 +510,7 @@ class BugZapGame extends React.Component {
         tweenStart={'fromCode'}
         onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
         onPress={(characterUID) => this.onBugPress(characterUID)}
-        animationFrameIndex={[1]}
+        animationFrameIndex={[0]}
       />
     : null}
 
@@ -539,7 +539,7 @@ class BugZapGame extends React.Component {
             tweenStart={'fromCode'}
             onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
             onPress={(characterUID) => this.onBugPress(characterUID)}
-            animationFrameIndex={[2]}
+            animationFrameIndex={[1]}
           />
         : null}
         </View>

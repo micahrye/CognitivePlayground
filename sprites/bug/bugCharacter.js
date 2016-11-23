@@ -9,7 +9,7 @@ const bugCharacter = {
     require("./bug_red.png"),
     require("./bug_yellow.png"),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];

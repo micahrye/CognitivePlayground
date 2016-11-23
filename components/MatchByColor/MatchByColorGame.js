@@ -88,6 +88,10 @@ class MatchByColorGame extends React.Component {
   }
 
   componentWillUnmount () {
+    this.eatTimeout;
+    this.signInterval;
+    
+    clearTimeout(this.trialTimer);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.eatTimeout);
     clearTimeout(this.switchCharacterTimeout);
