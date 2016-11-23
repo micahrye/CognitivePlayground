@@ -171,7 +171,7 @@ class BugZapGame extends React.Component {
     else {
       this.setState({
         showSplashCharacter: true,
-        splashAnimationIndex: [3,4,5],
+        splashAnimationIndex: splashCharacter.animationIndex("SPLASH"),
       });
     }
   }
