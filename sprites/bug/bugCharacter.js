@@ -1,22 +1,24 @@
 
 const bugCharacter = {
   name:"bug",
-  animationTypes: ['GREEN','BLUE','RED','YELLOW', 'ALL'],
+  size: {width: 150, height: 150},
+  animationTypes: ['GREEN','BLUE','RED','YELLOW', 'GREY', 'ALL'],
   all: [
     // require("./prettybug_idle03.png"),
     require("./bug_green.png"),
     require("./bug_blue.png"),
     require("./bug_red.png"),
     require("./bug_yellow.png"),
+    require("./bug_grey.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];
       case 'ALL':
-        return [0,1,2,3];
+        return [0, 1, 2, 3, 4];
     }
-  }
+  },
 };
 
 export default bugCharacter;

@@ -60,9 +60,12 @@ class MatchByColorGame extends React.Component {
     this.targetFoodPosition;
     this.signDropTime = 1500 * this.props.scale.screenHeight;
 
-    this.eatTimeout;
-    this.signInterval;
+    this.showFoodTimeout;
+    this.signTimeout;
     this.trialTimer;
+    this.setDefaultAnimationState;
+    this.eatTimeout;
+    this.switchCharacterTimeout;
     this.clearingScene = false;
   }
 
@@ -88,9 +91,8 @@ class MatchByColorGame extends React.Component {
   }
 
   componentWillUnmount () {
-    this.eatTimeout;
-    this.signInterval;
-    
+    clearTimeout(this.showFoodTimeout);
+    clearTimeout(this.signTimeout);
     clearTimeout(this.trialTimer);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.eatTimeout);
@@ -257,8 +259,8 @@ class MatchByColorGame extends React.Component {
       this.startSignsTween(this.state.level);
       this.refs.characterRef.startTween();
       // then interval to make food appear on sign.
-      clearTimeout(this.showFoodInterval);
-      this.showFoodInterval = setTimeout(() => {
+      clearTimeout(this.showFoodTimeout);
+      this.showFoodTimeout = setTimeout(() => {
         const coords = this.foodSignDisplayLocations();
         this.showFoods(coords, true, this.activeCharacter.name);
         this.foodActive = true;
@@ -413,8 +415,8 @@ class MatchByColorGame extends React.Component {
     const coords = this.foodSignDisplayLocations(true, -150);
     this.showFoods(coords, false, false);
 
-    clearTimeout(this.signInterval);
-    this.signInterval = setTimeout(() => {
+    clearTimeout(this.signTimeout);
+    this.signTimeout = setTimeout(() => {
       this.setState({
         leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF'),
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),

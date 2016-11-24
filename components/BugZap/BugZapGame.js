@@ -11,6 +11,7 @@ import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
 // import characters for AnimatedSprite to use
 import frogCharacter from '../../sprites/frog/frogCharacter';
+import blueFrogCharacter from '../../sprites/blueFrog/blueFrogCharacter';
 import bugCharacter from '../../sprites/bug/bugCharacter';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
@@ -448,7 +449,7 @@ class BugZapGame extends React.Component {
   render () {
     return (
       <Image
-        source={require('../../media/backgrounds/BugZap_Background_1280.png')}
+        source={require('../../media/backgrounds/Game_1_Background_1280.png')}
         style={styles.backgroundImage} >
 
       <AnimatedSprite
@@ -504,8 +505,9 @@ class BugZapGame extends React.Component {
         character={bugCharacter}
         ref={'bugLeftRef'}
         characterUID={'bugLeft'}
-        coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (370 * this.props.scale.screenWidth)}}
-        size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
+        coordinates={{top: 75 * this.props.scale.screenHeight,
+          left: SCREEN_WIDTH/2 - (350 * this.props.scale.screenWidth)}}
+        size={{width: 120 * this.props.scale.image, height: 120 * this.props.scale.image}}
         tweenOptions={this.state.bugTweenOptions}
         tweenStart={'fromCode'}
         onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
@@ -532,8 +534,10 @@ class BugZapGame extends React.Component {
           <AnimatedSprite
             ref={'bugRightRef'}
             characterUID={'bugRight'}
-            coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 + (200 * this.props.scale.screenWidth)}}
-            size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
+            coordinates={{top: 75 * this.props.scale.screenHeight,
+              left: SCREEN_WIDTH/2 + (220 * this.props.scale.screenWidth)}}
+            size={{width: 120 * this.props.scale.image,
+              height: 120 * this.props.scale.image}}
             character={bugCharacter}
             tweenOptions={this.state.bugTweenOptions}
             tweenStart={'fromCode'}
