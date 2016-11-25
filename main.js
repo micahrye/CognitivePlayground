@@ -1,4 +1,3 @@
-// @flow
 
 import React from 'react';
 import {
@@ -13,48 +12,59 @@ import _ from 'lodash';
 
 var reactMixin = require('react-mixin');
 import TimerMixin from 'react-timer-mixin';
+import Tweens from "./Tweens/Tweens";
 
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const SCREEN_HEIGHT = Dimensions.get('window').height;
+const baseHeight = 800;
+const baseWidth = 1280;
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+
 
 class Main extends React.Component {
-  constructor (props: Object) {
+  constructor (props) {
     super(props);
-    const iconList: Object[] = [
+    const scaleWidth = screenWidth / baseWidth;
+    const scaleHeight = screenHeight / baseHeight;
+    this.scale = {
+      screenWidth: scaleWidth,
+      screenHeight: scaleHeight,
+      image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
+    };
+    const iconList = [
       {
         name: 'BUBBLE',
         imgSrc: require('./media/icons/game7_icon_color.png'),
-        location: {top: 130, left: 60},
+        location: this.scaleLocation({top: 130, left: 60}),
       },
       {
         name: 'BUG',
         imgSrc: require('./media/icons/game1_icon_color.png'),
-        location: {top: 380, left: 180},
+        location: this.scaleLocation({top: 380, left: 180}),
       },
       {
         name: 'MATCH',
         imgSrc: require('./media/icons/game2_icon_color.png'),
-        location: {top: 200, left: 400},
+        location: this.scaleLocation({top: 200, left: 400}),
       },
       {
         name: 'JUMP',
         imgSrc: require('./media/icons/game3_icon_bw.png'),
-        location: {top: 400, left: 600},
+        location: this.scaleLocation({top: 400, left: 600}),
       },
       {
         name: 'MATRIX',
         imgSrc: require('./media/icons/game4_icon_bw.png'),
-        location: {top: 40, left: 640},
+        location: this.scaleLocation({top: 40, left: 640}),
       },
       {
         name: 'FOOD',
         imgSrc: require('./media/icons/game5_icon_bw.png'),
-        location: {top: 160, left: 900},
+        location: this.scaleLocation({top: 160, left: 900}),
       },
       {
         name: 'COLOR',
         imgSrc: require('./media/icons/game6_icon_bw.png'),
-        location: {top: 420, left: 940},
+        location: this.scaleLocation({top: 420, left: 940}),
       },
     ];
     this.iconList = iconList;
@@ -63,6 +73,13 @@ class Main extends React.Component {
   componentWillMount () {}
 
   componentDidMount () {}
+
+  scaleLocation (location) {
+    return ({
+      top: location.top * this.scale.screenHeight,
+      left: location.left * this.scale.screenWidth,
+    });
+  }
 
   goToGame = (gameId) => {
     //console.warn('goToGame : ', gameId);
@@ -93,15 +110,16 @@ class Main extends React.Component {
         <TouchableOpacity
           key={index}
           activeOpacity={1.0}
-          style={{width: styles.icon.width,
-            height: styles.icon.height,
+          style={{width: 240 * this.scale.image,
+            height: 240 * this.scale.image,
             top:icon.location.top, left: icon.location.left,
             position: 'absolute',
           }}
           onPress={() => this.launchGame(icon.name)}>
           <Image
             source={icon.imgSrc}
-            style={styles.icon}
+            style={{width: 240 * this.scale.image,
+              height: 240 * this.scale.image}}
           />
         </TouchableOpacity>
       );
@@ -121,46 +139,12 @@ Main.propTypes = {
 
 reactMixin.onClass(Main, TimerMixin);
 
-const styles = StyleSheet.create({
-  icon: {
-    width: 240,
-    height: 240,
-  },
-  scrollView: {
-    height:SCREEN_HEIGHT,
-    width:SCREEN_WIDTH,
-  },
-  container: {
-    flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    height:SCREEN_HEIGHT,
-    width:SCREEN_WIDTH,
-    //backgroundColor: '#fff',
-  },
-  column: {
-    flex: 2,
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button : {
-    backgroundColor: '#4d94ff',
-    borderRadius: 10,
-    margin: 10,
-    height: 75,
-    width: 200,
-    justifyContent: 'center',
-  },
-  box: {
-    borderColor: 'red',
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    padding: 10,
-    width: 100,
-    height: 100,
-  },
-});
+
+
+Main.propTypes = {
+  route: React.PropTypes.object,
+  navigator: React.PropTypes.object,
+  scale: React.PropTypes.object,
+};
 
 export default Main;

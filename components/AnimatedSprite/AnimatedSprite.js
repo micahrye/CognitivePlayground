@@ -25,7 +25,6 @@ class AnimatedSprite extends React.Component {
       height: props.size.height,
       rotate: props.rotate,
       frameIndex: this.props.animationFrameIndex,
-      tweener: [],
     };
 
     this.character = this.props.character;
@@ -92,7 +91,8 @@ class AnimatedSprite extends React.Component {
     if (this.props.tweenStart == "auto" && this.props.tweenOptions != null) {
       this.startTween();
     }
-    if(this.props.fps){
+    // TODO: should be validation on fps so that it is a resonable range.
+    if (this.props.fps) {
       this.fps = this.props.fps;
     }
   }
@@ -259,14 +259,8 @@ class AnimatedSprite extends React.Component {
         top: this.state.top,
         left: this.state.left,
         position: 'absolute',
-        // justifyContent: 'center',
-        // alignItems: 'center',
-        // width: this.state.width,
-        // height: this.state.height,
         opacity: this.props.style ? this.props.style.opacity : 1,
         transform: [{scale: this.state.scale}],
-        // borderColor: "#000000",
-        // borderWidth: 2,
       }
     );
   }
@@ -294,7 +288,6 @@ class AnimatedSprite extends React.Component {
             }}
           />
         </TouchableOpacity>
-        {this.state.tweener}
       </Animated.View>
     );
   }
