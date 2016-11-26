@@ -11,6 +11,7 @@ import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
 // import characters for AnimatedSprite to use
 import frogCharacter from '../../sprites/frog/frogCharacter';
+import blueFrogCharacter from '../../sprites/blueFrog/blueFrogCharacter';
 import bugCharacter from '../../sprites/bug/bugCharacter';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
@@ -38,7 +39,7 @@ class BugZapGame extends React.Component {
     this.characterPosY = 200 * this.props.scale.screenHeight;
     this.splashPos = 800 * this.props.scale.screenWidth;
     this.bugStartX = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
-    this.characterStartX = 900 * this.props.scale.screenWidth,
+    this.characterStartX = 900 * this.props.scale.screenWidth;
     this.rotate = undefined;
     this.characterDirection = 'left';
     this.trialNumber = 1;
@@ -114,7 +115,7 @@ class BugZapGame extends React.Component {
       tweenType: "bounce-drop",
       startY: -300,
       endY: -10 * this.props.scale.screenHeight,
-      duration: 2000 * this.props.scale.screenHeight,
+      duration: 2000,
       repeatable: false,
       loop: false,
     };
@@ -190,7 +191,7 @@ class BugZapGame extends React.Component {
         startXY: [this.bugStartX, 95 * this.props.scale.screenHeight],
         // end at character
         endXY: [endX * this.props.scale.screenWidth, 460 * this.props.scale.screenHeight],
-        duration: 1000 * this.props.scale.screenWidth,
+        duration: 1000,
         loop: false,
       },
     });
@@ -203,7 +204,7 @@ class BugZapGame extends React.Component {
         tweenType: "linear-move",
         startXY: [this.characterStartX, SCREEN_HEIGHT],
         endXY: [this.characterPos, 300 * this.props.scale.screenHeight],
-        duration: 1000 * this.props.scale.screenHeight,
+        duration: 1000,
         loop: false,
       },
     });
@@ -217,7 +218,7 @@ class BugZapGame extends React.Component {
         tweenType: "linear-move",
         startXY: [this.characterPos, 300 * this.props.scale.screenHeight],
         endXY: [this.characterTo, SCREEN_HEIGHT],
-        duration: 1000 * this.props.scale.screenHeight,
+        duration: 1000,
         loop: false,
       },
     });
@@ -332,7 +333,7 @@ class BugZapGame extends React.Component {
       tweenType: "linear-move",
       startXY: [start, -10 * this.props.scale.screenHeight],
       endXY: [start, -300],
-      duration: 1000 * this.props.scale.screenHeight,
+      duration: 1000,
       loop: false,
     };
 
@@ -364,7 +365,7 @@ class BugZapGame extends React.Component {
 
   correctBugTapped () {
     let index = [0,3,3,4,0];
-    let delay = (700 * this.props.scale.screenWidth);
+    let delay = (700);
 
     if (this.whichBug === 'bugLeft') {
       this.refs.bugLeftRef.startTween();
@@ -448,7 +449,7 @@ class BugZapGame extends React.Component {
   render () {
     return (
       <Image
-        source={require('../../media/backgrounds/BugZap_Background_1280.png')}
+        source={require('../../media/backgrounds/Game_1_Background_1280.png')}
         style={styles.backgroundImage} >
 
       <AnimatedSprite
@@ -504,13 +505,14 @@ class BugZapGame extends React.Component {
         character={bugCharacter}
         ref={'bugLeftRef'}
         characterUID={'bugLeft'}
-        coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (370 * this.props.scale.screenWidth)}}
-        size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
+        coordinates={{top: 75 * this.props.scale.screenHeight,
+          left: SCREEN_WIDTH/2 - (350 * this.props.scale.screenWidth)}}
+        size={{width: 120 * this.props.scale.image, height: 120 * this.props.scale.image}}
         tweenOptions={this.state.bugTweenOptions}
         tweenStart={'fromCode'}
         onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
         onPress={(characterUID) => this.onBugPress(characterUID)}
-        animationFrameIndex={[1]}
+        animationFrameIndex={[0]}
       />
     : null}
 
@@ -532,14 +534,16 @@ class BugZapGame extends React.Component {
           <AnimatedSprite
             ref={'bugRightRef'}
             characterUID={'bugRight'}
-            coordinates={{top: 75 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 + (200 * this.props.scale.screenWidth)}}
-            size={{width: 150 * this.props.scale.image, height: 150 * this.props.scale.image}}
+            coordinates={{top: 75 * this.props.scale.screenHeight,
+              left: SCREEN_WIDTH/2 + (220 * this.props.scale.screenWidth)}}
+            size={{width: 120 * this.props.scale.image,
+              height: 120 * this.props.scale.image}}
             character={bugCharacter}
             tweenOptions={this.state.bugTweenOptions}
             tweenStart={'fromCode'}
             onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
             onPress={(characterUID) => this.onBugPress(characterUID)}
-            animationFrameIndex={[2]}
+            animationFrameIndex={[1]}
           />
         : null}
         </View>

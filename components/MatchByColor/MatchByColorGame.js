@@ -1,8 +1,8 @@
 import React from 'react';
 import {
-  TouchableOpacity,
   Image,
   View,
+  PixelRatio,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -15,7 +15,7 @@ import AnimatedSprite from '../AnimatedSprite/AnimatedSprite';
 import HomeButton from '../HomeButton/HomeButton';
 // props
 import leverSprite from '../../sprites/lever/leverCharacter';
-import sign from '../../sprites/sign/signCharacter';
+import signSprite from '../../sprites/sign/signCharacter';
 // game character related utils
 import gameUtil from './gameUtil';
 // styles
@@ -23,11 +23,21 @@ import styles from './styles';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+const PIXEL_RATIO = 1 / PixelRatio.get();
+//import { screen } from '../../screenService';
 
 const LEFT = 0;
 const MIDDLE = 1;
 const RIGHT = 2;
-const TRIAL_TIMEOUT = 5000;
+const TRIAL_TIMEOUT = 15000;
+
+const LEVEL01 = 1;
+const LEVEL02 = 2;
+const LEVEL03 = 3;
+const DONE = 4;
+const LEVEL01_TRAILS = 6;
+const LEVEL02_TRIALS = 6;
+const LEVEL03_TRIALS = 6;
 
 class MatchByColorGame extends React.Component {
   constructor (props) {
@@ -40,8 +50,10 @@ class MatchByColorGame extends React.Component {
       dropFood: false,
       signsVisable: false,
       foodDisplayed: false,
-      level: 1,
+      level: LEVEL01,
     };
+    this.numTrialsForCurrentLevel = 0;
+    this.level = LEVEL01;
     this.scale = this.props.scale;
     this.activeCharacter;
     this.foodActive;
@@ -52,18 +64,27 @@ class MatchByColorGame extends React.Component {
     this.leftFood = {tweenOptions: {}};
     this.middleFood = {tweenOptions: {}};
     this.rightFood = {tweenOptions: {}};
-    this.waitForFoodAt = [150, 400];
-
-    this.baseFoodLocation = [150, 400];
-    this.foodLeftShift = 200;
-    this.foodTargetLocation = [300, 550];
     this.targetFoodPosition;
     this.signDropTime = 1500 * this.props.scale.screenHeight;
 
-    this.eatTimeout;
-    this.signInterval;
+    this.showFoodTimeout;
+    this.signTimeout;
     this.trialTimer;
+    this.setDefaultAnimationState;
+    this.eatTimeout;
+    this.switchCharacterTimeout;
     this.clearingScene = false;
+
+    // SCREEN_HEIGHT = SCREEN_HEIGHT * PIXEL_RATIO;
+    // SCREEN_WIDTH = SCREEN_WIDTH * PIXEL_RATIO;
+
+    // const scaleWidth =  1280 / SCREEN_WIDTH;
+    // const scaleHeight =  800 / SCREEN_HEIGHT;
+    // this.scale = {
+    //   screenWidth: scaleWidth,
+    //   screenHeight: scaleHeight,
+    //   image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
+    // };
   }
 
   componentWillMount () {
@@ -71,23 +92,28 @@ class MatchByColorGame extends React.Component {
       lever: randomstring({ length: 7 }),
     };
 
-    const name = gameUtil.getValidCharacterNameForLevel(this.state.level);
+    const name = gameUtil.getValidCharacterNameForLevel(this.level);
     this.loadCharacter(name);
     // set offscreen
-    const coords = this.foodSignDisplayLocations(-150);
-    this.leftFood.coords = [coords.top, coords.leftLeft];
-    this.middleFood.coords = [coords.top, coords.middleLeft];
-    this.rightFood.coords = [coords.top, coords.rightLeft];
+    this.leftFood.coords = this.foodStartLocation('left', this.scale);
+    this.middleFood.coords = this.foodStartLocation('middle', this.scale);
+    this.rightFood.coords = this.foodStartLocation('right', this.scale);
 
     this.leverSprite = leverSprite;
     this.leverSprite.tweenOptions = {tweenOptions: {}};
   }
 
   componentDidMount () {
-
+    // console.log('HEIGH = ', SCREEN_HEIGHT);
+    // console.log('WIDTH = ', SCREEN_WIDTH);
+    // console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
+    // console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
   }
 
   componentWillUnmount () {
+    clearTimeout(this.showFoodTimeout);
+    clearTimeout(this.signTimeout);
+    clearTimeout(this.trialTimer);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.eatTimeout);
     clearTimeout(this.switchCharacterTimeout);
@@ -98,14 +124,14 @@ class MatchByColorGame extends React.Component {
    * frames are in memory.
    */
   loadCharacter (characterName) {
-    // get character
+    this.level = this.currentLevel(this.numTrialsForCurrentLevel);
+    if (this.level === DONE) {
+      this.homeButtonPressed();
+      return;
+    }
     this.characterUIDs.character = randomstring({ length: 7 });
     this.activeCharacter = gameUtil.getCharacterObject(characterName);
-    // want to load character offscreen
-    this.activeCharacter.coords = {
-      top: 400 * this.scale.screenHeight,
-      left: -330 * this.scale.screenWidth,
-    };
+
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
     this.setState({
       character: this.activeCharacter,
@@ -129,18 +155,24 @@ class MatchByColorGame extends React.Component {
     return (
       {
         tweenType: "linear-move",
-        startXY: [startXY[0] * this.scale.screenWidth, startXY[1] * this.scale.screenHeight],
-        endXY: [endXY[0] * this.scale.screenWidth, endXY[1] * this.scale.screenHeight],
+        startXY: [startXY[0], startXY[1]],
+        endXY: [endXY[0], endXY[1]],
         duration: duration,
         loop: false,
       }
+      // {
+      //   tweenType: "linear-move",
+      //   startXY: [startXY[0] * this.scale.screenWidth, startXY[1] * this.scale.screenHeight],
+      //   endXY: [endXY[0] * this.scale.screenWidth, endXY[1] * this.scale.screenHeight],
+      //   duration: duration,
+      //   loop: false,
+      // }
     );
   }
 
   onCharacterTweenFinish (characterUID) {
     switch (characterUID) {
       case this.characterUIDs.character:
-        console.log('onCharacterTweenFinish IDLE')
         this.setState({
           characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
           characterAnimationLoop: false,
@@ -150,7 +182,6 @@ class MatchByColorGame extends React.Component {
   }
 
   onFoodTweenFinish (foodCharacter) {
-    console.log(`onFoodTweenFinish, food = ${foodCharacter}`);
     switch (foodCharacter) {
       case LEFT:
         this.leftFood.character = null;
@@ -199,10 +230,18 @@ class MatchByColorGame extends React.Component {
     this.rightSign.tweenOptions = this.signDropTween();
   }
 
-  initializeMoveUpTweensForSignsAndFoods () {
-    this.leftSign.tweenOptions = this.makeMoveTween([350, 0], [350, -300], 800);
-    this.middleSign.tweenOptions = this.makeMoveTween([550, 0], [550, -300], 800);
-    this.rightSign.tweenOptions = this.makeMoveTween([750, 0], [750, -300], 800);
+  initializeMoveUpTweensForSigns () {
+    // get end location, get start location
+    const leftStart = this.signStartLocation('left', this.scale);
+    const middleStart = this.signStartLocation('middle', this.scale);
+    const rightStart = this.signStartLocation('right', this.scale);
+    const top = leftStart.top;
+    this.leftSign.tweenOptions = this.makeMoveTween(
+      [leftStart.left, 0], [leftStart.left, top], 800);
+    this.middleSign.tweenOptions = this.makeMoveTween(
+      [middleStart.left, 0], [middleStart.left, top], 800);
+    this.rightSign.tweenOptions = this.makeMoveTween(
+      [rightStart.left, 0], [rightStart.left, top], 800);
   }
 
   startSignsTween (level) {
@@ -231,15 +270,43 @@ class MatchByColorGame extends React.Component {
     // console.log('leverPressIn');
   }
 
+  incrementTrialCount (trialCount) {
+    return trialCount + 1;
+  }
+
+  currentLevel (currentTrialNumber) {
+    // starts in level 1
+    const maxNumTrials = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
+    const levelTwo = LEVEL01_TRAILS + LEVEL02_TRIALS;
+    const levelThree = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
+
+    if ((currentTrialNumber >= LEVEL01_TRAILS)
+    && (currentTrialNumber < levelTwo)) {
+      if (currentTrialNumber === LEVEL01_TRAILS-1) return;
+      return LEVEL02;
+    } else if ((currentTrialNumber >= levelTwo) &&
+    (currentTrialNumber < levelThree)) {
+      if (currentTrialNumber === levelTwo-1) return;
+      return LEVEL03;
+    } else if (currentTrialNumber >= maxNumTrials) {
+      return DONE;
+    }
+    return LEVEL01;
+  }
+
   leverPressIn () {
     if (this.state.loadingCharacter
       || this.state.signsVisable || this.clearingScene) {
       return;
     }
+    this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
+
     clearTimeout(this.trialTimer);
     // creature enter from left
-    const moveFrom = [-300, 400];
-    const moveTo = this.waitForFoodAt;
+    const startLocation = this.characterStartLocation(this.activeCharacter, this.scale);
+    const moveFrom = [startLocation.left, startLocation.top]; //[startLocation[1], startLocation[0]]; //[startLocation[1], startLocation[0]];
+    const waitLocation = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
+    const moveTo = [waitLocation.left, waitLocation.top];
     this.activeCharacter.tweenOptions = this.makeMoveTween(moveFrom, moveTo);
 
     this.initializeSignsDropTween();
@@ -250,13 +317,14 @@ class MatchByColorGame extends React.Component {
       signsVisable: true,
       characterAnimationLoop: true,
     }, () => {
-      this.startSignsTween(this.state.level);
+      this.startSignsTween(this.level);
       this.refs.characterRef.startTween();
       // then interval to make food appear on sign.
-      clearTimeout(this.showFoodInterval);
-      this.showFoodInterval = setTimeout(() => {
-        const coords = this.foodSignDisplayLocations();
-        this.showFoods(coords, true, this.activeCharacter.name);
+      clearTimeout(this.showFoodTimeout);
+      this.showFoodTimeout = setTimeout(() => {
+        // const coords = this.foodSignDisplayLocations();
+        // this.showFoods(coords, true, true);
+        this.displayFoods();
         this.foodActive = true;
         this.startTrialTimer();
       }, this.signDropTime);
@@ -267,6 +335,59 @@ class MatchByColorGame extends React.Component {
     // console.log('leverPressOut');
   }
 
+  displayFoodsLocations (position) {
+    const leftSign = this.signStartLocation('left', this.scale);
+    const baseLeft = leftSign.left + 40 * this.scale.screenWidth;
+    const shift = 200 * this.scale.screenWidth;
+    const top = 140 * this.scale.screenHeight;
+    switch (position) {
+      case 'left':
+        return {top, left: baseLeft};
+      case 'middle':
+        return {top, left: (baseLeft + shift)};
+      case 'right':
+        return {top, left: (baseLeft + 2 * shift)};
+    }
+  }
+
+  displayFoods () {
+    const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
+    const foodPref = gameUtil.favoriteFood(this.activeCharacter.name);
+    const targetFoodIndex = _.findIndex(foods, (food) => food.name === foodPref);
+    const numFoods = this.level === 3 ? 3 : 2;
+    let order = _.shuffle([0, 1, 2]);
+    if (this.level < 3) {
+      const index = _([0, 1, 2]).difference([targetFoodIndex]).shuffle().value().pop();
+      order = _.shuffle([index, targetFoodIndex]);
+    } else {
+      order = _.shuffle([0, 1, 2]);
+    }
+    this.targetFoodPosition = _.findIndex(order, (val) => val === targetFoodIndex);
+    this.leftFood.character = foods[order[0]];
+    this.middleFood.character = foods[order[1]];
+
+    this.leftFood.key = randomstring({length: 7});
+    this.middleFood.key = randomstring({length: 7});
+    this.leftFood.coords = this.displayFoodsLocations('left');
+    this.middleFood.coords = this.displayFoodsLocations('middle');
+    if (numFoods === 3) {
+      this.rightFood.coords = this.displayFoodsLocations('right');
+      this.rightFood.character = foods[order[2]];
+      this.rightFood.key = randomstring({length: 7});
+    }
+    this.setState({foodDisplayed: true});
+  }
+
+  hideFoods () {
+    this.leftFood.coords = this.foodStartLocation('left', this.scale);
+    this.middleFood.coords = this.foodStartLocation('middle', this.scale);
+    this.rightFood.coords = this.foodStartLocation('right', this.scale);
+    this.leftFood.key = randomstring({length: 7});
+    this.middleFood.key = randomstring({length: 7});
+    this.rightFood.key = randomstring({length: 7});
+    this.setState({foodDisplayed: false});
+  }
+
   showFoods (coords, displayFood, setState = true) {
     // can be case that this.setState is beeing called and setting
     // food key and location is suffecient. In other cases want to explicitly
@@ -274,9 +395,9 @@ class MatchByColorGame extends React.Component {
     const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
     const foodPref = gameUtil.favoriteFood(this.activeCharacter.name);
     const targetFoodIndex = _.findIndex(foods, (food) => food.name === foodPref);
-    const numFoods = this.state.level === 3 ? 3 : 2;
+    const numFoods = this.level === 3 ? 3 : 2;
     let order = _.shuffle([0, 1, 2]);
-    if (this.state.level < 3) {
+    if (this.level < 3) {
       const index = _([0, 1, 2]).difference([targetFoodIndex]).shuffle().value().pop();
       order = _.shuffle([index, targetFoodIndex]);
     } else {
@@ -289,25 +410,24 @@ class MatchByColorGame extends React.Component {
     this.leftFood.key = randomstring({length: 7});
     this.middleFood.key = randomstring({length: 7});
     // only set those foods that will show.
-    this.leftFood.coords = [coords.top, coords.leftLeft];
-    this.middleFood.coords = [coords.top, coords.middleLeft];
+    this.leftFood.coords = {top: coords.top, left: coords.leftLeft};
+    this.middleFood.coords = {top: coords.top, left: coords.middleLeft};
     if (numFoods === 3) {
-      this.rightFood.coords = [coords.top, coords.rightLeft];
+      this.rightFood.coords = {top: coords.top, left: coords.rightLeft};
       this.rightFood.character = foods[order[2]];
       this.rightFood.key = randomstring({length: 7});
     }
     if (setState) {
-      console.log('showFoods setState');
       this.setState({foodDisplayed: displayFood});
     }
   }
 
-  foodDropToCharacter (food, foodStartLocation, dropTimeDuration) {
+  foodDropToCharacter (food, foodStartAt, dropTimeDuration) {
     // get the x,y of mout location withing image
-    debugger;
+    const waitForFoodAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
     const mouthLocation = gameUtil.characterMouthLocation(this.refs.characterRef);
-    const endCoords = [(this.waitForFoodAt[0] + mouthLocation[1]), (this.waitForFoodAt[1] + mouthLocation[0])];
-    this.foodDrop(food, foodStartLocation, endCoords, dropTimeDuration);
+    const endCoords = [(waitForFoodAt.left + mouthLocation[1]), (waitForFoodAt.top + mouthLocation[0])];
+    this.foodDrop(food, foodStartAt, endCoords, dropTimeDuration);
   }
 
   // food drop then creature eat.
@@ -336,17 +456,6 @@ class MatchByColorGame extends React.Component {
       });
     }, waitToEatTime);
 
-  }
-
-  foodEndLocation (activeCharacter) {
-    switch (activeCharacter.name) {
-      case 'monster':
-        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
-      case 'goat':
-        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
-      case 'dog':
-        return [300 * this.scale.screenWidth, 540 * this.scale.screenHeight];
-    }
   }
 
   unhappyAndLeaving () {
@@ -378,20 +487,22 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.trialTimer);
 
     const foodDropTime = 800;
-    const coords = this.foodSignDisplayLocations(false);
-    debugger;
+    let coords;
     let foodCoord;
     switch (this.targetFoodPosition) {
       case LEFT:
-        foodCoord = [coords.leftLeft, coords.top];
+        coords = this.displayFoodsLocations('left');
+        foodCoord = [coords.left, coords.top];
         this.foodDropToCharacter('leftFood', foodCoord, foodDropTime);
         break;
       case MIDDLE:
-        foodCoord = [coords.middleLeft, coords.top];
+        coords = this.displayFoodsLocations('middle');
+        foodCoord = [coords.left, coords.top];
         this.foodDropToCharacter('middleFood', foodCoord, foodDropTime);
         break;
       case RIGHT:
-        foodCoord = [coords.rightLeft, cords.top];
+        coords = this.displayFoodsLocations('right');
+        foodCoord = [coords.left, coords.top];
         this.foodDropToCharacter('rightFood', foodCoord, foodDropTime);
         break;
     }
@@ -400,86 +511,120 @@ class MatchByColorGame extends React.Component {
   clearScene () {
     this.clearingScene = true;
     clearTimeout(this.trialTimer);
-    this.initializeMoveUpTweensForSignsAndFoods();
+    this.initializeMoveUpTweensForSigns();
 
     const timeToExit = 2000;
-    this.activeCharacter.tweenOptions = this.makeMoveTween([150, 400], [1280, 400], timeToExit);
+    const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
+    const startFrom = [characterAt.left, characterAt.top];
+    const exitTo = [SCREEN_WIDTH, characterAt.top];
+    this.activeCharacter.tweenOptions = this.makeMoveTween(
+      startFrom,
+      exitTo,
+      timeToExit);
 
-    //hide foods
-    const coords = this.foodSignDisplayLocations(true, -150);
-    this.showFoods(coords, false, false);
-
-    clearTimeout(this.signInterval);
-    this.signInterval = setTimeout(() => {
+    clearTimeout(this.signTimeout);
+    this.signTimeout = setTimeout(() => {
       this.setState({
         leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF'),
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
-        foodDisplayed: false,
         characterAnimationLoop: true,
       }, () => {
-        this.startSignsTween(this.state.level);
+        this.hideFoods();
+        this.startSignsTween(this.level);
         this.refs.characterRef.startTween();
         clearTimeout(this.switchCharacterTimeout);
         this.switchCharacterTimeout = setTimeout(() => {
           this.clearingScene = false;
-          const name = gameUtil.getValidCharacterNameForLevel(this.state.level);
+          const name = gameUtil.getValidCharacterNameForLevel(this.level);
           this.loadCharacter(name);
         }, timeToExit);
       });
     }, 1500);
   }
 
-  foodSize (food, dimension) {
+  foodSize (food) {
     // scale to 120 x 120 or closest.
-    const widthScale = 120/food.character.size.width;
-    const heightScale = 120/food.character.size.height;
+    const widthScale = 120/food.size.width;
+    const heightScale = 120/food.size.height;
     const scale = widthScale > heightScale ? heightScale : widthScale;
-    switch (dimension) {
-      case 'width':
-        return Math.floor((food.character.size.width * scale) * this.scale.image);
-      case 'height':
-        return Math.floor((food.character.size.height * scale) * this.scale.image);
-    }
+    const width = Math.floor((food.size.width * scale) * this.scale.image);
+    const height = Math.floor((food.size.height * scale) * this.scale.image);
+    return {width, height};
   }
 
-  characterSize (character, dimension) {
-    const widthScale = 300/character.size.width;
-    const heightScale = 300/character.size.height;
-    const scale = widthScale > heightScale ? heightScale : widthScale;
-    switch (dimension) {
-      case 'width':
-        return Math.floor((character.size.width * scale) * this.scale.image);
-      case 'height':
-        return Math.floor((character.size.height * scale) * this.scale.image);
-    }
-  }
-
-  characterStartLocation (character, position) {
-    const coords = this.activeCharacter.coords;
+  foodStartLocation (position, scale) {
+    const top = -150 * scale.screenHeight;
+    const baseLeft = 450;
     switch (position) {
-      case 'top':
-        return Math.floor((character.size.width * scale) * this.scale.image);
       case 'left':
-        return Math.floor((character.size.height * scale) * this.scale.image);
+        return {top, left: baseLeft * scale.screenWidth};
+      case 'middle':
+        return {top, left: (baseLeft + 200) * scale.screenWidth};
+      case 'right':
+        return {top, left: (baseLeft + 400) * scale.screenWidth};
     }
   }
 
-  homeButtonPressed () {
-    this.props.navigator.replace({ id: 'Main' });
+  characterSize (character, scale) {
+    const widthScale = 340/character.size.width;
+    const heightScale = 340/character.size.height;
+    const sizeScale = widthScale > heightScale ? heightScale : widthScale;
+    const width = Math.floor((character.size.width * sizeScale) * scale.image);
+    const height = Math.floor((character.size.height * sizeScale) * scale.image);
+    return {width, height};
   }
+
+  characterStartLocation (character, scale) {
+    const size = this.characterSize(character, scale);
+    const top = SCREEN_HEIGHT - (size.height + SCREEN_HEIGHT * 0.08);
+    const left = -size.width;
+    return {top, left};
+  }
+
+  characterWaitForFoodAt (character, scale) {
+    const top = this.characterStartLocation(character, scale).top;
+    const left = 150 * scale.screenWidth;
+    return {top, left};
+  }
+
+  leverSize () {
+    return {
+      width: leverSprite.size.width * this.scale.image,
+      height: leverSprite.size.height * this.scale.image};
+  }
+
   leverLocation () {
     const size = this.leverSize();
     const left = SCREEN_WIDTH - size.width;
     const top = (SCREEN_HEIGHT - size.height) / 2;
     return {top, left};
   }
-  leverSize () {
-    return { width: leverSprite.size.width * this.scale.image,
-      height: leverSprite.size.height * this.scale.image};
+
+  signSize (sign, scale) {
+    return {width: sign.size.width * scale.image,
+      height: sign.size.height * scale.image,
+    };
   }
+
+  signStartLocation (position, scale) {
+    const top = -350 * scale.screenHeight;
+    const baseLeft = 400;
+    switch (position) {
+      case 'left':
+        return {top, left: baseLeft * scale.screenWidth};
+      case 'middle':
+        return {top, left: (baseLeft + 200) * scale.screenWidth};
+      case 'right':
+        return {top, left: (baseLeft + 400) * scale.screenWidth};
+    }
+  }
+
+  homeButtonPressed () {
+    this.props.navigator.replace({ id: 'Main' });
+  }
+
   render () {
-    console.log('MatchByColor Render');
     return (
       <View style={styles.container}>
         <Image source={require('../../media/backgrounds/Game_2_Background_1280.png')}
@@ -502,42 +647,33 @@ class MatchByColorGame extends React.Component {
         />
 
         <AnimatedSprite
-          character={sign}
+          character={signSprite}
           ref={'leftSign'}
           animationFrameIndex={[0]}
-          coordinates={{top: -300 * this.scale.screenHeight,
-            left: 350 * this.scale.screenWidth}}
-          size={{width: sign.size.width * this.scale.image,
-            height: sign.size.height * this.scale.image,
-          }}
+          coordinates={this.signStartLocation('left', this.scale)}
+          size={this.signSize(signSprite, this.scale)}
           draggable={false}
           tweenOptions={this.leftSign.tweenOptions}
           tweenStart={'fromCode'}
         />
 
         <AnimatedSprite
-          character={sign}
+          character={signSprite}
           ref={'middleSign'}
           animationFrameIndex={[0]}
-          coordinates={{top: -300 * this.scale.screenHeight,
-            left: 550 * this.scale.screenWidth}}
-          size={{width: sign.size.width * this.scale.image,
-            height: sign.size.height * this.scale.image,
-          }}
+          coordinates={this.signStartLocation('middle', this.scale)}
+          size={this.signSize(signSprite, this.scale)}
           draggable={false}
           tweenOptions={this.middleSign.tweenOptions}
           tweenStart={'fromCode'}
         />
 
         <AnimatedSprite
-          character={sign}
+          character={signSprite}
           ref={'rightSign'}
           animationFrameIndex={[0]}
-          coordinates={{top: -300 * this.scale.screenHeight,
-            left: 750 * this.scale.screenWidth}}
-          size={{width: sign.size.width * this.scale.image,
-            height: sign.size.height * this.scale.image,
-          }}
+          coordinates={this.signStartLocation('right', this.scale)}
+          size={this.signSize(signSprite, this.scale)}
           draggable={false}
           tweenOptions={this.rightSign.tweenOptions}
           tweenStart={'fromCode'}
@@ -549,14 +685,8 @@ class MatchByColorGame extends React.Component {
             ref={'leftFood'}
             key={this.leftFood.key}
             animationFrameIndex={[0]}
-            coordinates={{
-              top: this.leftFood.coords[0],
-              left: this.leftFood.coords[1],
-            }}
-            size={{
-              width: this.foodSize(this.leftFood, 'width'),
-              height: this.foodSize(this.leftFood, 'height'),
-            }}
+            coordinates={this.leftFood.coords}
+            size={this.foodSize(this.leftFood.character)}
             draggable={false}
             tweenOptions={this.leftFood.tweenOptions}
             tweenStart={'fromCode'}
@@ -571,13 +701,8 @@ class MatchByColorGame extends React.Component {
             ref={'middleFood'}
             key={this.middleFood.key}
             animationFrameIndex={[0]}
-            coordinates={{
-              top: this.middleFood.coords[0],
-              left: this.middleFood.coords[1]}}
-            size={{
-              width: this.foodSize(this.middleFood, 'width') ,
-              height: this.foodSize(this.middleFood, 'height'),
-            }}
+            coordinates={this.middleFood.coords}
+            size={this.foodSize(this.middleFood.character)}
             draggable={false}
             tweenOptions={this.middleFood.tweenOptions}
             tweenStart={'fromCode'}
@@ -592,13 +717,8 @@ class MatchByColorGame extends React.Component {
             ref={'rightFood'}
             key={this.rightFood.key}
             animationFrameIndex={[0]}
-            coordinates={{
-              top: this.rightFood.coords[0],
-              left: this.rightFood.coords[1]}}
-            size={{
-              width: this.foodSize(this.rightFood, 'width'),
-              height: this.foodSize(this.rightFood, 'height'),
-            }}
+            coordinates={this.rightFood.coords}
+            size={this.foodSize(this.rightFood.character)}
             draggable={false}
             tweenOptions={this.rightFood.tweenOptions}
             tweenStart={'fromCode'}
@@ -615,14 +735,8 @@ class MatchByColorGame extends React.Component {
           style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
           loopAnimation={this.state.characterAnimationLoop}
-          coordinates={{
-            top: this.activeCharacter.coords.top,
-            left: this.activeCharacter.coords.left,
-          }}
-          size={{
-            width: this.characterSize(this.activeCharacter, 'width'),
-            height: this.characterSize(this.activeCharacter, 'height'),
-          }}
+          coordinates={this.characterStartLocation(this.state.character, this.scale)}
+          size={this.characterSize(this.state.character, this.scale)}
           rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
           tweenStart={'fromCode'}
