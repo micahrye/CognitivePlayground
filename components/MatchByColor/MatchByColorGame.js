@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   View,
+  PixelRatio,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -22,6 +23,8 @@ import styles from './styles';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+const PIXEL_RATIO = 1 / PixelRatio.get();
+//import { screen } from '../../screenService';
 
 const LEFT = 0;
 const MIDDLE = 1;
@@ -71,6 +74,17 @@ class MatchByColorGame extends React.Component {
     this.eatTimeout;
     this.switchCharacterTimeout;
     this.clearingScene = false;
+
+    // SCREEN_HEIGHT = SCREEN_HEIGHT * PIXEL_RATIO;
+    // SCREEN_WIDTH = SCREEN_WIDTH * PIXEL_RATIO;
+
+    // const scaleWidth =  1280 / SCREEN_WIDTH;
+    // const scaleHeight =  800 / SCREEN_HEIGHT;
+    // this.scale = {
+    //   screenWidth: scaleWidth,
+    //   screenHeight: scaleHeight,
+    //   image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
+    // };
   }
 
   componentWillMount () {
@@ -90,7 +104,10 @@ class MatchByColorGame extends React.Component {
   }
 
   componentDidMount () {
-
+    console.log('HEIGH = ', SCREEN_HEIGHT);
+    console.log('WIDTH = ', SCREEN_WIDTH);
+    console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
+    console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
   }
 
   componentWillUnmount () {
@@ -138,11 +155,18 @@ class MatchByColorGame extends React.Component {
     return (
       {
         tweenType: "linear-move",
-        startXY: [startXY[0] * this.scale.screenWidth, startXY[1] * this.scale.screenHeight],
-        endXY: [endXY[0] * this.scale.screenWidth, endXY[1] * this.scale.screenHeight],
+        startXY: [startXY[0], startXY[1]],
+        endXY: [endXY[0], endXY[1]],
         duration: duration,
         loop: false,
       }
+      // {
+      //   tweenType: "linear-move",
+      //   startXY: [startXY[0] * this.scale.screenWidth, startXY[1] * this.scale.screenHeight],
+      //   endXY: [endXY[0] * this.scale.screenWidth, endXY[1] * this.scale.screenHeight],
+      //   duration: duration,
+      //   loop: false,
+      // }
     );
   }
 
@@ -283,6 +307,8 @@ class MatchByColorGame extends React.Component {
     const moveFrom = [startLocation.left, startLocation.top]; //[startLocation[1], startLocation[0]]; //[startLocation[1], startLocation[0]];
     const waitLocation = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
     const moveTo = [waitLocation.left, waitLocation.top];
+    console.log(`from ${JSON.stringify(moveFrom, null, 2)}`);
+    console.log(`to ${JSON.stringify(moveTo, null, 2)}`);
     this.activeCharacter.tweenOptions = this.makeMoveTween(moveFrom, moveTo);
 
     this.initializeSignsDropTween();
@@ -313,16 +339,16 @@ class MatchByColorGame extends React.Component {
 
   displayFoodsLocations (position) {
     const leftSign = this.signStartLocation('left', this.scale);
-    const baseLeft = leftSign.left + 40;
-    const shift = 200;
-    const top = 140;
+    const baseLeft = leftSign.left + 40 * this.scale.screenWidth;
+    const shift = 200 * this.scale.screenWidth;
+    const top = 140 * this.scale.screenHeight;
     switch (position) {
       case 'left':
-        return {top, left: baseLeft * this.scale.screenWidth};
+        return {top, left: baseLeft};
       case 'middle':
-        return {top, left: (baseLeft + shift) * this.scale.screenWidth};
+        return {top, left: (baseLeft + shift)};
       case 'right':
-        return {top, left: (baseLeft + 2 * shift) * this.scale.screenWidth};
+        return {top, left: (baseLeft + 2 * shift)};
     }
   }
 
@@ -553,27 +579,32 @@ class MatchByColorGame extends React.Component {
 
   characterStartLocation (character, scale) {
     const size = this.characterSize(character, scale);
-    const top = SCREEN_HEIGHT - (size.height + SCREEN_HEIGHT * 0.045);
-    const left = -size.width * scale.image;
+    const top = SCREEN_HEIGHT - (size.height + SCREEN_HEIGHT * 0.08);
+    const left = -size.width;
+    // console.log( `charSize = ${JSON.stringify(size, null, 2)}`);
+    console.log(`char top = ${top}`);
     return {top, left};
   }
 
   characterWaitForFoodAt (character, scale) {
     const top = this.characterStartLocation(character, scale).top;
+    console.log(`CWFFA char top = ${top}`);
     const left = 150 * scale.screenWidth;
     return {top, left};
   }
 
+  leverSize () {
+    return {
+      width: leverSprite.size.width * this.scale.image,
+      height: leverSprite.size.height * this.scale.image};
+  }
+
   leverLocation () {
     const size = this.leverSize();
+    console.log( `leverSize = ${JSON.stringify(size, null, 2)}`);
     const left = SCREEN_WIDTH - size.width;
     const top = (SCREEN_HEIGHT - size.height) / 2;
     return {top, left};
-  }
-
-  leverSize () {
-    return { width: leverSprite.size.width * this.scale.image,
-      height: leverSprite.size.height * this.scale.image};
   }
 
   signSize (sign, scale) {
@@ -710,8 +741,8 @@ class MatchByColorGame extends React.Component {
           style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
           loopAnimation={this.state.characterAnimationLoop}
-          coordinates={this.characterStartLocation(this.activeCharacter, this.scale)}
-          size={this.characterSize(this.activeCharacter, this.scale)}
+          coordinates={this.characterStartLocation(this.state.character, this.scale)}
+          size={this.characterSize(this.state.character, this.scale)}
           rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
           tweenStart={'fromCode'}

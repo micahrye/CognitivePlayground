@@ -410,15 +410,17 @@ class BubblesGame extends React.Component {
   }
 
   monsterStartLocation () {
-    const characterOffset = 100 * this.scale.screenHeight;
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height - characterOffset);
+    const characterOffset = 140 * this.scale.screenHeight;
+    const characterHeight = monsterCharacter.size.height * this.scale.image;
+    const top = (SCREEN_HEIGHT - characterHeight - characterOffset);
     const left = -300 * this.scale.screenWidth;
     return {top, left};
   }
 
   monsterEndLocation () {
-    const characterOffset = 100 * this.scale.screenHeight;
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height - characterOffset);
+    const characterOffset = 140 * this.scale.screenHeight;
+    const characterHeight = monsterCharacter.size.height * this.scale.image;
+    const top = (SCREEN_HEIGHT - characterHeight - characterOffset);
     const left = 40 * this.scale.screenWidth;
     return {top, left};
   }
