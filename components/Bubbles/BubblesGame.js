@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  StyleSheet,
-  View,
   Image,
   TouchableOpacity,
   Dimensions,
@@ -45,7 +43,6 @@ class BubblesGame extends React.Component {
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
-    // this.animations = ['eat', 'bubble', 'bubbleCan', 'bubbleBug', 'bubbleGrass'];
     this.setDefaultAnimationState;
     this.bubbleFountainInterval;
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
@@ -85,8 +82,11 @@ class BubblesGame extends React.Component {
   }
 
   componentWillUnmount () {
+    clearInterval(this.eatInterval);
+    clearInterval(this.bubbleFountainInterval);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.celebrateTimeout);
   }
 
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
@@ -313,6 +313,12 @@ class BubblesGame extends React.Component {
     this.eatInterval = setInterval(() => {
       this.setState({
         monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
+      }, () => {
+        this.celebrateTimeout = setTimeout(() => {
+          this.setState({
+            monsterAnimationIndex: monsterCharacter.animationIndex('CELEBRATE'),
+          });
+        }, 600);
       });
       clearInterval(this.eatInterval);
     }, 600);
