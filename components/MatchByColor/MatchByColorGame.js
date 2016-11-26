@@ -23,7 +23,7 @@ import styles from './styles';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
-const PIXEL_RATIO = 1 / PixelRatio.get();
+// const PIXEL_RATIO = 1 / PixelRatio.get();
 
 const LEFT = 0;
 const MIDDLE = 1;
@@ -302,9 +302,9 @@ class MatchByColorGame extends React.Component {
 
     clearTimeout(this.trialTimer);
     // creature enter from left
-    const startLocation = this.characterStartLocation(this.activeCharacter, this.scale);
+    const startLocation = this.characterStartLocation(this.activeCharacter, this.scale.image);
     const moveFrom = [startLocation.left, startLocation.top]; //[startLocation[1], startLocation[0]]; //[startLocation[1], startLocation[0]];
-    const waitLocation = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
+    const waitLocation = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const moveTo = [waitLocation.left, waitLocation.top];
     this.activeCharacter.tweenOptions = this.makeMoveTween(moveFrom, moveTo);
 
@@ -423,7 +423,7 @@ class MatchByColorGame extends React.Component {
 
   foodDropToCharacter (food, foodStartAt, dropTimeDuration) {
     // get the x,y of mout location withing image
-    const waitForFoodAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
+    const waitForFoodAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const mouthLocation = gameUtil.characterMouthLocation(this.refs.characterRef);
     const endCoords = [(waitForFoodAt.left + mouthLocation[1]), (waitForFoodAt.top + mouthLocation[0])];
     this.foodDrop(food, foodStartAt, endCoords, dropTimeDuration);
@@ -513,7 +513,7 @@ class MatchByColorGame extends React.Component {
     this.initializeMoveUpTweensForSigns();
 
     const timeToExit = 2000;
-    const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
+    const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const startFrom = [characterAt.left, characterAt.top];
     const exitTo = [SCREEN_WIDTH, characterAt.top];
     this.activeCharacter.tweenOptions = this.makeMoveTween(
@@ -542,14 +542,17 @@ class MatchByColorGame extends React.Component {
     }, 1500);
   }
 
-  foodSize (food) {
-    // scale to 120 x 120 or closest.
-    const widthScale = 120/food.size.width;
-    const heightScale = 120/food.size.height;
-    const scale = widthScale > heightScale ? heightScale : widthScale;
-    const width = Math.floor((food.size.width * scale) * this.scale.image);
-    const height = Math.floor((food.size.height * scale) * this.scale.image);
-    return {width, height};
+  canonicalScale (canonicalSize, size, scale) {
+    const widthScale = canonicalSize/size.width * scale;
+    const heightScale = canonicalSize/size.height * scale;
+    return widthScale > heightScale ? heightScale : widthScale;
+  }
+
+  spriteSize (sqrSize, sprite, scale) {
+    // the smaller of the sprite pixel aspect ratio sizes neariest to the
+    // square compairison size scale value
+    const scaleSize = this.canonicalScale(sqrSize, sprite.size, scale);
+    return _.mapValues(sprite.size, (value) => value * (scaleSize) );
   }
 
   foodStartLocation (position, scale) {
@@ -565,45 +568,32 @@ class MatchByColorGame extends React.Component {
     }
   }
 
-  characterSize (character, scale) {
-    const widthScale = 340/character.size.width;
-    const heightScale = 340/character.size.height;
-    const sizeScale = widthScale > heightScale ? heightScale : widthScale;
-    const width = Math.floor((character.size.width * sizeScale) * scale.image);
-    const height = Math.floor((character.size.height * sizeScale) * scale.image);
-    return {width, height};
-  }
-
   characterStartLocation (character, scale) {
-    const size = this.characterSize(character, scale);
+    const size = this.spriteSize(340, character, scale);
     const top = SCREEN_HEIGHT - (size.height + SCREEN_HEIGHT * 0.08);
     const left = -size.width;
     return {top, left};
   }
 
-  characterWaitForFoodAt (character, scale) {
-    const top = this.characterStartLocation(character, scale).top;
-    const left = 150 * scale.screenWidth;
+  characterWaitForFoodAt (character, imgScale, screenWidthScale) {
+    const top = this.characterStartLocation(character, imgScale).top;
+    const left = 150 * screenWidthScale;
     return {top, left};
   }
 
-  leverSize () {
-    return {
-      width: leverSprite.size.width * this.scale.image,
-      height: leverSprite.size.height * this.scale.image};
+  leverSize (scale) {
+    return _.mapValues(leverSprite.size, (val) => val * scale);
   }
 
-  leverLocation () {
-    const size = this.leverSize();
+  leverLocation (scale) {
+    const size = this.leverSize(scale);
     const left = SCREEN_WIDTH - size.width;
     const top = (SCREEN_HEIGHT - size.height) / 2;
     return {top, left};
   }
 
   signSize (sign, scale) {
-    return {width: sign.size.width * scale.image,
-      height: sign.size.height * scale.image,
-    };
+    return _.mapValues(sign.size, (val) => val * scale);
   }
 
   signStartLocation (position, scale) {
@@ -637,8 +627,8 @@ class MatchByColorGame extends React.Component {
           loopAnimation={false}
           tweenOptions={this.leverSprite.tweenOptions}
           tweenStart={'fromCode'}
-          coordinates={this.leverLocation()}
-          size={this.leverSize()}
+          coordinates={this.leverLocation(this.scale.image)}
+          size={this.leverSize(this.scale.image)}
           rotate={[{rotateY:'0deg'}]}
           onPress={() => this.leverPress()}
           onPressIn={() => this.leverPressIn()}
@@ -650,7 +640,7 @@ class MatchByColorGame extends React.Component {
           ref={'leftSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('left', this.scale)}
-          size={this.signSize(signSprite, this.scale)}
+          size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.leftSign.tweenOptions}
           tweenStart={'fromCode'}
@@ -661,7 +651,7 @@ class MatchByColorGame extends React.Component {
           ref={'middleSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('middle', this.scale)}
-          size={this.signSize(signSprite, this.scale)}
+          size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.middleSign.tweenOptions}
           tweenStart={'fromCode'}
@@ -672,7 +662,7 @@ class MatchByColorGame extends React.Component {
           ref={'rightSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('right', this.scale)}
-          size={this.signSize(signSprite, this.scale)}
+          size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.rightSign.tweenOptions}
           tweenStart={'fromCode'}
@@ -685,7 +675,7 @@ class MatchByColorGame extends React.Component {
             key={this.leftFood.key}
             animationFrameIndex={[0]}
             coordinates={this.leftFood.coords}
-            size={this.foodSize(this.leftFood.character)}
+            size={this.spriteSize(120, this.leftFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.leftFood.tweenOptions}
             tweenStart={'fromCode'}
@@ -701,7 +691,7 @@ class MatchByColorGame extends React.Component {
             key={this.middleFood.key}
             animationFrameIndex={[0]}
             coordinates={this.middleFood.coords}
-            size={this.foodSize(this.middleFood.character)}
+            size={this.spriteSize(120, this.middleFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.middleFood.tweenOptions}
             tweenStart={'fromCode'}
@@ -717,7 +707,7 @@ class MatchByColorGame extends React.Component {
             key={this.rightFood.key}
             animationFrameIndex={[0]}
             coordinates={this.rightFood.coords}
-            size={this.foodSize(this.rightFood.character)}
+            size={this.spriteSize(120, this.rightFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.rightFood.tweenOptions}
             tweenStart={'fromCode'}
@@ -734,8 +724,8 @@ class MatchByColorGame extends React.Component {
           style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
           loopAnimation={this.state.characterAnimationLoop}
-          coordinates={this.characterStartLocation(this.state.character, this.scale)}
-          size={this.characterSize(this.state.character, this.scale)}
+          coordinates={this.characterStartLocation(this.state.character, this.scale.image)}
+          size={this.spriteSize(340, this.state.character, this.scale.image)}
           rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
           tweenStart={'fromCode'}
