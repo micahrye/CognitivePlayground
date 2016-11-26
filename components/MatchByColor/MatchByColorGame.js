@@ -24,7 +24,6 @@ import styles from './styles';
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 const PIXEL_RATIO = 1 / PixelRatio.get();
-//import { screen } from '../../screenService';
 
 const LEFT = 0;
 const MIDDLE = 1;
