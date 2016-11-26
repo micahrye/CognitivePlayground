@@ -104,10 +104,10 @@ class MatchByColorGame extends React.Component {
   }
 
   componentDidMount () {
-    console.log('HEIGH = ', SCREEN_HEIGHT);
-    console.log('WIDTH = ', SCREEN_WIDTH);
-    console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
-    console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
+    // console.log('HEIGH = ', SCREEN_HEIGHT);
+    // console.log('WIDTH = ', SCREEN_WIDTH);
+    // console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
+    // console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
   }
 
   componentWillUnmount () {
@@ -307,8 +307,6 @@ class MatchByColorGame extends React.Component {
     const moveFrom = [startLocation.left, startLocation.top]; //[startLocation[1], startLocation[0]]; //[startLocation[1], startLocation[0]];
     const waitLocation = this.characterWaitForFoodAt(this.activeCharacter, this.scale);
     const moveTo = [waitLocation.left, waitLocation.top];
-    console.log(`from ${JSON.stringify(moveFrom, null, 2)}`);
-    console.log(`to ${JSON.stringify(moveTo, null, 2)}`);
     this.activeCharacter.tweenOptions = this.makeMoveTween(moveFrom, moveTo);
 
     this.initializeSignsDropTween();
@@ -581,14 +579,11 @@ class MatchByColorGame extends React.Component {
     const size = this.characterSize(character, scale);
     const top = SCREEN_HEIGHT - (size.height + SCREEN_HEIGHT * 0.08);
     const left = -size.width;
-    // console.log( `charSize = ${JSON.stringify(size, null, 2)}`);
-    console.log(`char top = ${top}`);
     return {top, left};
   }
 
   characterWaitForFoodAt (character, scale) {
     const top = this.characterStartLocation(character, scale).top;
-    console.log(`CWFFA char top = ${top}`);
     const left = 150 * scale.screenWidth;
     return {top, left};
   }
@@ -601,7 +596,6 @@ class MatchByColorGame extends React.Component {
 
   leverLocation () {
     const size = this.leverSize();
-    console.log( `leverSize = ${JSON.stringify(size, null, 2)}`);
     const left = SCREEN_WIDTH - size.width;
     const top = (SCREEN_HEIGHT - size.height) / 2;
     return {top, left};

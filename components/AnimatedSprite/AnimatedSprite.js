@@ -107,6 +107,7 @@ class AnimatedSprite extends React.Component {
   // }
 
   componentWillUnmount () {
+    // console.log('AnimatedSprite unmounting');
     clearInterval(this.defaultAnimationInterval);
     clearInterval(this.animationKeyInterval);
   }
