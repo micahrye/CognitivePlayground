@@ -1,7 +1,5 @@
 import React from 'react';
 import {
-  StyleSheet,
-  View,
   Image,
 } from 'react-native';
 
@@ -14,20 +12,20 @@ import HomeButton from '../HomeButton/HomeButton';
 import Lever from '../Lever/Lever';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
-import leverCharacter from '../../sprites/lever/leverCharacter';
+import leverCharacter from '../../sprites/fountainLever/fountainLeverCharacter';
 import fountainCharacter from '../../sprites/fountain/fountainCharacter';
+
 import canCharacter from '../../sprites/can/canCharacter';
-//import styles from './styles';
+import flySprite from '../../sprites/bug/bugCharacter';
+import fruitSprite from '../../sprites/apple/appleCharacter';
+import grassSprite from '../../sprites/grass/grassCharacter';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 const TOP_OFFSET = 20;
 
 const GAME_TIME_OUT = 115000;
-const MAX_NUMBER_BUBBLES = 15;
-const FOUTAIN_LOCATION = {top: 0, left: 0};
-const LEVER_LOCATION = {top: 0, left: 0};
-
+const MAX_NUMBER_BUBBLES = 10;
 
 class BubblesGame extends React.Component {
   constructor (props) {
@@ -35,6 +33,7 @@ class BubblesGame extends React.Component {
     this.state = {
       spriteAnimationKey: 'all',
       spriteAnimationKeyIndex: 0,
+      leverAnimationIndex: [0],
       bubbleArray: [],
       bubbleAnimationIndex: [0],
       monsterAnimationIndex: [0],
@@ -43,31 +42,23 @@ class BubblesGame extends React.Component {
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
-    this.animations = ['eat', 'bubble', 'bubbleCan', 'bubbleBug', 'bubbleGrass'];
     this.setDefaultAnimationState;
     this.bubbleFountainInterval;
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
-    // This all needs to be adjusted
-    FOUTAIN_LOCATION.top = SCREEN_HEIGHT - (fountainCharacter.size.height*this.scale.screenHeight);
-    FOUTAIN_LOCATION.left = (SCREEN_WIDTH/2) - (fountainCharacter.size.width/2)*this.scale.screenWidth;
-    LEVER_LOCATION.top = FOUTAIN_LOCATION.top + 60 ;
-    LEVER_LOCATION.left = FOUTAIN_LOCATION.left + (fountainCharacter.size.width - 40 );
-
-    FOUTAIN_SIZE = { width: 270 * this.scale.screenWidth, height: 258 * this.scale.screenHeight};
-  }
+}
 
   componentWillMount () {
     this.characterUIDs = {
       bubble: randomstring({ length: 7 }),
       monster: randomstring({ length: 7 }),
-      lever: randomstring({ length: 7 }),
-      fountain: randomstring({ length: 7 }),
+      leverCharacter: randomstring({ length: 7 }),
+      fountainCharacter: randomstring({ length: 7 }),
     };
     this.setState({
-      bubbleAnimationIndex: [0,1,2,3,4,5,6,7,8,9],
-      monsterAnimationIndex: [0,1,2,3,4,5,6,7],
+      bubbleAnimationIndex: bubbleCharacter.animationIndex('ALL'),
+      monsterAnimationIndex: monsterCharacter.animationIndex('ALL'),
       loadContent: true,
     });
     this.setDefaultAnimationState = setTimeout(() => {
@@ -80,16 +71,21 @@ class BubblesGame extends React.Component {
   }
 
   componentDidMount () {
-    this.timeoutGameOver = setTimeout(() => { // start trial timeout
+    // start trial timeout
+    this.timeoutGameOver = setTimeout(() => {
       this.props.navigator.replace({
         id: "Main",
       });
-    }, GAME_TIME_OUT); // game over when 15 seconds go by without bubble being popped
+      // game over when 15 seconds go by without bubble being popped
+    }, GAME_TIME_OUT);
   }
 
   componentWillUnmount () {
+    clearInterval(this.eatInterval);
+    clearInterval(this.bubbleFountainInterval);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.celebrateTimeout);
   }
 
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
@@ -154,7 +150,7 @@ class BubblesGame extends React.Component {
       width: Math.floor(bubbleDeminsions * this.scale.image),
       height: Math.floor(bubbleDeminsions * this.scale.image),
     };
-    const fountainSize = this.foutainSize();
+    const fountainSize = this.fountainSize();
     const fountainLoc = this.fountainLocation();
     const fountainCenter = (fountainLoc.left + fountainSize.width/2);
     const offsetLeft = 80 * this.scale.screenWidth;
@@ -187,19 +183,19 @@ class BubblesGame extends React.Component {
       const target = Math.floor(Math.random() * 4);
       switch (target) {
         case 0:
-          this.targetBubble.frameIndex = [2];
+          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('CAN');
           this.targetBubble.name = 'can';
           break;
         case 1:
-          this.targetBubble.frameIndex = [3];
-          this.targetBubble.name = 'fly';
-          break;
-        case 2:
-          this.targetBubble.frameIndex = [4];
+          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('FRUIT');
           this.targetBubble.name = 'fruit';
           break;
+        case 2:
+          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('FLY');
+          this.targetBubble.name = 'fly';
+          break;
         case 3:
-          this.targetBubble.frameIndex = [5];
+          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('GRASS');
           this.targetBubble.name = 'grass';
           break;
       }
@@ -241,13 +237,26 @@ class BubblesGame extends React.Component {
     const monstSize = this.monsterSize();
     const x = monstLoc.left + monstSize.width/2;
     const y = monstLoc.top + monstSize.height/2;
-    debugger;
     return [x, y];
   }
-  foodFall (startX, startY) {
+
+  foodSize (food, dimension) {
+    // scale to 120 x 120 or closest.
+    const widthScale = 120/food.character.size.width;
+    const heightScale = 120/food.character.size.height;
+    const scale = widthScale > heightScale ? heightScale : widthScale;
+    switch (dimension) {
+      case 'width':
+        return Math.floor((food.character.size.width * scale) * this.scale.image);
+      case 'height':
+        return Math.floor((food.character.size.height * scale) * this.scale.image);
+    }
+  }
+
+  getFoodSprite (name, startX, startY) {
+    const food = {};
     const mouthLoc = this.monsterMouthLocation();
-    debugger;
-    this.food.tweenOptions = {
+    food.tweenOptions = {
       tweenType: 'sine-wave',
       startXY: [startX, startY],
       xTo: [mouthLoc[0]],
@@ -255,19 +264,60 @@ class BubblesGame extends React.Component {
       duration: 1000,
       loop: false,
     };
+    food.active = true;
+    food.uid = randomstring({length: 7});
+    food.location = {top: startY * this.scale.screenHeight,
+      left:startX * this.scale.screenWidth};
+    switch (name) {
+      case 'can':
+        food.name = 'can';
+        food.character = canCharacter;
+        food.index = [0];
+        food.size = {
+          width: this.foodSize(food, 'width'),
+          height: this.foodSize(food, 'height')};
+        return food;
+      case 'fly':
+        food.name = 'fly';
+        food.character = flySprite;
+        food.index = [4];
+        food.size = {
+          width: this.foodSize(food, 'width'),
+          height: this.foodSize(food, 'height')};
+        return food;
+      case 'fruit':
+        food.name = 'fruit';
+        food.character = fruitSprite;
+        food.index = [0];
+        food.size = {
+          width: this.foodSize(food, 'width'),
+          height: this.foodSize(food, 'height')};
+        return food;
+      case 'grass':
+        food.name = 'grass';
+        food.character = grassSprite;
+        food.index = [0];
+        food.size = {
+          width: this.foodSize(food, 'width'),
+          height: this.foodSize(food, 'height')};
+        return food;
+    }
+  }
 
-    this.food.active = true;
-    this.food.uid = randomstring({length: 7});
-    this.food.name = 'can';
-    this.food.character = canCharacter;
-    this.food.location = {top: startY * this.scale.screenHeight, left:startX * this.scale.screenWidth};
-    this.food.size = {width: 109 * this.scale.screenWidth, height: 116 * this.scale.screenHeight};
+  foodFall (startX, startY) {
+    this.food = this.getFoodSprite(this.targetBubble.name, startX, startY);
     this.setState({showFood: true});
 
     clearInterval(this.eatInterval);
     this.eatInterval = setInterval(() => {
       this.setState({
         monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
+      }, () => {
+        this.celebrateTimeout = setTimeout(() => {
+          this.setState({
+            monsterAnimationIndex: monsterCharacter.animationIndex('CELEBRATE'),
+          });
+        }, 600);
       });
       clearInterval(this.eatInterval);
     }, 600);
@@ -303,43 +353,51 @@ class BubblesGame extends React.Component {
   }
 
   leverPressIn () {
+    this.setState({
+      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_ON'),
+    });
     this.bubbleFountainInterval = setInterval(() => {
       this.createBubbles();
     }, 200);
   }
 
-  leverPress () {
-    // console.warn('lever PRESS');
+  leverCharacterPress () {
+    // console.warn('leverCharacter PRESS');
   }
 
   leverPressOut () {
+    this.setState({
+      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_OFF'),
+    });
     clearInterval(this.bubbleFountainInterval);
   }
-  foutainSize () {
+  fountainSize () {
     return ({
       width: fountainCharacter.size.width * this.scale.image,
       height: fountainCharacter.size.height * this.scale.image,
     });
   }
   fountainLocation () {
-    //placement for fountain and lever
-    const size = this.foutainSize();
+    //placement for fountain and leverCharacter
+    const size = this.fountainSize();
     const left = ((SCREEN_WIDTH - size.width)/2);
     const top = (SCREEN_HEIGHT - size.height) - TOP_OFFSET;
     return ({top, left});
   }
   leverSize () {
+    const scaleLever = 1.5;
     return ({
-      width: leverCharacter.size.width * this.scale.image,
-      height: leverCharacter.size.height * this.scale.image,
+      width: leverCharacter.size.width * scaleLever * this.scale.image,
+      height: leverCharacter.size.height * scaleLever * this.scale.image,
     });
   }
-  leverLocation () {
+  leverCharacterLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
     const leverSize = this.leverSize();
-    const left = locatoinFoutain.left + foutainSize.width - 15 * this.scale.screenWidth;
-    const top = (SCREEN_HEIGHT - leverSize.height*1.2) - TOP_OFFSET;
+    const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
+    const top = SCREEN_HEIGHT - foutainSize.height * 1.05;
+
     return {top, left};
   }
 
@@ -351,158 +409,128 @@ class BubblesGame extends React.Component {
   }
 
   monsterStartLocation () {
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
+    const characterOffset = 140 * this.scale.screenHeight;
+    const characterHeight = monsterCharacter.size.height * this.scale.image;
+    const top = (SCREEN_HEIGHT - characterHeight - characterOffset);
     const left = -300 * this.scale.screenWidth;
     return {top, left};
   }
 
   monsterEndLocation () {
-    const top = (SCREEN_HEIGHT - monsterCharacter.size.height);
+    const characterOffset = 140 * this.scale.screenHeight;
+    const characterHeight = monsterCharacter.size.height * this.scale.image;
+    const top = (SCREEN_HEIGHT - characterHeight - characterOffset);
     const left = 40 * this.scale.screenWidth;
     return {top, left};
   }
 
   render () {
     return (
-      <Image source={require('../../media/backgrounds/Game_7_Background_1280.png')} style={styles.backgroundImage}>
-          <View style={styles.gameWorld}>
-          <Lever
-            character={lever}
-            coordinates={{
-              top: LEVER_LOCATION.top,
-              left: LEVER_LOCATION.left}}
+      <Image
+        source={require('../../media/backgrounds/Game_6_Background_1280.png')}
+        style={{
+          flex: 1,
+          width: SCREEN_WIDTH,
+          height: SCREEN_HEIGHT,
+      }}>
+          <AnimatedSprite
+            character={leverCharacter}
             characterUID={this.characterUIDs.lever}
-            size = {{
-              width: lever.size.width * this.scale.image,
-              height: lever.size.height * this.scale.image}}
-            rotate={[{rotateY:'0deg'}, {rotateX: '10deg'}]}
+            animationFrameIndex={this.state.leverAnimationIndex}
+            loopAnimation={false}
+            coordinates={this.leverLocation()}
+            size={this.leverSize()}
+            rotate={[{rotateY:'0deg'}]}
             onPress={() => this.leverPress()}
             onPressIn={() => this.leverPressIn()}
             onPressOut={() => this.leverPressOut()}
           />
-            {this.state.loadContent ?
-              <AnimatedSprite
-                character={bubbleCharacter}
-                characterUID={randomstring({length: 7})}
-                animationFrameIndex={this.state.bubbleAnimationIndex}
-                loopAnimation={false}
-                coordinates={{top: 400 * this.scale.screenHeight,
-                  left: -300 * this.scale.screenWidth}}
-                size={{ width: Math.floor(300 * this.scale.image),
-                  height: Math.floor(285 * this.scale.image)}}
-              />
-            : null}
 
-            {this.state.bubbleArray}
-
-            {this.state.targetBubbleActive ?
-              <AnimatedSprite
-                style={{opacity: this.targetBubble.opacity}}
-                character={bubbleCharacter}
-                characterUID={this.targetBubble.uid}
-                animationFrameIndex={this.targetBubble.frameIndex}
-                loopAnimation={false}
-                tweenOptions={this.targetBubble.tweenOptions}
-                tweenStart={'auto'}
-                onTweenFinish={(characterUID) => this.targetBubbleTweenFinish(characterUID)}
-                coordinates={this.targetBubble.coordinates}
-                size={this.targetBubble.size}
-                stopAutoTweenOnPressIn={this.targetBubble.stopTweenOnPress}
-                onTweenStopped={(stopValues) => this.popBubble(stopValues)}
-              />
-            : null}
-
-            {this.state.showFood ?
-              <AnimatedSprite
-                character={this.food.character}
-                characterUID={this.food.uid}
-                animationFrameIndex={[0]}
-                tweenOptions={this.food.tweenOptions}
-                tweenStart='auto'
-                onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
-                loopAnimation={false}
-                coordinates={this.food.location}
-                size={this.food.size}
-              />
-            : null}
-
+          {this.state.loadContent ?
             <AnimatedSprite
-              ref={'monsterRef'}
-              character={monsterCharacter}
-              characterUID={this.characterUIDs.monster}
-              animationFrameIndex={this.state.monsterAnimationIndex}
-              tweenStart={'fromCode'}
-              tweenOptions={this.monster.tweenOptions}
-              onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
-              loopAnimation={this.monster.loopAnimation}
-              coordinates={this.monsterStartLocation()}
-              size={{ width: Math.floor(300 * this.scale.image),
-                height: Math.floor(285 * this.scale.screenHeight)}}
-              rotate={[{rotateY:'180deg'}]}
-            />
-
-            <AnimatedSprite
-              character={fountainCharacter}
-              characterUID={this.characterUIDs.fountain}
-              animationFrameIndex={[0]}
+              character={bubbleCharacter}
+              characterUID={randomstring({length: 7})}
+              animationFrameIndex={this.state.bubbleAnimationIndex}
               loopAnimation={false}
-              coordinates={{top: FOUNTAIN_LOCATION.top,
-                left: FOUNTAIN_LOCATION.left}}
-              size={{ width: fountain.size.width * this.scale.image,
-                height: fountain.size.height * this.scale.image}}
+              coordinates={{top: 400 * this.scale.screenHeight,
+                left: -300 * this.scale.screenWidth}}
+              size={{ width: Math.floor(300 * this.scale.image),
+                height: Math.floor(285 * this.scale.image)}}
             />
-          </View>
+          : null}
 
-          <HomeButton
-            route={this.props.route}
-            navigator={this.props.navigator}
-            routeId={{ id: 'Main' }}
-            styles={{
-              width: 150 * this.scale.image,
-              height: 150 * this.scale.image,
-              top:0, left: 0, position: 'absolute' }}
+          {this.state.bubbleArray}
+
+          {this.state.targetBubbleActive ?
+            <AnimatedSprite
+              style={{opacity: this.targetBubble.opacity}}
+              character={bubbleCharacter}
+              characterUID={this.targetBubble.uid}
+              animationFrameIndex={this.targetBubble.frameIndex}
+              loopAnimation={false}
+              tweenOptions={this.targetBubble.tweenOptions}
+              tweenStart={'auto'}
+              onTweenFinish={(characterUID) => this.targetBubbleTweenFinish(characterUID)}
+              coordinates={this.targetBubble.coordinates}
+              size={this.targetBubble.size}
+              stopAutoTweenOnPressIn={this.targetBubble.stopTweenOnPress}
+              onTweenStopped={(stopValues) => this.popBubble(stopValues)}
+            />
+          : null}
+
+          {this.state.showFood ?
+            <AnimatedSprite
+              character={this.food.character}
+              characterUID={this.food.uid}
+              key={this.food.uid}
+              animationFrameIndex={this.food.index}
+              tweenOptions={this.food.tweenOptions}
+              tweenStart='auto'
+              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              loopAnimation={false}
+              coordinates={this.food.location}
+              size={this.food.size}
+            />
+          : null}
+
+          <AnimatedSprite
+            ref={'monsterRef'}
+            character={monsterCharacter}
+            characterUID={this.characterUIDs.monster}
+            animationFrameIndex={this.state.monsterAnimationIndex}
+            tweenStart={'fromCode'}
+            tweenOptions={this.monster.tweenOptions}
+            onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
+            loopAnimation={this.monster.loopAnimation}
+            coordinates={this.monsterStartLocation()}
+            size={{ width: Math.floor(300 * this.scale.image),
+              height: Math.floor(285 * this.scale.screenHeight)}}
+            rotate={[{rotateY:'180deg'}]}
           />
 
+          <AnimatedSprite
+            character={fountainCharacter}
+            characterUID={this.characterUIDs.fountain}
+            animationFrameIndex={[0]}
+            loopAnimation={false}
+            coordinates={this.fountainLocation()}
+            size={{ width: fountainCharacter.size.width * this.scale.image,
+              height: fountainCharacter.size.height * this.scale.image}}
+          />
+
+        <HomeButton
+          route={this.props.route}
+          navigator={this.props.navigator}
+          routeId={{ id: 'Main' }}
+          styles={{
+            width: 150 * this.scale.image,
+            height: 150 * this.scale.image,
+            top:0, left: 0, position: 'absolute' }}
+        />
       </Image>
     );
   }
 }
-const styles = StyleSheet.create({
-  topLevel :{
-    alignItems: 'center',
-  },
-  gameWorld: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-  },
-  backgroundImage: {
-    flex: 1,
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT,
-  },
-  topBar: {
-    alignItems: 'center',
-    width: SCREEN_WIDTH,
-    height: SCREEN_HEIGHT - 700,
-    borderStyle: 'solid',
-    borderWidth: 2,
-  },
-  row: {
-    flex: 1,
-    flexDirection: 'row',
-    position: 'absolute',
-    left: 10,
-    borderStyle: 'solid',
-    borderColor: '#ff00ff',
-  },
-  button: {
-    backgroundColor: '#4d94ff',
-    borderRadius: 10,
-    width: 100,
-    height: 50,
-    justifyContent: 'center',
-  },
-});
 
 BubblesGame.propTypes = {
   route: React.PropTypes.object,

@@ -65,7 +65,7 @@ function characterMouthLocation (characterComponent) {
   switch (characterComponent.props.character.name) {
     case 'monster':
       // top, left
-      return [(height * 0.5), (width * 0.45)];
+      return [(height * 0.5), (width * 0.40)];
     case 'goat':
       return [(height * 0.35), (width * 0.65)];
     case 'dog':

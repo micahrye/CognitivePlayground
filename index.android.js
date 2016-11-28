@@ -8,6 +8,7 @@ import {
   AppRegistry,
   Navigator,
   Dimensions,
+  PixelRatio,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -20,14 +21,14 @@ import MatchByColorGame from './components/MatchByColor/MatchByColorGame';
 
 const baseHeight = 800;
 const baseWidth = 1280;
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
+const screenWidth = Dimensions.get('window').width; // * PixelRatio.get();
+const screenHeight = Dimensions.get('window').height; // * PixelRatio.get();
 
 class CognitivePlayground extends React.Component {
   constructor (props) {
     super(props);
-    const scaleWidth = screenWidth / baseWidth;
-    const scaleHeight = screenHeight / baseHeight;
+    const scaleWidth =  screenWidth / baseWidth ;
+    const scaleHeight = screenHeight / baseHeight ;
     this.scale = {
       screenWidth: scaleWidth,
       screenHeight: scaleHeight,

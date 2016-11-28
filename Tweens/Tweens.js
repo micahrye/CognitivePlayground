@@ -70,7 +70,7 @@ const sineWave = {
     //   componentValues.left.stopAnimation((value) => stopValues.push(value));
     //   componentValues.top.stopAnimation((value) => stopValues.push(value));
     // } catch (err) {
-    //   console.warn('FUCK YOU');
+    //   console.warn('STOP ERROR TWEEN');
     // }
     stopValues.push(componentValues.left._value);
     stopValues.push(componentValues.top._value);
@@ -82,7 +82,6 @@ const bounce = {
   name: 'bounce',
   start: function startTween (options, componentValues, onTweenFinish) {
     componentValues.scale.setValue(0.29);
-    console.warn('start BOUNCE');
     Animated.spring(
     componentValues.scale,
       {

@@ -1,7 +1,7 @@
 
 const goatCharacter = {
   name:"goat",
-  size: {width: 240, height: 200},
+  size: {width: 288, height: 240},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
   all: [
     require('./goat_idle.png'),
@@ -14,7 +14,7 @@ const goatCharacter = {
     require('./goat_celebrate02.png'),
     require('./goat_disgust01.png'),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];
@@ -23,7 +23,7 @@ const goatCharacter = {
       case 'EAT':
         return [5,4,5,4,0];
       case 'CELEBRATE':
-        return [6,7,6,0];
+        return [6,7,6,0,6,7,6,0];
       case 'DISGUST':
         return [0,8,8,8,0];
       case 'ALL':

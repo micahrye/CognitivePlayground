@@ -12,6 +12,7 @@ import _ from 'lodash';
 
 var reactMixin = require('react-mixin');
 import TimerMixin from 'react-timer-mixin';
+import Tweens from "./Tweens/Tweens";
 
 const baseHeight = 800;
 const baseWidth = 1280;
