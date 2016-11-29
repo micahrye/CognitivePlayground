@@ -1,7 +1,9 @@
 import React from 'react';
 import {
+  View,
   Image,
 } from 'react-native';
+
 
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
@@ -9,7 +11,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
-import Lever from '../Lever/Lever';
+import Lever from '../../sprites/lever/leverCharacter';
 import birdCharacter from "../../sprites/bird/birdCharacter";
 import fruitSprite from "../../sprites/apple/appleCharacter";
 import foodMachineCharacter from "../../sprites/foodMachine/foodMachineCharacter";
@@ -18,6 +20,8 @@ import ledCharacter from "../../sprites/led/ledCharacter";
 import buttonCharacter from "../../sprites/button/buttonCharacter";
 import arrowCharacter from "../../sprites/arrow/arrowCharacter";
 import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
+
+import styles from "../MatchByColor/styles";
 
 const SCREEN_WIDTH = require ('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require ('Dimensions').get('window').height;
@@ -46,7 +50,9 @@ class UnlockFoodGame extends React.Component {
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
+    this.setDefaultAnimationState;
     this.bird = {tweenOptions: {}};
+    this.fruitSprite = {tweenOptions: {}};
   }
 
   componentWillMount () {
@@ -107,10 +113,10 @@ class UnlockFoodGame extends React.Component {
     const endXY = [birdEndLoc.left, birdEndLoc.top];
     this.bird.tweenOptions = this.makeMoveTween(startXY, endXY);
     this.bird.loopAnimation = true;
-    this.setState({
+    /*this.setState({
       birdAnimationIndex: birdCharacter.animationIndex('WALK'),
       tweenCharacter: true,
-    }, ()=> {this.refs.birdRef.startTween();});
+    }, ()=> {this.refs.birdRef.startTween();});*/
   }
 
   onCharacterTweenFinish () {
@@ -126,19 +132,23 @@ class UnlockFoodGame extends React.Component {
     return [x, y];
   }
 
-  foodSize (food, dimension) {
+  foodSize () {
     // scale to 120 x 120 or closest.
-    const widthScale = 120/fruitSprite.character.size.width;
-    const heightScale = 120/fruitSprite.character.size.height;
-    const scale = widthScale > heightScale ? heightScale : widthScale;
-    switch (dimension) {
-      case 'width':
-        return Math.floor((fruitSprite.character.size.width * scale) * this.scale.image);
-      case 'height':
-        return Math.floor((fruitSprite.character.size.height * scale) * this.scale.image);
-    }
+    const scale = 1;
+    return ({
+        width: fruitSprite.size.width * scale * this.scale.image,
+        height: fruitSprite.size.height * scale * this.scale.image,
+      }
+    );
   }
-
+  foodBeltEndLocation () {
+    const beltLocation = this.beltLocation();
+    const beltSize = this.beltSize();
+    const foodSize = this.foodSize();
+    const left = beltLocation.left-(foodSize.width/2);
+    const top = beltLocation.top - (beltSize.height * 1.42);
+    return {top, left};
+  }
   foodFall (startX, startY) {
     this.setState({showFood: true});
 
@@ -164,12 +174,13 @@ class UnlockFoodGame extends React.Component {
   }
 
   leverPressIn () {
-    this.setState({
+      this.setState({
       leverAnimationIndex: Lever.animationIndex('SWITCH_ON'),
     });
   }
 
   leverPress () {
+
     // console.warn('lever PRESS');
   }
 
@@ -182,15 +193,15 @@ class UnlockFoodGame extends React.Component {
   machineSize () {
     return ({
       width: foodMachineCharacter.size.width * this.scale.image,
-      heigth: foodMachineCharacter.size.height * this.scale.image,
+      height: foodMachineCharacter.size.height * this.scale.image,
     });
   }
 
   machineLocation () {
     //placement for food machine
-    const size = this.machineSize();
-    const left = ((SCREEN_WIDTH - size.width)/2);
-    const top = ((SCREEN_HEIGHT- size.height)- TOP_OFFSET);
+    const machineSize = this.machineSize();
+    const left = ((SCREEN_WIDTH - machineSize.width)/1.3733);
+    const top = ((SCREEN_HEIGHT- machineSize.height)- TOP_OFFSET);
     return ({top, left});
   }
 
@@ -224,24 +235,59 @@ class UnlockFoodGame extends React.Component {
     const locationMachine = this.machineLocation();
     const machineSize = this.machineSize();
     const beltSize = this.beltSize();
-    const left = locationMachine.left + machineSize.width - (20 * this.scale.screenWidth);
-    const top = SCREEN_HEIGHT - machineSize.height * 1.05;
+    const left = locationMachine.left - machineSize.width + (283 * this.scale.screenWidth);
+    const top = SCREEN_HEIGHT - (machineSize.height * 0.53);
 
     return {top, left};
   }
 
+  ledSize () {
+    const scaleLed = 1;
+    return ({
+      width: ledCharacter.size.width * scaleLed * this.scale.image,
+      height: ledCharacter.size.height * scaleLed * this.scale.image,
+    });
+  }
+
+  ledLocation () {
+    const locationMachine = this.machineLocation();
+    const machineSize = this.machineSize();
+    const ledSize = this.ledSize();
+    const left = locationMachine.left + machineSize.width - (320 *this.scale.screenWidth);
+    const top = SCREEN_HEIGHT - machineSize.height - 130;
+    return {top, left};
+  }
+
+  buttonSize () {
+    const scaleButton= 1;
+    return ({
+      width: buttonCharacter.size.width * scaleButton * this.scale.image,
+      height: buttonCharacter.size.width * scaleButton * this.scale.image,
+    });
+  }
+
+  buttonLocation () {
+    const locationMachine = this.machineLocation();
+    const machineSize = this.machineSize();
+    const buttonSize = this.buttonSize();
+    const left = locationMachine.left + machineSize.width - (418*this.scale.screenWidth);
+    const top = SCREEN_HEIGHT - machineSize.height + 103;
+    return {top, left};
+  }
+
   birdSize () {
+    const scaleBird= 1;
     return {
-      width: birdCharacter.size.width * this.scale.image,
-      height: birdCharacter.size.height * this.scale.image,
+      width: birdCharacter.size.width * scaleBird * this.scale.image,
+      height: birdCharacter.size.height * scaleBird * this.scale.image,
     };
   }
 
   birdStartLocation () {
-    const characterOffset = 140 * this.scale.screenHeight;
+    const characterOffset = 10 * this.scale.screenHeight;
     const characterHeight = birdCharacter.size.height * this.scale.image;
     const top = (SCREEN_HEIGHT - characterHeight - characterOffset);
-    const left = -300 * this.scale.screenWidth;
+    const left = 40 * this.scale.screenWidth;
     return {top, left};
   }
 
@@ -255,73 +301,89 @@ class UnlockFoodGame extends React.Component {
 
   render () {
     return (
-      <Image
-        source={require('../../media/backgrounds/Game_3_Background_1280.png')}
-        style={{
-          flex: 1,
-          width: SCREEN_WIDTH,
-          height: SCREEN_HEIGHT,
-        }}>
+      <View style={styles.container}>
+        <Image
+          source={require('../../media/backgrounds/Game_3_Background_1280.png')}
+          style={{
+            flex: 1,
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
+          }}>
+              <AnimatedSprite
+                character= {Lever}
+                characterUID={this.characterUIDs.lever}
+                animationFrameIndex={this.state.leverAnimationIndex}
+                loopAnimation={false}
+                coordinates={this.leverLocation()}
+                size={this.leverSize()}
+                rotate={[{rotateY:'180deg'}]}
+                onPress={() => this.leverPress()}
+                onPressIn={() => this.leverPressIn()}
+                onPressOut={() => this.leverPressOut()}
+              />
+              <AnimatedSprite
+                character={fruitSprite}
+                characterUID={this.characterUIDs.fruit}
+                animationFrameIndex={this.state.fruitAnimationIndex}
+                tweenOptions = {this.fruitSprite.tweenOptions}
+                onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+                loopAnimation={false}
+                coordinates={this.foodBeltEndLocation()}
+                size={this.foodSize()}
+              />
             <AnimatedSprite
-              character= {Lever}
-              characterUID={this.characterUIDs.lever}
-              animationFrameIndex={this.state.leverAnimationIndex}
+              ref={'birdRef'}
+              character={birdCharacter}
+              characterUID={this.characterUIDs.bird}
+              animationFrameIndex={this.state.birdAnimationIndex}
               loopAnimation={false}
-              coordinates={this.leverLocation()}
-              size={this.leverSize()}
-              rotate={[{rotateY:'0deg'}]}
-              onPress={() => this.leverPress()}
-              onPressIn={() => this.leverPressIn()}
-              onPressOut={() => this.leverPressOut()}
+              coordinates={this.birdStartLocation()}
+              size={this.birdSize()}
             />
-          {this.state.showFood ?
             <AnimatedSprite
-              character={this.fruitSprite.character}
-              characterUID={this.food.uid}
-              key={this.food.uid}
-              animationFrameIndex={this.fruitSprite.index}
-              tweenOptions={this.fruitSprite.tweenOptions}
-              tweenStart='auto'
-              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              character={beltCharacter}
+              characterUID={this.characterUIDs.belt}
+              animationFrameIndex={[0]}
               loopAnimation={false}
-              coordinates={this.food.location}
-              size={this.food.size}
+              coordinates={this.beltLocation()}
+              size={this.beltSize()}
             />
-          : null}
-          <AnimatedSprite
-            ref={'birdRef'}
-            character={birdCharacter}
-            characterUID={this.characterUIDs.bird}
-            animationFrameindex={this.state.birdAnimationIndex}
-            tweenStart={'auto'}
-            tweenOptions={this.bird.tweenOptions}
-            onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
-            loopAnimation={this.birdStartLocation()}
-            size={{width: Math.floor(300 * this.scale.image),
-              height: Math.floor(285 * this.scale.screenHeight)}}
-            rotate={[{rotateY: '180deg'}]}
-          />
-
-          <AnimatedSprite
-            character={foodMachineCharacter}
-            characterUID={this.characterUIDs.machine}
-            animationFrameIndex={[0]}
-            loopAnimation={false}
-            coordinates={this.machineLocation()}
-            size={{ width: foodMachineCharacter.size.width * this.scale.image,
-              height: foodMachineCharacter.size.height * this.scale.image}}
-          />
-
-          <HomeButton
-            route={this.props.route}
-            navigator={this.props.navigator}
-            routeId={{ id: 'Main' }}
-            styles={{
-              width: 150 * this.scale.image,
-              height: 150 * this.scale.image,
-              top:0, left: 0, position: 'absolute' }}
-          />
-        </Image>
+            <AnimatedSprite
+              character={foodMachineCharacter}
+              characterUID={this.characterUIDs.machine}
+              animationFrameIndex={[0]}
+              loopAnimation={false}
+              coordinates={this.machineLocation()}
+              size={{ width: foodMachineCharacter.size.width * this.scale.image,
+                height: foodMachineCharacter.size.height * this.scale.image}}
+            />
+            <AnimatedSprite
+              character={buttonCharacter}
+              characterUID={this.characterUIDs.button}
+              animationFrameIndex={[0]}
+              loopAnimation={false}
+              coordinates={this.buttonLocation()}
+              size={this.buttonSize()}
+            />
+            <AnimatedSprite
+              character={ledCharacter}
+              characterUID={this.characterUIDs.led}
+              animationFrameIndex={[0]}
+              loopAnimation={false}
+              coordinates={this.ledLocation()}
+              size={this.ledSize()}
+            />
+            <HomeButton
+              route={this.props.route}
+              navigator={this.props.navigator}
+              routeId={{ id: 'Main' }}
+              styles={{
+                width: 150 * this.scale.image,
+                height: 150 * this.scale.image,
+                top:0, left: 0, position: 'absolute' }}
+            />
+          </Image>
+        </View>
     );
   }
 }
