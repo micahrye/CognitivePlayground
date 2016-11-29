@@ -445,7 +445,6 @@ class BubblesGame extends React.Component {
             onPressIn={() => this.leverPressIn()}
             onPressOut={() => this.leverPressOut()}
           />
-
           {this.state.loadContent ?
             <AnimatedSprite
               character={bubbleCharacter}
