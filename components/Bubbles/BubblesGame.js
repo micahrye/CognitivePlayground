@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   Image,
-  TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -11,6 +9,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
+import Lever from '../Lever/Lever';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
 import leverCharacter from '../../sprites/fountainLever/fountainLeverCharacter';
@@ -54,8 +53,8 @@ class BubblesGame extends React.Component {
     this.characterUIDs = {
       bubble: randomstring({ length: 7 }),
       monster: randomstring({ length: 7 }),
-      lever: randomstring({ length: 7 }),
-      fountain: randomstring({ length: 7 }),
+      leverCharacter: randomstring({ length: 7 }),
+      fountainCharacter: randomstring({ length: 7 }),
     };
     this.setState({
       bubbleAnimationIndex: bubbleCharacter.animationIndex('ALL'),
@@ -151,7 +150,7 @@ class BubblesGame extends React.Component {
       width: Math.floor(bubbleDeminsions * this.scale.image),
       height: Math.floor(bubbleDeminsions * this.scale.image),
     };
-    const fountainSize = this.foutainSize();
+    const fountainSize = this.fountainSize();
     const fountainLoc = this.fountainLocation();
     const fountainCenter = (fountainLoc.left + fountainSize.width/2);
     const offsetLeft = 80 * this.scale.screenWidth;
@@ -309,7 +308,7 @@ class BubblesGame extends React.Component {
     this.food = this.getFoodSprite(this.targetBubble.name, startX, startY);
     this.setState({showFood: true});
 
-    clearInterval(this.eatInterval)
+    clearInterval(this.eatInterval);
     this.eatInterval = setInterval(() => {
       this.setState({
         monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
@@ -362,8 +361,8 @@ class BubblesGame extends React.Component {
     }, 200);
   }
 
-  leverPress () {
-    // console.warn('lever PRESS');
+  leverCharacterPress () {
+    // console.warn('leverCharacter PRESS');
   }
 
   leverPressOut () {
@@ -372,15 +371,15 @@ class BubblesGame extends React.Component {
     });
     clearInterval(this.bubbleFountainInterval);
   }
-  foutainSize () {
+  fountainSize () {
     return ({
       width: fountainCharacter.size.width * this.scale.image,
       height: fountainCharacter.size.height * this.scale.image,
     });
   }
   fountainLocation () {
-    //placement for fountain and lever
-    const size = this.foutainSize();
+    //placement for fountain and leverCharacter
+    const size = this.fountainSize();
     const left = ((SCREEN_WIDTH - size.width)/2);
     const top = (SCREEN_HEIGHT - size.height) - TOP_OFFSET;
     return ({top, left});
@@ -392,7 +391,7 @@ class BubblesGame extends React.Component {
       height: leverCharacter.size.height * scaleLever * this.scale.image,
     });
   }
-  leverLocation () {
+  leverCharacterLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
     const leverSize = this.leverSize();
@@ -446,7 +445,6 @@ class BubblesGame extends React.Component {
             onPressIn={() => this.leverPressIn()}
             onPressOut={() => this.leverPressOut()}
           />
-
           {this.state.loadContent ?
             <AnimatedSprite
               character={bubbleCharacter}

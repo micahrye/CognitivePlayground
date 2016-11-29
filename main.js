@@ -47,8 +47,8 @@ class Main extends React.Component {
         location: this.scaleLocation({top: 200, left: 400}),
       },
       {
-        name: 'JUMP',
-        imgSrc: require('./media/icons/game3_icon_bw.png'),
+        name: 'UNLOCK',
+        imgSrc: require('./media/icons/game3_icon_color.png'),
         location: this.scaleLocation({top: 400, left: 600}),
       },
       {
@@ -96,6 +96,9 @@ class Main extends React.Component {
         break;
       case 'MATCH':
         this.goToGame('MatchByColorGame');
+        break;
+      case 'UNLOCK':
+        this.goToGame('UnlockFoodGame');
         break;
       default:
         // console.warn('touched me');
