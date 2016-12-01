@@ -18,7 +18,7 @@ import blueFrogCharacter from '../../sprites/blueFrog/blueFrogCharacter';
 import bugCharacter from '../../sprites/bug/bugCharacter';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
-// import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
+import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
 
 import styles from "./BugZapStyles";
 
@@ -55,7 +55,6 @@ class BugZapGame extends React.Component {
     this.directionMaySwitch = false;
     this.fps = 8;
     this.showOtherBugSign = false;
-    // this.showLightbulb = true;
     this.idle = [0];
     this.hopOn = [1];
     this.hopOff = [2];
@@ -73,6 +72,7 @@ class BugZapGame extends React.Component {
       characterTweenOptions: null,
       leftSignTweenOptions: null,
       rightSignTweenOptions: null,
+      lightbulbTweenOptions: null,
       showSplashCharacter: false,
       showBlackout: false,
       showSpotlight: false,
@@ -95,6 +95,7 @@ class BugZapGame extends React.Component {
         // now blackout and spotlight shown before trials
         this.getSpotLightStyle();
         this.blackout = true;
+        this.lightbulbOn();
       }
     } else {
       // first trial, run through all animations once
@@ -174,7 +175,6 @@ class BugZapGame extends React.Component {
   startSplash () {
     // blackout starts when splash would have started on other trials
     if (this.blackout) {
-      this.setBlackout();
       this.characterHopOn();
     }
     else {
@@ -403,6 +403,23 @@ class BugZapGame extends React.Component {
     }, 1000);
   }
 
+  // lightbulb tweens down and turns down
+  lightbulbOn () {
+    console.warn("in lightbulbOn");
+    this.setState({
+      lightbulbTweenOptions: {
+        tweenType: "bounce-drop",
+        startY: -300,
+        endY: -10 * this.props.scale.screenHeight,
+        duration: 2000,
+        repeatable: false,
+        loop: false,
+      },
+    });
+
+    // this.setBlackout();
+  }
+
   // screen goes black
   setBlackout () {
     this.setState({showBlackout: true});
@@ -419,6 +436,7 @@ class BugZapGame extends React.Component {
       }, 1500);
     }, 1000);
   }
+
 
   getSpotLightStyle () {
     console.warn("in get spotlight style");
@@ -524,7 +542,7 @@ class BugZapGame extends React.Component {
           key={this.state.rightSignKey}
           character={signCharacter}
           characterUID={'signRight'}
-          coordinates={{top: -10 * this.props.scale.screeHeight, left: this.rightSignXPos}}
+          coordinates={{top: -10 * this.props.scale.screenHeight, left: this.rightSignXPos}}
           size={{width: 140 * this.props.scale.image, height: 230* this.props.scale.image}}
           animationFrameIndex={[0]}
           tweenOptions={this.state.rightSignTweenOptions}
@@ -550,6 +568,18 @@ class BugZapGame extends React.Component {
         : null}
         </View>
     : null}
+
+    <AnimatedSprite
+      key={this.state.lightbulbKey}
+      character={lightbulbCharacter}
+      characterUID={'lightbulb'}
+      coordinates={{top: -1000 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (50 * this.props.scale.screenWidth)}}
+      size={{width: 125 * this.props.scale.image, height: 250 * this.props.scale.image}}
+      animationFrameIndex={[0]}
+      tweenOptions={this.state.lightbulbTweenOptions}
+      tweenStart={'auto'}
+      onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+    />
 
     {this.state.showBlackout ?
       <View style={styles.blackout} />

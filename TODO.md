@@ -26,6 +26,7 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 
 * LITTLE THINGS
 * add in extra water asset to hide frog
+* change scale of bugs
 * Make code better
   * naming
   * maybe functions for character position/size
