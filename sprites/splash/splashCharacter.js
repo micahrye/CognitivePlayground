@@ -15,7 +15,7 @@ const splashCharacter = {
       case 'RIPPLE':
         return [0,1,0];
       case 'SPLASH':
-        return [0,3,4,0];
+        return [3,4,5];
     }
   },
 };

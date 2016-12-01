@@ -18,12 +18,20 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 
 
 ## BugZap Game
+# 12/1/16
 
+* BUGS
 * Scaling issues on height with smaller screen
-* Change splash/hopon/off animations to what Tinsley and I talked about
-* Why splash janky at first load?
+* Bug in spotlight level, figure out
 
+* LITTLE THINGS
+* add in extra water asset to hide frog
+* Make code better
+  * naming
+  * maybe functions for character position/size
+
+* LEVELS
 * Bee level
 * Spotlight level
   * add in lightbulb
-  * spotlight shows splash?
+  * add in asset with spotlight showing splash
