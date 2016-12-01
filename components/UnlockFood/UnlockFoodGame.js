@@ -11,7 +11,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
 import HomeButton from '../HomeButton/HomeButton';
-import Lever from '../../sprites/lever/leverCharacter';
+import leverCharacter from '../../sprites/lever/leverCharacter';
 import birdCharacter from "../../sprites/bird/birdCharacter";
 import fruitSprite from "../../sprites/apple/appleCharacter";
 import foodMachineCharacter from "../../sprites/foodMachine/foodMachineCharacter";
@@ -175,7 +175,7 @@ class UnlockFoodGame extends React.Component {
 
   leverPressIn () {
       this.setState({
-      leverAnimationIndex: Lever.animationIndex('SWITCH_ON'),
+      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_ON'),
     });
   }
 
@@ -186,7 +186,7 @@ class UnlockFoodGame extends React.Component {
 
   leverPressOut () {
     this.setState({
-      leverAnimationIndex: Lever.animationIndex('SWITCH_OFF'),
+      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_OFF'),
     });
   }
 
@@ -208,8 +208,8 @@ class UnlockFoodGame extends React.Component {
   leverSize () {
     const scaleLever = 1.5;
     return ({
-      width: Lever.size.width * scaleLever * this.scale.image,
-      height: Lever.size.height * scaleLever * this.scale.image,
+      width: leverCharacter.size.width * scaleLever * this.scale.image,
+      height: leverCharacter.size.height * scaleLever * this.scale.image,
     });
   }
 
@@ -310,7 +310,7 @@ class UnlockFoodGame extends React.Component {
             height: SCREEN_HEIGHT,
           }}>
               <AnimatedSprite
-                character= {Lever}
+                character= {leverCharacter}
                 characterUID={this.characterUIDs.lever}
                 animationFrameIndex={this.state.leverAnimationIndex}
                 loopAnimation={false}
