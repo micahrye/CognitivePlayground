@@ -32,7 +32,7 @@ const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
 const LEVEL1B_TRIALS = 1;
 const LEVEL2_TRIALS = 1;
-const LEVEL3A_TRIALS = 1;
+const LEVEL3A_TRIALS = 4;
 // const LEVEL3B_TRIALS = 11;
 
 class BugZapGame extends React.Component {
@@ -69,6 +69,7 @@ class BugZapGame extends React.Component {
       showBugRight: false,
       characterAnimationIndex: this.hopOn,
       splashAnimationIndex: null,
+      lightbulbAnimationIndex: lightbulbCharacter.animationIndex('ON'),
       characterTweenOptions: null,
       leftSignTweenOptions: null,
       rightSignTweenOptions: null,
@@ -87,7 +88,7 @@ class BugZapGame extends React.Component {
         this.directionMaySwitch = true;
         this.showOtherBugSign = true;
       }
-      if (this.trialNumber > LEVEL1B_TRIALS) {
+      if (this.trialNumber > LEVEL1B_TRIALS) { // TODO add an ending trial to this
         // now given certain amount of time to tap, decreasing over trials
         this.givenTime = this.props.route.givenTime - 500;
       }
@@ -95,7 +96,7 @@ class BugZapGame extends React.Component {
         // now blackout and spotlight shown before trials
         this.getSpotLightStyle();
         this.blackout = true;
-        this.lightbulbOn();
+        this.lightbulbDrop();
       }
     } else {
       // first trial, run through all animations once
@@ -105,17 +106,19 @@ class BugZapGame extends React.Component {
     if (this.directionMaySwitch) {
       this.setCharacterDirection();
     }
+
+    this.signDown();
     this.setBugTween();
-    this.signBounceDown();
+
   }
 
-  componentWillUnmount () {
-    clearTimeout(this.characterDissapear);
-    clearTimeout(this.nextTrialTimeout);
-    clearTimeout(this.waitForFrogLand);
-  }
+  // componentWillUnmount () {
+  //   clearTimeout(this.characterDissapear);
+  //   clearTimeout(this.nextTrialTimeout);
+  //   clearTimeout(this.waitForFrogLand);
+  // }
 
-  signBounceDown () {
+  signDown () {
     let signTweenOptions = {
       tweenType: "bounce-drop",
       startY: -300,
@@ -254,7 +257,7 @@ class BugZapGame extends React.Component {
         break;
       // if signs are dropping down, not going back up
       case 'signLeft':
-        if (!this.retractingSign) {
+        if (!this.retractingSign && !this.blackout) {
           this.startSplash();
           this.setState({
             showBugLeft: true,
@@ -262,11 +265,14 @@ class BugZapGame extends React.Component {
         }
         break;
       case 'signRight':
-        if (!this.retractingSign) {
+        if (!this.retractingSign && !this.blackout) {
           this.setState({
             showBugRight: true,
           });
         }
+        break;
+      case 'lightbulb':
+        this.lightbulbOff();
         break;
       case 'character':
         // if in the timeout level
@@ -403,9 +409,8 @@ class BugZapGame extends React.Component {
     }, 1000);
   }
 
-  // lightbulb tweens down and turns down
-  lightbulbOn () {
-    console.warn("in lightbulbOn");
+  // lightbulb tweens down and turns off
+  lightbulbDrop () {
     this.setState({
       lightbulbTweenOptions: {
         tweenType: "bounce-drop",
@@ -416,13 +421,24 @@ class BugZapGame extends React.Component {
         loop: false,
       },
     });
+  }
 
-    // this.setBlackout();
+  // turns lightbulb off and sets blackout
+  lightbulbOff () {
+    this.lightbulbOff = setTimeout(() => {
+      this.setState({
+        lightbulbAnimationIndex: lightbulbCharacter.animationIndex('OFF'),
+      });
+      this.showBlackout = setTimeout (() => {
+        this.setBlackout();
+      }, 1000);
+    }, 500);
   }
 
   // screen goes black
   setBlackout () {
     this.setState({showBlackout: true});
+    this.characterHopOn();
     this.flashSpotlight = setTimeout(() => {
       // after 1000ms show spotlight
       this.setState({showSpotlight: true});
@@ -431,7 +447,12 @@ class BugZapGame extends React.Component {
         this.setState({showSpotlight: false});
         this.removeBlackout = setTimeout(() => {
           // after another 500ms remove blackout
-          this.setState({showBlackout: false});
+          this.setState({
+            showBlackout: false,
+            showBugRight: true,
+            showBugLeft: true,
+            lightbulbAnimationIndex: lightbulbCharacter.animationIndex('ON'),
+          });
         }, 500);
       }, 1500);
     }, 1000);
@@ -439,7 +460,6 @@ class BugZapGame extends React.Component {
 
 
   getSpotLightStyle () {
-    console.warn("in get spotlight style");
     let posX = 300 * this.props.scale.screenWidth;
     // for first few blackout trials, spotlight is consistent with frog side
     // then it can be inconsistent
@@ -575,7 +595,7 @@ class BugZapGame extends React.Component {
       characterUID={'lightbulb'}
       coordinates={{top: -1000 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (50 * this.props.scale.screenWidth)}}
       size={{width: 125 * this.props.scale.image, height: 250 * this.props.scale.image}}
-      animationFrameIndex={[0]}
+      animationFrameIndex={this.state.lightbulbAnimationIndex}
       tweenOptions={this.state.lightbulbTweenOptions}
       tweenStart={'auto'}
       onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
