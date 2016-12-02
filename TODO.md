@@ -18,7 +18,7 @@ see (Development Punchlist)[https://docs.google.com/document/d/1KpHl7Ye1cJuI9LJ5
 
 
 ## BugZap Game
-# 12/1/16
+# 12/2/16
 
 * BUGS
 * Scaling issues on height with smaller screen
