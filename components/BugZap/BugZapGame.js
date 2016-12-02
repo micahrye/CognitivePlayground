@@ -25,14 +25,18 @@ import styles from "./BugZapStyles";
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-// const LEVEL1A_TRIALS = 2; // what trial number LEVEL1A lasts until
-// const LEVEL1B_TRIALS = 4;
-// const LEVEL2_TRIALS = 7;
-// const LEVEL3A_TRIALS = 9;
-const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
-const LEVEL1B_TRIALS = 1;
-const LEVEL2_TRIALS = 1;
-const LEVEL3A_TRIALS = 4;
+const LEVEL1A_TRIALS = 2; // what trial number LEVEL1A lasts until
+const LEVEL1B_TRIALS = 4;
+const LEVEL2_TRIALS = 7;
+const LEVEL3A_TRIALS = 9;
+// const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
+// const LEVEL1B_TRIALS = 2;
+// const LEVEL2_TRIALS = 3;
+// const LEVEL3A_TRIALS = 4;
+// const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
+// const LEVEL1B_TRIALS = 1;
+// const LEVEL2_TRIALS = 1;
+// const LEVEL3A_TRIALS = 4;
 // const LEVEL3B_TRIALS = 11;
 
 class BugZapGame extends React.Component {
@@ -88,7 +92,7 @@ class BugZapGame extends React.Component {
         this.directionMaySwitch = true;
         this.showOtherBugSign = true;
       }
-      if (this.trialNumber > LEVEL1B_TRIALS) { // TODO add an ending trial to this
+      if (this.trialNumber > LEVEL1B_TRIALS && this.trialNumber <= LEVEL2_TRIALS) {
         // now given certain amount of time to tap, decreasing over trials
         this.givenTime = this.props.route.givenTime - 500;
       }
@@ -112,11 +116,11 @@ class BugZapGame extends React.Component {
 
   }
 
-  // componentWillUnmount () {
-  //   clearTimeout(this.characterDissapear);
-  //   clearTimeout(this.nextTrialTimeout);
-  //   clearTimeout(this.waitForFrogLand);
-  // }
+  componentWillUnmount () {
+    clearTimeout(this.characterDissapear);
+    // clearTimeout(this.nextTrialTimeout);
+    // clearTimeout(this.waitForFrogLand);
+  }
 
   signDown () {
     let signTweenOptions = {
