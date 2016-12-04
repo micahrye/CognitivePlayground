@@ -365,7 +365,7 @@ class BugZapGame extends React.Component {
 
   correctBugTapped () {
     let index = [0,3,3,4,0];
-    let delay = (700);
+    let delay = 700;
 
     if (this.whichBug === 'bugLeft') {
       this.refs.bugLeftRef.startTween();

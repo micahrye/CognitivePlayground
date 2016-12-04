@@ -34,37 +34,37 @@ class Main extends React.Component {
       {
         name: 'BUBBLE',
         imgSrc: require('./media/icons/game7_icon_color.png'),
-        location: this.scaleLocation({top: 130, left: 60}),
+        location: this.scaleLocation({top: 130, left: 100}),
       },
       {
         name: 'BUG',
         imgSrc: require('./media/icons/game1_icon_color.png'),
-        location: this.scaleLocation({top: 380, left: 180}),
+        location: this.scaleLocation({top: 380, left: 220}),
       },
       {
         name: 'MATCH',
         imgSrc: require('./media/icons/game2_icon_color.png'),
-        location: this.scaleLocation({top: 200, left: 400}),
+        location: this.scaleLocation({top: 200, left: 440}),
       },
       {
-        name: 'JUMP',
+        name: 'UNLOCK_FOOD',
         imgSrc: require('./media/icons/game3_icon_bw.png'),
-        location: this.scaleLocation({top: 400, left: 600}),
+        location: this.scaleLocation({top: 400, left: 640}),
       },
       {
         name: 'MATRIX',
         imgSrc: require('./media/icons/game4_icon_bw.png'),
-        location: this.scaleLocation({top: 40, left: 640}),
+        location: this.scaleLocation({top: 80, left: 660}),
       },
-      {
-        name: 'FOOD',
-        imgSrc: require('./media/icons/game5_icon_bw.png'),
-        location: this.scaleLocation({top: 160, left: 900}),
-      },
+      // {
+      //   name: 'FOOD',
+      //   imgSrc: require('./media/icons/game5_icon_bw.png'),
+      //   location: this.scaleLocation({top: 160, left: 900}),
+      // },
       {
         name: 'COLOR',
         imgSrc: require('./media/icons/game6_icon_bw.png'),
-        location: this.scaleLocation({top: 420, left: 940}),
+        location: this.scaleLocation({top: 260, left: 900}),
       },
     ];
     this.iconList = iconList;
@@ -96,6 +96,9 @@ class Main extends React.Component {
         break;
       case 'MATCH':
         this.goToGame('MatchByColorGame');
+        break;
+      case 'UNLOCK_FOOD':
+        this.goToGame('UnlockFoodGame');
         break;
       default:
         // console.warn('touched me');
