@@ -8,8 +8,9 @@ import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
-import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
-import HomeButton from '../HomeButton/HomeButton';
+import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
+import HomeButton from '../../components/HomeButton/HomeButton';
+
 import leverSprite from '../../sprites/lever/leverCharacter';
 import birdSprite from "../../sprites/bird/birdCharacter";
 import appleSprite from "../../sprites/apple/appleCharacter";
@@ -137,6 +138,7 @@ class UnlockFoodGame extends React.Component {
       }
     );
   }
+
   foodBeltEndLocation () {
     const beltLocation = this.beltLocation();
     const beltSize = this.beltSize();

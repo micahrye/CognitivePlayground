@@ -15,10 +15,10 @@ import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 
 import Main from "./main";
-import BubblesGame from './components/Bubbles/BubblesGame';
-import BugZapGame from './components/BugZap/BugZapGame';
-import MatchByColorGame from './components/MatchByColor/MatchByColorGame';
-import UnlockFoodGame from './components/UnlockFood/UnlockFoodGame';
+import BubblesGame from './Games/Bubbles/BubblesGame';
+import BugZapGame from './Games/BugZap/BugZapGame';
+import MatchByColorGame from './Games/MatchByColor/MatchByColorGame';
+import UnlockFoodGame from './Games/UnlockFood/UnlockFoodGame';
 
 const baseHeight = 800;
 const baseWidth = 1280;
