@@ -7,8 +7,8 @@ import {
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 
-import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
-import HomeButton from '../HomeButton/HomeButton';
+import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
+import HomeButton from '../../components/HomeButton/HomeButton';
 // import characters for AnimatedSprite to use
 import frogCharacter from '../../sprites/frog/frogCharacter';
 import blueFrogCharacter from '../../sprites/blueFrog/blueFrogCharacter';
@@ -365,7 +365,7 @@ class BugZapGame extends React.Component {
 
   correctBugTapped () {
     let index = [0,3,3,4,0];
-    let delay = (700);
+    let delay = 700;
 
     if (this.whichBug === 'bugLeft') {
       this.refs.bugLeftRef.startTween();
