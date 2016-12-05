@@ -33,27 +33,33 @@ class Main extends React.Component {
     const iconList = [
       {
         name: 'BUBBLE',
-        imgSrc: require('./media/game7/game7_icon_color.png'),
+        imgSrc: require('./media/icons/game7_icon_color.png'),
         location: this.scaleLocation({top: 130, left: 100}),
       },
       {
         name: 'BUG',
-        imgSrc: require('./media/game1/game1_icon_color.png'),
+        imgSrc: require('./media/icons/game1_icon_color.png'),
         location: this.scaleLocation({top: 380, left: 220}),
       },
       {
         name: 'MATCH',
-        imgSrc: require('./media/game2/game2_icon_color.png'),
+        imgSrc: require('./media/icons/game2_icon_color.png'),
         location: this.scaleLocation({top: 200, left: 440}),
       },
       {
+<<<<<<< HEAD
         name: 'UNLOCK_FOOD',
-        imgSrc: require('./media/game3/game3_icon_bw.png'),
+        imgSrc: require('./media/icons/game3_icon_bw.png'),
         location: this.scaleLocation({top: 400, left: 640}),
+=======
+        name: 'UNLOCK',
+        imgSrc: require('./media/icons/game3_icon_color.png'),
+        location: this.scaleLocation({top: 400, left: 600}),
+>>>>>>> ericDev
       },
       {
         name: 'MATRIX',
-        imgSrc: require('./media/game4/game4_icon_bw.png'),
+        imgSrc: require('./media/icons/game4_icon_bw.png'),
         location: this.scaleLocation({top: 80, left: 660}),
       },
       // {
@@ -63,7 +69,7 @@ class Main extends React.Component {
       // },
       {
         name: 'COLOR',
-        imgSrc: require('./media/game6/game6_icon_bw.png'),
+        imgSrc: require('./media/icons/game6_icon_bw.png'),
         location: this.scaleLocation({top: 260, left: 900}),
       },
     ];
@@ -97,7 +103,11 @@ class Main extends React.Component {
       case 'MATCH':
         this.goToGame('MatchByColorGame');
         break;
+<<<<<<< HEAD
       case 'UNLOCK_FOOD':
+=======
+      case 'UNLOCK':
+>>>>>>> ericDev
         this.goToGame('UnlockFoodGame');
         break;
       default:
