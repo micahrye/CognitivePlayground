@@ -25,10 +25,10 @@ import styles from "./BugZapStyles";
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEVEL1A_TRIALS = 2; // what trial number LEVEL1A lasts until
-const LEVEL1B_TRIALS = 4;
-const LEVEL2_TRIALS = 7;
-const LEVEL3A_TRIALS = 9;
+const LEVEL_ONBOARD_START = 2; // what trial number LEVEL1A lasts until
+const LEVEL_TWO_BUGS_START = 4;
+const LEVEL_TIMED_START = 7;
+const LEVEL_SPOTLIGHT_START = 9;
 // const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
 // const LEVEL1B_TRIALS = 2;
 // const LEVEL2_TRIALS = 3;
@@ -54,7 +54,7 @@ class BugZapGame extends React.Component {
     this.leftSignXPos = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
     this.rotate = undefined; // for frog to switch directions
     this.characterDirection = 'left';
-    this.whichFrogColor = greenFrogCharacter;
+    this.activeFrogColor = greenFrogCharacter;
     this.trialNumber = 1;
     this.directionMaySwitch = false;
     this.fps = 8;
@@ -87,16 +87,16 @@ class BugZapGame extends React.Component {
   componentWillMount () {
     if (this.props.route.trialNumber != undefined) {
       this.trialNumber = this.props.route.trialNumber + 1;
-      if (this.trialNumber > LEVEL1A_TRIALS) {
+      if (this.trialNumber > LEVEL_ONBOARD_START) {
         // now two bug choices
         this.directionMaySwitch = true;
         this.showOtherBugSign = true;
       }
-      if (this.trialNumber > LEVEL1B_TRIALS && this.trialNumber <= LEVEL2_TRIALS) {
+      if (this.trialNumber > LEVEL_TWO_BUGS_START && this.trialNumber <= LEVEL_TIMED_START) {
         // now given certain amount of time to tap, decreasing over trials
         this.givenTime = this.props.route.givenTime - 500;
       }
-      if (this.trialNumber > LEVEL2_TRIALS) {
+      if (this.trialNumber > LEVEL_TIMED_START) {
         // now blackout and spotlight shown before trials
         this.getSpotLightStyle();
         this.blackout = true;
@@ -166,7 +166,7 @@ class BugZapGame extends React.Component {
     // blue frog pointing to the right
     if (direction === 0) {
       this.characterDirection = 'right';
-      this.whichFrogColor = blueFrogCharacter;
+      this.activeFrogColor = blueFrogCharacter;
       this.setState({
         characterAnimationIndex: this.hopOn,
       });
@@ -280,7 +280,7 @@ class BugZapGame extends React.Component {
         break;
       case 'character':
         // if in the timeout level
-        if (this.trialNumber > LEVEL1B_TRIALS && this.trialNumber <= LEVEL2_TRIALS) {
+        if (this.trialNumber > LEVEL_TWO_BUGS_START && this.trialNumber <= LEVEL_TIMED_START) {
           this.bugTapTimeout();
         }
         // if bug has been pressed and frog is not finishing hopping off (already landed)
@@ -289,7 +289,7 @@ class BugZapGame extends React.Component {
           this.whichBugTapped();
         }
         this.setState({
-          characterAnimationIndex: this.idle,
+          characterAnimationIndex: this.activeFrogColor.animationIndex("IDLE"),
         });
         this.frogLanded = true;
         break;
@@ -387,8 +387,8 @@ class BugZapGame extends React.Component {
     clearInterval(this.eatInterval);
     this.eatInterval = setInterval(() => {
       const eatAndCelebrateIndex = _.concat(
-        this.whichFrogColor.animationIndex('EAT'),
-        this.whichFrogColor.animationIndex('CELEBRATE')
+        this.activeFrogColor.animationIndex('EAT'),
+        this.activeFrogColor.animationIndex('CELEBRATE')
       );
       this.setState({
         characterAnimationIndex: eatAndCelebrateIndex,
@@ -403,7 +403,7 @@ class BugZapGame extends React.Component {
     this.disgustInterval = setInterval(() => {
       clearInterval(this.disgustInterval);
       this.setState({
-        characterAnimationIndex: this.whichFrogColor.animationIndex('DISGUST'),
+        characterAnimationIndex: this.activeFrogColor.animationIndex('DISGUST'),
       });
     }, delay);
 
@@ -467,7 +467,7 @@ class BugZapGame extends React.Component {
     let posX = 300 * this.props.scale.screenWidth;
     // for first few blackout trials, spotlight is consistent with frog side
     // then it can be inconsistent
-    if (this.trialNumber > LEVEL2_TRIALS && this.trialNumber <= LEVEL3A_TRIALS) {
+    if (this.trialNumber > LEVEL_TIMED_START && this.trialNumber <= LEVEL_SPOTLIGHT_START) {
       if (this.characterDirection === 'left') {
         posX = 800 * this.props.scale.screenWidth;
       }
@@ -500,7 +500,7 @@ class BugZapGame extends React.Component {
       <AnimatedSprite
         key={this.state.characterKey}
         characterUID={'character'}
-        character={this.whichFrogColor}
+        character={this.activeFrogColor}
         coordinates={{top: SCREEN_HEIGHT + 100,
           left: this.characterPosX}}
         size={{
