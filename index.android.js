@@ -18,6 +18,8 @@ import Main from "./main";
 import BubblesGame from './Games/Bubbles/BubblesGame';
 import BugZapGame from './Games/BugZap/BugZapGame';
 import MatchByColorGame from './Games/MatchByColor/MatchByColorGame';
+import MatrixReasoningGame from './Games/MatrixReasoning/MatrixReasoningGame';
+import SymbolDigitCodingGame from './Games/SymbolDigitCoding/SymbolDigitCodingGame';
 import UnlockFoodGame from './Games/UnlockFood/UnlockFoodGame';
 
 const baseHeight = 800;
@@ -69,7 +71,21 @@ class CognitivePlayground extends React.Component {
           route={route}
           scale={this.scale}
         />);
-    } else if (route.id === 'UnlockFoodGame') {
+    } else if (route.id === 'MatrixReasoningGame') {
+      return (
+        <MatrixReasoningGame
+          navigator={navigator}
+          route={route}
+          scale={this.scale}
+        />);
+    } else if (route.id === 'SymbolDigitCodingGame') {
+      return (
+        <SymbolDigitCodingGame
+          navigator={navigator}
+          route={route}
+          scale={this.scale}
+        />);
+    }else if (route.id === 'UnlockFoodGame') {
       return (<UnlockFoodGame
         navigator={navigator}
         route={route}

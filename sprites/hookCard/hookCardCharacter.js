@@ -5,7 +5,7 @@ const hookCardCharacter = {
   size: {width: 124, height: 142},
   animationTypes: ['HOOK', 'ALL'],
   all: [
-    require("./hook_and_card.png"),
+    require("./hook_and_card_small.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
