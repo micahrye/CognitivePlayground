@@ -25,24 +25,14 @@ import styles from "./BugZapStyles";
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEVEL_ONBOARD_START = 2; // what trial number LEVEL1A lasts until
-const LEVEL_TWO_BUGS_START = 4;
-const LEVEL_TIMED_START = 7;
-const LEVEL_SPOTLIGHT_START = 9;
-// const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
-// const LEVEL1B_TRIALS = 2;
-// const LEVEL2_TRIALS = 3;
-// const LEVEL3A_TRIALS = 4;
-// const LEVEL1A_TRIALS = 1; // what trial number LEVEL1A lasts until
-// const LEVEL1B_TRIALS = 1;
-// const LEVEL2_TRIALS = 1;
-// const LEVEL3A_TRIALS = 4;
-// const LEVEL3B_TRIALS = 11;
+const LEVEL_ONBOARD = 2; // what trial number level lasts until
+const LEVEL_TWO_BUGS = 4;
+const LEVEL_TIMED = 7;
+const LEVEL_SPOTLIGHT = 9;
 
 class BugZapGame extends React.Component {
   constructor (props) {
     super(props);
-    this.loadingContent = false;
     this.bugPressed = false;
     this.characterPosX = 550 * this.props.scale.screenWidth;
     this.characterToX = 10 * this.props.scale.screenWidth;
@@ -87,24 +77,21 @@ class BugZapGame extends React.Component {
   componentWillMount () {
     if (this.props.route.trialNumber != undefined) {
       this.trialNumber = this.props.route.trialNumber + 1;
-      if (this.trialNumber > LEVEL_ONBOARD_START) {
+      if (this.trialNumber > LEVEL_ONBOARD) {
         // now two bug choices
         this.directionMaySwitch = true;
         this.showOtherBugSign = true;
       }
-      if (this.trialNumber > LEVEL_TWO_BUGS_START && this.trialNumber <= LEVEL_TIMED_START) {
+      if (this.trialNumber > LEVEL_TWO_BUGS && this.trialNumber <= LEVEL_TIMED) {
         // now given certain amount of time to tap, decreasing over trials
         this.givenTime = this.props.route.givenTime - 500;
       }
-      if (this.trialNumber > LEVEL_TIMED_START) {
+      if (this.trialNumber > LEVEL_TIMED) {
         // now blackout and spotlight shown before trials
         this.getSpotLightStyle();
         this.blackout = true;
         this.lightbulbDrop();
       }
-    } else {
-      // first trial, run through all animations once
-      this.setCharacterAnimations();
     }
 
     if (this.directionMaySwitch) {
@@ -113,13 +100,18 @@ class BugZapGame extends React.Component {
 
     this.signDown();
     this.setBugTween();
-
   }
 
   componentWillUnmount () {
     clearTimeout(this.characterDissapear);
-    // clearTimeout(this.nextTrialTimeout);
-    // clearTimeout(this.waitForFrogLand);
+    clearInterval(this.eatInterval);
+    clearInterval(this.disgustInterval);
+    clearInterval(this.interval);
+    clearTimeout(this.removeBlackout);
+    clearTimeout(this.removeSpotlight);
+    clearTimeout(this.flashSpotlight);
+
+
   }
 
   signDown () {
@@ -132,33 +124,33 @@ class BugZapGame extends React.Component {
       loop: false,
     };
     this.setState({
-      showBugLeft: false,
-      showBugRight: false,
       leftSignTweenOptions: signTweenOptions,
       rightSignTweenOptions: signTweenOptions,
     });
   }
 
-  // runs through all animations once before first trial to load them
-  setCharacterAnimations () {
-    this.loadingContent = true;
-    this.fps = 20;
-    this.setState({
-      characterAnimationIndex: greenFrogCharacter.animationIndex('ALL'),
-      splashAnimationIndex: splashCharacter.animationIndex("SPLASH"),
-    });
-    this.setState({
-      characterAnimationIndex: blueFrogCharacter.animationIndex('ALL'),
-    });
-    // reset character to default state
-    this.setDefaultAnimationState = setTimeout(() => {
-      this.fps = 8;
-      this.loadingContent = false;
-      this.setState({
-        characterAnimationIndex: this.hopOn,
-      });
-    }, 1000);
-  }
+  // TODO took this out because it was causing setState erros with the home button
+  // and doesn't seem to be completley necessary
+  // (although once in a while animations will be janky at first)
+
+  // // runs through all animations once before first trial to load them
+  // setCharacterAnimations () {
+  //   this.fps = 20;
+  //   this.setState({
+  //     characterAnimationIndex: greenFrogCharacter.animationIndex('ALL'),
+  //     splashAnimationIndex: splashCharacter.animationIndex("SPLASH"),
+  //   });
+  //   this.setState({
+  //     characterAnimationIndex: blueFrogCharacter.animationIndex('ALL'),
+  //   });
+  //   // reset character to default state
+  //   this.setDefaultAnimationState = setTimeout(() => {
+  //     this.fps = 8;
+  //     this.setState({
+  //       characterAnimationIndex: this.hopOn,
+  //     });
+  //   }, 1000);
+  // }
 
   setCharacterDirection () {
     let direction = Math.floor(Math.random() * 2);
@@ -167,9 +159,6 @@ class BugZapGame extends React.Component {
     if (direction === 0) {
       this.characterDirection = 'right';
       this.activeFrogColor = blueFrogCharacter;
-      this.setState({
-        characterAnimationIndex: this.hopOn,
-      });
       this.characterPosX = 450 * this.props.scale.screenWidth;
       this.characterToX = 900 * this.props.scale.screenWidth;
       this.bugStartX = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
@@ -280,7 +269,7 @@ class BugZapGame extends React.Component {
         break;
       case 'character':
         // if in the timeout level
-        if (this.trialNumber > LEVEL_TWO_BUGS_START && this.trialNumber <= LEVEL_TIMED_START) {
+        if (this.trialNumber > LEVEL_TWO_BUGS && this.trialNumber <= LEVEL_TIMED) {
           this.bugTapTimeout();
         }
         // if bug has been pressed and frog is not finishing hopping off (already landed)
@@ -320,7 +309,7 @@ class BugZapGame extends React.Component {
   }
 
   onBugPress (whichBug) {
-    if (this.loadingContent || this.bugPressed) {
+    if (this.bugPressed) {
       return true;
     }
     this.bugPressed = true;
@@ -462,19 +451,17 @@ class BugZapGame extends React.Component {
     }, 1000);
   }
 
-
   getSpotLightStyle () {
     let posX = 300 * this.props.scale.screenWidth;
     // for first few blackout trials, spotlight is consistent with frog side
     // then it can be inconsistent
-    if (this.trialNumber > LEVEL_TIMED_START && this.trialNumber <= LEVEL_SPOTLIGHT_START) {
+    if (this.trialNumber > LEVEL_TIMED && this.trialNumber <= LEVEL_SPOTLIGHT) {
       if (this.characterDirection === 'left') {
         posX = 800 * this.props.scale.screenWidth;
       }
     }
    else {
       const side = Math.random();
-      console.warn(side);
       if (side < .5) {
         posX = 800 * this.props.scale.screenWidth;
       }
@@ -530,7 +517,6 @@ class BugZapGame extends React.Component {
         onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
       />
     : null}
-
 
     <AnimatedSprite
       key={this.state.leftSignKey}
@@ -613,7 +599,6 @@ class BugZapGame extends React.Component {
       <View style={this.spotLightStyle} />
     : null}
 
-
     <HomeButton
       route={this.props.route}
       navigator={this.props.navigator}
@@ -623,9 +608,7 @@ class BugZapGame extends React.Component {
         height: 150 * this.props.scale.image,
         top:0, left: 0, position: 'absolute' }}
     />
-
   </Image>
-
   );
   }
 }
