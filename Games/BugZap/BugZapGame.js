@@ -49,9 +49,6 @@ class BugZapGame extends React.Component {
     this.directionMaySwitch = false;
     this.fps = 8;
     this.showOtherBugSign = false;
-    this.idle = [0];
-    this.hopOn = [1];
-    this.hopOff = [2];
     this.whichBug = ' ';
     this.retractingSign = false;
     this.frogLanded = false;
@@ -61,7 +58,7 @@ class BugZapGame extends React.Component {
       bugTweenOptions: null,
       showBugLeft: false,
       showBugRight: false,
-      characterAnimationIndex: this.hopOn,
+      characterAnimationIndex: this.activeFrogColor.animationIndex("HOPON"),
       splashAnimationIndex: null,
       lightbulbAnimationIndex: lightbulbCharacter.animationIndex('ON'),
       characterTweenOptions: null,
@@ -75,11 +72,12 @@ class BugZapGame extends React.Component {
   }
 
   componentWillMount () {
+    let directionMaySwitch = false;
     if (this.props.route.trialNumber != undefined) {
       this.trialNumber = this.props.route.trialNumber + 1;
       if (this.trialNumber > LEVEL_ONBOARD) {
         // now two bug choices
-        this.directionMaySwitch = true;
+        directionMaySwitch = true;
         this.showOtherBugSign = true;
       }
       if (this.trialNumber > LEVEL_TWO_BUGS && this.trialNumber <= LEVEL_TIMED) {
@@ -93,8 +91,12 @@ class BugZapGame extends React.Component {
         this.lightbulbDrop();
       }
     }
+    else {
+      // TODO can put back in but will cause problems with setState with home button
+      // this.setCharacterAnimations();
+    }
 
-    if (this.directionMaySwitch) {
+    if (directionMaySwitch) {
       this.setCharacterDirection();
     }
 
@@ -130,8 +132,7 @@ class BugZapGame extends React.Component {
   }
 
   // TODO took this out because it was causing setState erros with the home button
-  // and doesn't seem to be completley necessary
-  // (although once in a while animations will be janky at first)
+  // so once in a while animations will be janky at first
 
   // // runs through all animations once before first trial to load them
   // setCharacterAnimations () {
@@ -215,7 +216,7 @@ class BugZapGame extends React.Component {
   characterHopOff () {
     this.setState({
       characterKey: Math.random(),
-      characterAnimationIndex: this.hopOff,
+      characterAnimationIndex: this.activeFrogColor.animationIndex("HOPOFF"),
       characterTweenOptions: {
         tweenType: "linear-move",
         startXY: [this.characterPosX, 300 * this.props.scale.screenHeight],

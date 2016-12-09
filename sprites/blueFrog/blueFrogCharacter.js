@@ -27,6 +27,10 @@ const blueFrogCharacter = {
         return [0,7,7,7,7,7,0];
       case 'ALL':
         return [0,1,2,3,4,5,6,7];
+      case 'HOPON':
+        return [1];
+      case 'HOPOFF':
+        return [2];
     }
   },
 };
