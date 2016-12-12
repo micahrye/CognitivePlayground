@@ -62,7 +62,7 @@ class Main extends React.Component {
       //   location: this.scaleLocation({top: 160, left: 900}),
       // },
       {
-        name: 'COLOR',
+        name: 'SYMBOL',
         imgSrc: require('./media/icons/game6_icon_bw.png'),
         location: this.scaleLocation({top: 260, left: 900}),
       },
@@ -97,8 +97,14 @@ class Main extends React.Component {
       case 'MATCH':
         this.goToGame('MatchByColorGame');
         break;
+      case 'MATRIX':
+        this.goToGame('MatrixReasoningGame');
+        break;
       case 'UNLOCK_FOOD':
         this.goToGame('UnlockFoodGame');
+        break;
+      case 'SYMBOL':
+        this.goToGame('MatrixReasoningGame');
         break;
       default:
         // console.warn('touched me');
