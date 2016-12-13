@@ -2,17 +2,19 @@
 import React from 'react';
 import {
   View,
-  Image,
   StyleSheet,
   Dimensions,
-  TouchableOpacity,
 } from 'react-native';
 
 import _ from 'lodash';
 
 var reactMixin = require('react-mixin');
 import TimerMixin from 'react-timer-mixin';
+import randomstring from 'random-string';
+
+import AnimatedSprite from "./components/AnimatedSprite/AnimatedSprite";
 import Tweens from "./Tweens/Tweens";
+import game_icon from "./media/game_icon/game_icon";
 
 const baseHeight = 800;
 const baseWidth = 1280;
@@ -35,42 +37,64 @@ class Main extends React.Component {
         name: 'BUBBLE',
         imgSrc: require('./media/game7/game7_icon_color.png'),
         location: this.scaleLocation({top: 130, left: 100}),
+        frameIndex: [13],
+        delay: 0,
       },
       {
         name: 'BUG',
         imgSrc: require('./media/game1/game1_icon_color.png'),
         location: this.scaleLocation({top: 380, left: 220}),
+        frameIndex: [1],
+        delay: 100,
       },
       {
         name: 'MATCH',
         imgSrc: require('./media/game2/game2_icon_color.png'),
         location: this.scaleLocation({top: 200, left: 440}),
+        frameIndex: [3],
+        delay: 200,
       },
       {
         name: 'UNLOCK_FOOD',
         imgSrc: require('./media/game3/game3_icon_bw.png'),
         location: this.scaleLocation({top: 400, left: 640}),
+        frameIndex: [4],
+        delay: 300,
       },
       {
         name: 'MATRIX',
         imgSrc: require('./media/game4/game4_icon_bw.png'),
         location: this.scaleLocation({top: 80, left: 660}),
+        frameIndex: [6],
+        delay: 400,
       },
-      // {
-      //   name: 'FOOD',
-      //   imgSrc: require('./media/icons/game5_icon_bw.png'),
-      //   location: this.scaleLocation({top: 160, left: 900}),
-      // },
+    /*{
+        name: 'FOOD',
+        imgSrc: require('./media/icons/game5_icon_bw.png'),
+        location: this.scaleLocation({top: 160, left: 900}),
+        frameIndex: [8],
+        delay: 500,
+      },*/
       {
         name: 'COLOR',
         imgSrc: require('./media/game6/game6_icon_bw.png'),
         location: this.scaleLocation({top: 260, left: 900}),
+        frameIndex: [10],
+        delay: 600,
       },
     ];
     this.iconList = iconList;
+    this.characterUIDs ={};
+    this.setDefaultAnimationState;
+    this.game_icon = {tweenOptions: {}};
+    this.iconTweenDelays = _.map(this.iconList, 'icon.delay');
   }
 
-  componentWillMount () {}
+  componentWillMount () {
+    this.characterUIDs = {
+      game_icon: randomstring({ length: 7 }),
+    };
+  }
 
   componentDidMount () {}
 
@@ -110,21 +134,20 @@ class Main extends React.Component {
 
     const icons = _.map(this.iconList, (icon, index) => {
       return (
-        <TouchableOpacity
+        <AnimatedSprite
+          character={game_icon}
           key={index}
-          activeOpacity={1.0}
-          style={{width: 240 * this.scale.image,
-            height: 240 * this.scale.image,
-            top:icon.location.top, left: icon.location.left,
-            position: 'absolute',
-          }}
-          onPress={() => this.launchGame(icon.name)}>
-          <Image
-            source={icon.imgSrc}
-            style={{width: 240 * this.scale.image,
-              height: 240 * this.scale.image}}
-          />
-        </TouchableOpacity>
+          characterUID = {this.characterUIDs.game_icon}
+          animationFrameIndex ={icon.frameIndex}
+          tweenOptions={this.game_icon.tweenOptions}
+          tweenStart={'fromCode'}
+          loopAnimation={false}
+          onTweenFinish={(index) => this.onTweenFinish(index)}
+          size={{width: 240 * this.scale.image,
+            height: 240 * this.scale.image}}
+          coordinates={{top:icon.location.top, left: icon.location.left}}
+          onPress={() => this.launchGame(icon.name)}
+        />
       );
     });
 
@@ -137,17 +160,14 @@ class Main extends React.Component {
 }
 
 Main.propTypes = {
+  route: React.PropTypes.object,
   navigator: React.PropTypes.object.isRequired,
+  scale: React.PropTypes.object,
 };
-
 reactMixin.onClass(Main, TimerMixin);
 
 
 
-Main.propTypes = {
-  route: React.PropTypes.object,
-  navigator: React.PropTypes.object,
-  scale: React.PropTypes.object,
-};
+
 
 export default Main;
