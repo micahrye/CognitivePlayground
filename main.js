@@ -104,7 +104,7 @@ class Main extends React.Component {
         this.goToGame('UnlockFoodGame');
         break;
       case 'SYMBOL':
-        this.goToGame('MatrixReasoningGame');
+        this.goToGame('SymbolDigitCodingGame');
         break;
       default:
         // console.warn('touched me');

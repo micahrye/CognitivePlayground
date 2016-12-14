@@ -85,7 +85,7 @@ class CognitivePlayground extends React.Component {
           route={route}
           scale={this.scale}
         />);
-    }else if (route.id === 'UnlockFoodGame') {
+    } else if (route.id === 'UnlockFoodGame') {
       return (<UnlockFoodGame
         navigator={navigator}
         route={route}
