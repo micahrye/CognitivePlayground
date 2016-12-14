@@ -41,6 +41,7 @@ class SymbolDigitCodingGame extends React.Component {
     return {top: 500, left: 500};
   }
   tableSize () {}
+  
   pressStub () {}
 
   render () {
