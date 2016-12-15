@@ -301,7 +301,7 @@ class UnlockFoodGame extends React.Component {
     return (
       <View style={styles.container}>
         <Image
-          source={require('../../media/backgrounds/Game_3_Background_1280.png')}
+          source={require('../../media/backgrounds/Game_6_Background_1280.png')}
           style={{
             flex: 1,
             width: SCREEN_WIDTH,

@@ -41,7 +41,7 @@ class Signs extends React.Component {
       case 3:
         return {top, left: (baseLeft + 400) * scale.screenWidth};
       case 4:
-        return {top, left: (baseLeft + 600) * scale.screenWidth};
+        return {top: 200, left: (baseLeft + 200) * scale.screenWidth};
       case 5:
         return {top: 200, left: baseLeft * scale.screenWidth};
       case 7:

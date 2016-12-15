@@ -128,8 +128,6 @@ class MatrixReasoningGame extends React.Component {
           position: 'absolute',
           width: 600,
           height: 600,
-          borderColor: 'red',
-          borderWidth: 2,
         }}>
         <Matrix scale={this.props.scale} />
       </View>

@@ -48,7 +48,7 @@ class SymbolDigitCodingGame extends React.Component {
   tableLocation () {
     const size = this.spriteSize(symbolTable, this.tableScale);
     const left = SCREEN_WIDTH - size.width - (40 * this.props.scale.screenWidth);
-    const top = SCREEN_HEIGHT - size.height - (150 * this.props.scale.screenHeight);
+    const top = SCREEN_HEIGHT - size.height - (160 * this.props.scale.screenHeight);
     return {top, left};
   }
 
@@ -112,8 +112,6 @@ class SymbolDigitCodingGame extends React.Component {
             width: 780 * this.props.scale.screenWidth,
             height: 300 * this.props.scale.screenHeight,
             position: 'absolute',
-            borderColor: 'red',
-            borderWidth: 2,
           }}>
         <Signs
           scale={this.props.scale}
