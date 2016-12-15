@@ -14,6 +14,11 @@ import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import monsterSprite from '../../sprites/monster/monsterCharacter';
 import symbolTable from '../../sprites/symbolTable/symbolTableCharacter';
+import signSprite from '../../sprites/sign/signCharacter';
+import Signs from './Signs';
+
+const SCREEN_WIDTH = require('Dimensions').get('window').width;
+const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
 class SymbolDigitCodingGame extends React.Component {
   constructor (props) {
@@ -21,27 +26,47 @@ class SymbolDigitCodingGame extends React.Component {
     this.state = {
 
     };
+    this.monsterScale = 1.5;
+    this.tableScale = 1.3;
   }
 
   componentWillMount () {}
   componentDidMount () {}
 
   spriteSize (sprite, scale) {
-    return _.mapValues(sprite.size, (val) => val * scale);
+    const scaleBy = scale * this.props.scale.image;
+    return _.mapValues(sprite.size, (val) => val * scaleBy);
   }
 
   monsterStartLocation () {
-    return {top: 500, left: 100};
-  }
-  monsterSize () {
-
+    const height = this.spriteSize(monsterSprite, this.monsterScale).height;
+    const left = 80 * this.props.scale.screenWidth;
+    const top = SCREEN_HEIGHT - height - (50 * this.props.scale.screenHeight);
+    return {top, left};
   }
 
   tableLocation () {
-    return {top: 500, left: 500};
+    const size = this.spriteSize(symbolTable, this.tableScale);
+    const left = SCREEN_WIDTH - size.width - (40 * this.props.scale.screenWidth);
+    const top = SCREEN_HEIGHT - size.height - (150 * this.props.scale.screenHeight);
+    return {top, left};
   }
-  tableSize () {}
-  
+
+  signStartLocation (position, scale) {
+    const top = 0; // -350 * scale.screenHeight;
+    const baseLeft = 280;
+    switch (position) {
+      case 1:
+        return {top, left: baseLeft * scale.screenWidth};
+      case 2:
+        return {top, left: (baseLeft + 200) * scale.screenWidth};
+      case 3:
+        return {top, left: (baseLeft + 400) * scale.screenWidth};
+      case 4:
+        return {top, left: (baseLeft + 600) * scale.screenWidth};
+    }
+  }
+
   pressStub () {}
 
   render () {
@@ -60,7 +85,7 @@ class SymbolDigitCodingGame extends React.Component {
           tweenOptions={{}}
           tweenStart={'fromCode'}
           coordinates={this.monsterStartLocation()}
-          size={this.spriteSize(monsterSprite, 1)}
+          size={this.spriteSize(monsterSprite, this.monsterScale)}
           rotate={[{rotateY:'180deg'}]}
           onPress={() => this.pressStub()}
           onPressIn={() => this.pressStub()}
@@ -75,12 +100,25 @@ class SymbolDigitCodingGame extends React.Component {
           tweenOptions={{}}
           tweenStart={'fromCode'}
           coordinates={this.tableLocation()}
-          size={this.spriteSize(symbolTable, 1)}
-          rotate={[{rotateY:'180deg'}]}
+          size={this.spriteSize(symbolTable, this.tableScale)}
+          rotate={[{rotateY:'0deg'}]}
           onPress={() => this.pressStub()}
           onPressIn={() => this.pressStub()}
           onPressOut={() => this.pressStub()}
         />
+
+        <View style={{
+            top: 0, left: 280,
+            width: 780 * this.props.scale.screenWidth,
+            height: 300 * this.props.scale.screenHeight,
+            position: 'absolute',
+            borderColor: 'red',
+            borderWidth: 2,
+          }}>
+        <Signs
+          scale={this.props.scale}
+        />
+    </View>
 
         <HomeButton
           route={this.props.route}

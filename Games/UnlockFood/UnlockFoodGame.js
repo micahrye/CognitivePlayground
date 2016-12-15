@@ -315,7 +315,6 @@ class UnlockFoodGame extends React.Component {
                 coordinates={this.leverLocation()}
                 size={this.leverSize()}
                 rotate={[{rotateY:'180deg'}]}
-                onPress={() => this.leverPress()}
                 onPressIn={() => this.leverPressIn()}
                 onPressOut={() => this.leverPressOut()}
               />
