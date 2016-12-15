@@ -50,7 +50,7 @@ class MatrixReasoningGame extends React.Component {
   }
 
   bigHookSize () {
-    return this.hookSize(1.75);
+    return this.hookSize(1.5);
   }
 
   dogStartLocation () {
@@ -70,8 +70,8 @@ class MatrixReasoningGame extends React.Component {
 
   bigHookLocation (hookNumber) {
     const size = this.bigHookSize();
-    const left = ( (LEFT_EDGE + 200) * this.props.scale.screenWidth);
-    const top = 20;
+    const left = 0; // ( (LEFT_EDGE + 200) * this.props.scale.screenWidth);
+    const top = 0;
     return {top, left};
   }
 
@@ -122,7 +122,14 @@ class MatrixReasoningGame extends React.Component {
           onPressIn={() => this.pressStub()}
           onPressOut={() => this.pressStub()}
         />
-
+      <View style={{
+          top: 40, left: 500,
+          position: 'absolute',
+          width: 500,
+          height: 500,
+          borderColor: 'red',
+          borderWidth: 2,
+        }}>
         <AnimatedSprite
           character={hookedCardSprite}
           characterUID={this.characterUIDs.hookedCard}
@@ -137,7 +144,7 @@ class MatrixReasoningGame extends React.Component {
           onPressIn={() => this.pressStub()}
           onPressOut={() => this.pressStub()}
         />
-
+      </View>
         <HomeButton
           route={this.props.route}
           navigator={this.props.navigator}
