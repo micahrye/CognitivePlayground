@@ -25,6 +25,9 @@ const screenHeight = Dimensions.get('window').height;
 class Main extends React.Component {
   constructor (props) {
     super(props);
+    this.state = {
+      iconArray: [],
+    };
     const scaleWidth = screenWidth / baseWidth;
     const scaleHeight = screenHeight / baseHeight;
     this.scale = {
@@ -88,12 +91,16 @@ class Main extends React.Component {
     this.setDefaultAnimationState;
     this.game_icon = {tweenOptions: {}};
     this.iconTweenDelays = _.map(this.iconList, 'icon.delay');
+    this.iconRefs = [];
   }
 
   componentWillMount () {
     this.characterUIDs = {
       game_icon: randomstring({ length: 7 }),
     };
+    this.setDefaultAnimationState = setTimeout(() => {
+      this.setState(() => {this.tweenIconsOnStart(3);});
+    }, 1500);
   }
 
   componentDidMount () {}
@@ -103,6 +110,29 @@ class Main extends React.Component {
       top: location.top * this.scale.screenHeight,
       left: location.left * this.scale.screenWidth,
     });
+  }
+
+  makeMoveTween (startXY=[-300,500], endXY=[600,400], duration=1500) {
+    return ({
+      tweenType: "zoom",
+      startXY: [startXY[0], startXY[1]],
+      endXY: [endXY[0], endXY[1]],
+      duration: duration,
+      loop:false,
+    });
+  }
+
+  tweenIconsOnStart (index) {
+    let icon = this.refs['gameRef3'];
+    console.warn(icon.ref);
+    const startXY = [0, 0];
+    const endXY = [iconSize.width, iconSize.height];
+    this.refs[this.iconRefs[index]].tweenOptions = this.makeMoveTween(startXY, endXY);
+    console.warn(this.refs[this.iconrefs[index]].tweenOptions.startXY);
+    console.warn(this.refs[this.iconRefs[index]].tweenOptions.endXY);
+    this.setState({
+      tweenCharacter: true,
+    }, () => {this.refs[this.iconRefs[index]].startTween();});
   }
 
   goToGame = (gameId) => {
@@ -133,16 +163,18 @@ class Main extends React.Component {
   render () {
 
     const icons = _.map(this.iconList, (icon, index) => {
+      const ref = ("gameRef" + index);
+      this.iconRefs.push(ref);
       return (
         <AnimatedSprite
+          ref={ref}
           character={game_icon}
           key={index}
-          characterUID = {this.characterUIDs.game_icon}
-          animationFrameIndex ={icon.frameIndex}
-          tweenOptions={this.game_icon.tweenOptions}
+          characterUID={this.characterUIDs.game_icon}
+          animationFrameIndex={icon.frameIndex}
+          tweenOptions = {{}}
           tweenStart={'fromCode'}
           loopAnimation={false}
-          onTweenFinish={(index) => this.onTweenFinish(index)}
           size={{width: 240 * this.scale.image,
             height: 240 * this.scale.image}}
           coordinates={{top:icon.location.top, left: icon.location.left}}
@@ -150,7 +182,6 @@ class Main extends React.Component {
         />
       );
     });
-
     return (
       <View style={{backgroundColor: '#738599', flex: 1}} >
         {icons}
