@@ -24,7 +24,6 @@ class MatrixReasoningGame extends React.Component {
     this.state = {};
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
-    debugger;
   }
 
   componentWillMount () {
@@ -129,7 +128,11 @@ class MatrixReasoningGame extends React.Component {
           width: 600,
           height: 600,
         }}>
-        <Matrix scale={this.props.scale} />
+        <Matrix
+          cardSprite={hookedCardSprite}
+          scale={this.props.scale}
+          activeCards={[true, true, true, true, true, true, true, true, true]}
+        />
       </View>
         <HomeButton
           route={this.props.route}

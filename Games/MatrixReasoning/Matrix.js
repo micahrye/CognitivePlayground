@@ -9,12 +9,11 @@ import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
-import hookedCardSprite from '../../sprites/hookCard/hookCardCharacter';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-class Signs extends React.Component {
+class Matrix extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
@@ -30,98 +29,56 @@ class Signs extends React.Component {
     return _.mapValues(sprite.size, (val) => val * scaleBy);
   }
 
-  cardStartLocation (position, scale) {
-    const top = 0; // -350 * scale.screenHeight;
+  cardStartLocation (position, sprite, scale) {
+    const baseTop = 0;
     const baseLeft = 0;
-    switch (position) {
-      case 1:
-        return {top, left: baseLeft * scale.screenWidth};
-      case 2:
-        return {top, left: (baseLeft + 200) * scale.screenWidth};
-      case 3:
-        return {top, left: (baseLeft + 400) * scale.screenWidth};
-      case 4:
-        return {top: 200, left: (baseLeft + 200) * scale.screenWidth};
-      case 5:
-        return {top: 200, left: baseLeft * scale.screenWidth};
-      case 7:
-        return {top: 400, left: baseLeft * scale.screenWidth};
-      default:
-        console.error('cardStartLocation: invalid card number.');
-    }
+    const size = this.spriteSize(sprite, scale);
+    const top = baseTop + Math.floor(position/3) * size.height;
+    const left = baseLeft + position%3 * size.width;
+    return {top, left};
   }
 
-  pressStub () {
-    console.log('card');
+  pressStub (cardId) {
+    console.log(`card = ${cardId}`);
   }
 
   render () {
+    const cards = _.map(this.props.activeCards, (active, index) => {
+      if (!active) return null;
+      return (
+        <AnimatedSprite
+          character={this.props.cardSprite}
+          ref={`card${index}`}
+          key={index}
+          animationFrameIndex={[0]}
+          coordinates={this.cardStartLocation(index, this.props.cardSprite, 1.5)}
+          size={this.spriteSize(this.props.cardSprite, 1.5)}
+          draggable={false}
+          onPress={() => this.pressStub(index)}
+        />
+      );
+    });
     return (
       <View>
-        <AnimatedSprite
-          character={hookedCardSprite}
-          ref={'card1'}
-          animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(1, this.props.scale)}
-          size={this.spriteSize(hookedCardSprite, 1.5)}
-          draggable={false}
-          onPress={() => this.pressStub()}
-        />
-        <AnimatedSprite
-          character={hookedCardSprite}
-          ref={'card2'}
-          animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(2, this.props.scale)}
-          size={this.spriteSize(hookedCardSprite, 1.5)}
-          draggable={false}
-          onPress={() => this.pressStub()}
-        />
-        <AnimatedSprite
-          character={hookedCardSprite}
-          ref={'card3'}
-          animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(3, this.props.scale)}
-          size={this.spriteSize(hookedCardSprite, 1.5)}
-          draggable={false}
-          onPress={() => this.pressStub()}
-        />
-        <AnimatedSprite
-          character={hookedCardSprite}
-          ref={'card4'}
-          animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(4, this.props.scale)}
-          size={this.spriteSize(hookedCardSprite, 1.5)}
-          draggable={false}
-          onPress={() => this.pressStub()}
-        />
-        <AnimatedSprite
-          character={hookedCardSprite}
-          ref={'card5'}
-          animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(5, this.props.scale)}
-          size={this.spriteSize(hookedCardSprite, 1.5)}
-          draggable={false}
-          onPress={() => this.pressStub()}
-        />
-        <AnimatedSprite
-          character={hookedCardSprite}
-          ref={'card7'}
-          animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(7, this.props.scale)}
-          size={this.spriteSize(hookedCardSprite, 1.5)}
-          draggable={false}
-          onPress={() => this.pressStub()}
-        />
+        {cards}
       </View>
     );
   }
 
 }
 
-Signs.propTypes = {
+Matrix.propTypes = {
   scale: React.PropTypes.object.isRequired,
+  activeCards: React.PropTypes.arrayOf(React.PropTypes.bool).isRequired,
+  cardSprite: React.PropTypes.shape({
+    name: React.PropTypes.string,
+    size: React.PropTypes.object,
+    animationTypes: React.PropTypes.array,
+    all: React.PropTypes.array,
+    animationIndex: React.PropTypes.func,
+  }).isRequired,
 };
 
-reactMixin.onClass(Signs, TimerMixin);
+reactMixin.onClass(Matrix, TimerMixin);
 
-export default Signs;
+export default Matrix;
