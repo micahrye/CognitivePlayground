@@ -11,6 +11,7 @@ import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import dogSprite from '../../sprites/dog/dogCharacter';
 import hookedCardSprite from '../../sprites/hookCard/hookCardCharacter';
+import Matrix from './Matrix';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -23,7 +24,6 @@ class MatrixReasoningGame extends React.Component {
     this.state = {};
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
-    debugger;
   }
 
   componentWillMount () {
@@ -125,24 +125,13 @@ class MatrixReasoningGame extends React.Component {
       <View style={{
           top: 40, left: 500,
           position: 'absolute',
-          width: 500,
-          height: 500,
-          borderColor: 'red',
-          borderWidth: 2,
+          width: 600,
+          height: 600,
         }}>
-        <AnimatedSprite
-          character={hookedCardSprite}
-          characterUID={this.characterUIDs.hookedCard}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
-          tweenOptions={{}}
-          tweenStart={'fromCode'}
-          coordinates={this.bigHookLocation(1)}
-          size={this.bigHookSize()}
-          rotate={[{rotateY:'0deg'}]}
-          onPress={() => this.pressStub()}
-          onPressIn={() => this.pressStub()}
-          onPressOut={() => this.pressStub()}
+        <Matrix
+          cardSprite={hookedCardSprite}
+          scale={this.props.scale}
+          activeCards={[true, true, true, true, true, true, true, true, true]}
         />
       </View>
         <HomeButton

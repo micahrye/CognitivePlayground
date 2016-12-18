@@ -301,34 +301,33 @@ class UnlockFoodGame extends React.Component {
     return (
       <View style={styles.container}>
         <Image
-          source={require('../../media/backgrounds/Game_3_Background_1280.png')}
+          source={require('../../media/backgrounds/Game_6_Background_1280.png')}
           style={{
             flex: 1,
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
           }}>
-              <AnimatedSprite
-                character= {leverSprite}
-                characterUID={this.characterUIDs.lever}
-                animationFrameIndex={this.state.leverAnimationIndex}
-                loopAnimation={false}
-                coordinates={this.leverLocation()}
-                size={this.leverSize()}
-                rotate={[{rotateY:'180deg'}]}
-                onPress={() => this.leverPress()}
-                onPressIn={() => this.leverPressIn()}
-                onPressOut={() => this.leverPressOut()}
-              />
-              <AnimatedSprite
-                character={appleSprite}
-                characterUID={this.characterUIDs.fruit}
-                animationFrameIndex={appleSprite.animationIndex('IDLE')}
-                tweenOptions = {this.appleSprite.tweenOptions}
-                onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
-                loopAnimation={false}
-                coordinates={this.foodBeltEndLocation()}
-                size={this.foodSize()}
-              />
+            <AnimatedSprite
+              character= {leverSprite}
+              characterUID={this.characterUIDs.lever}
+              animationFrameIndex={this.state.leverAnimationIndex}
+              loopAnimation={false}
+              coordinates={this.leverLocation()}
+              size={this.leverSize()}
+              rotate={[{rotateY:'180deg'}]}
+              onPressIn={() => this.leverPressIn()}
+              onPressOut={() => this.leverPressOut()}
+            />
+            <AnimatedSprite
+              character={appleSprite}
+              characterUID={this.characterUIDs.fruit}
+              animationFrameIndex={appleSprite.animationIndex('IDLE')}
+              tweenOptions = {this.appleSprite.tweenOptions}
+              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              loopAnimation={false}
+              coordinates={this.foodBeltEndLocation()}
+              size={this.foodSize()}
+            />
             <AnimatedSprite
               ref={'birdRef'}
               character={birdSprite}
