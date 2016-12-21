@@ -9,8 +9,9 @@ import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
-import AnimatedSprite from "../AnimatedSprite/AnimatedSprite";
-import HomeButton from '../HomeButton/HomeButton';
+import AnimatedSprite from "../../components/AnimatedSprite/AnimatedSprite";
+import HomeButton from '../../components/HomeButton/HomeButton';
+
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
 import leverCharacter from '../../sprites/fountainLever/fountainLeverCharacter';
@@ -48,6 +49,7 @@ class BubblesGame extends React.Component {
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
+
 }
 
   componentWillMount () {
