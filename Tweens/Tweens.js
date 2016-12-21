@@ -736,7 +736,6 @@ const Tweens = {
   [sineWave.name]: sineWave,
   [wiggle.name]: wiggle,
   [bounceDrop.name]: bounceDrop,
-  [zoomWidth.name]: zoomWidth,
   [zoom.name]: zoom,
   [hop.name]: hop,
   [tumbleOff.name]: tumbleOff,
