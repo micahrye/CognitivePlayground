@@ -251,7 +251,33 @@ const bounceDrop = {
     sendStopValues(stopValues);
   },
 };
-
+const zoomWidth = {
+  name: 'zoomWidth',
+  start: function startTween (options, componentValues, onTweenFinish) {
+    const scaleStart = options.scaleStart;
+    const scaleEnd = options.scaleEnd;
+    componentValues.scale.setValue(scaleStart);
+    Animated.timing(
+      componentValues.scale,
+      {
+        toValue: scaleEnd,
+        easing: Easing.back(3),
+        duration: options.duration,
+      }
+    ).start(() => {
+      if (options.loop === false) {
+        onTweenFinish();
+        return;
+      }
+    });
+    startTween(options, componentValues, onTweenFinish);
+  },
+  stop: function stop (componentValues, sendStopValues) {
+    const stopValues = [];
+    componentValues.scale.stopAnimation((value) => stopValues.push(value));
+    sendStopValues(stopValues);
+  },
+};
 const zoom = {
   name: 'zoom',
   start: function startTween (options, componentValues, onTweenFinish) {
@@ -736,6 +762,7 @@ const Tweens = {
   [sineWave.name]: sineWave,
   [wiggle.name]: wiggle,
   [bounceDrop.name]: bounceDrop,
+  [zoomWidth.name]: zoomWidth,
   [zoom.name]: zoom,
   [hop.name]: hop,
   [tumbleOff.name]: tumbleOff,
