@@ -48,12 +48,12 @@ class Main extends React.Component {
       },
       {
         name: 'UNLOCK_FOOD',
-        imgSrc: require('./media/icons/game3_icon_bw.png'),
+        imgSrc: require('./media/icons/game3_icon_color.png'),
         location: this.scaleLocation({top: 400, left: 640}),
       },
       {
         name: 'MATRIX',
-        imgSrc: require('./media/icons/game4_icon_bw.png'),
+        imgSrc: require('./media/icons/game4_icon_color.png'),
         location: this.scaleLocation({top: 80, left: 660}),
       },
       // {
@@ -63,7 +63,7 @@ class Main extends React.Component {
       // },
       {
         name: 'SYMBOL',
-        imgSrc: require('./media/icons/game6_icon_bw.png'),
+        imgSrc: require('./media/icons/game6_icon_color.png'),
         location: this.scaleLocation({top: 260, left: 900}),
       },
     ];
