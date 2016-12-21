@@ -43,7 +43,7 @@ class Matrix extends React.Component {
   }
 
   render () {
-    const cards = _.map(this.props.activeCards, (active, index) => {
+    const cards = _.map(this.props.activeTiles, (active, index) => {
       if (!active) return null;
       return (
         <AnimatedSprite
@@ -51,15 +51,15 @@ class Matrix extends React.Component {
           ref={`card${index}`}
           key={index}
           animationFrameIndex={[0]}
-          coordinates={this.cardStartLocation(index, this.props.cardSprite, 1.5)}
-          size={this.spriteSize(this.props.cardSprite, 1.5)}
+          coordinates={this.cardStartLocation(index, this.props.cardSprite, this.props.tileScale)}
+          size={this.spriteSize(this.props.cardSprite, this.props.tileScale)}
           draggable={false}
           onPress={() => this.pressStub(index)}
         />
       );
     });
     return (
-      <View>
+      <View style={this.props.styles}>
         {cards}
       </View>
     );
@@ -69,7 +69,7 @@ class Matrix extends React.Component {
 
 Matrix.propTypes = {
   scale: React.PropTypes.object.isRequired,
-  activeCards: React.PropTypes.arrayOf(React.PropTypes.bool).isRequired,
+  activeTiles: React.PropTypes.arrayOf(React.PropTypes.bool).isRequired,
   cardSprite: React.PropTypes.shape({
     name: React.PropTypes.string,
     size: React.PropTypes.object,
@@ -77,6 +77,8 @@ Matrix.propTypes = {
     all: React.PropTypes.array,
     animationIndex: React.PropTypes.func,
   }).isRequired,
+  styles: React.PropTypes.object,
+  tileScale: React.PropTypes.number,
 };
 
 reactMixin.onClass(Matrix, TimerMixin);
