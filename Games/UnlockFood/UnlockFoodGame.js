@@ -4,6 +4,7 @@ import {
   Image,
 } from 'react-native';
 
+import _ from 'lodash';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
@@ -20,6 +21,7 @@ import ledSprite from "../../sprites/led/ledCharacter";
 import buttonSprite from "../../sprites/button/buttonCharacter";
 import arrowSprite from "../../sprites/arrow/arrowCharacter";
 import lightbulbSprite from "../../sprites/lightbulb/lightbulbCharacter";
+import Matrix from '../../components/Matrix/Matrix';
 
 import styles from "./styles";
 
@@ -42,6 +44,7 @@ class UnlockFoodGame extends React.Component {
       lightbulbAnimationIndex: [0],
       loadContent: false,
       showFood: false,
+      matrixTiles: [true, true, true, true, true, true, true, true, true],
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -75,6 +78,13 @@ class UnlockFoodGame extends React.Component {
         birdAnimationIndex: birdSprite.animationIndex('FLY'),
       }, ()=>{this.birdFlyIntoScene();});
     }, 1500);
+
+    this.matrixShifterInterval = setInterval(() => {
+      const tiles = _.map(this.state.matrixTiles, () => (
+        Math.random() > 0.80 ? false : true
+      ));
+      this.setState({ matrixTiles: tiles })
+    }, 500);
   }
 
   componentDidMount () {
@@ -90,6 +100,7 @@ class UnlockFoodGame extends React.Component {
     clearTimeout (this.timeoutGameOver);
     clearTimeout (this.celebrateTimeout);
     clearTimeout (this.setDefaultAnimationState);
+    clearInterval (this.matrixShifterInterval);
   }
 
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
@@ -301,34 +312,33 @@ class UnlockFoodGame extends React.Component {
     return (
       <View style={styles.container}>
         <Image
-          source={require('../../media/backgrounds/Game_3_Background_1280.png')}
+          source={require('../../media/backgrounds/Game_6_Background_1280.png')}
           style={{
             flex: 1,
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
           }}>
-              <AnimatedSprite
-                character= {leverSprite}
-                characterUID={this.characterUIDs.lever}
-                animationFrameIndex={this.state.leverAnimationIndex}
-                loopAnimation={false}
-                coordinates={this.leverLocation()}
-                size={this.leverSize()}
-                rotate={[{rotateY:'180deg'}]}
-                onPress={() => this.leverPress()}
-                onPressIn={() => this.leverPressIn()}
-                onPressOut={() => this.leverPressOut()}
-              />
-              <AnimatedSprite
-                character={appleSprite}
-                characterUID={this.characterUIDs.fruit}
-                animationFrameIndex={appleSprite.animationIndex('IDLE')}
-                tweenOptions = {this.appleSprite.tweenOptions}
-                onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
-                loopAnimation={false}
-                coordinates={this.foodBeltEndLocation()}
-                size={this.foodSize()}
-              />
+            <AnimatedSprite
+              character= {leverSprite}
+              characterUID={this.characterUIDs.lever}
+              animationFrameIndex={this.state.leverAnimationIndex}
+              loopAnimation={false}
+              coordinates={this.leverLocation()}
+              size={this.leverSize()}
+              rotate={[{rotateY:'180deg'}]}
+              onPressIn={() => this.leverPressIn()}
+              onPressOut={() => this.leverPressOut()}
+            />
+            <AnimatedSprite
+              character={appleSprite}
+              characterUID={this.characterUIDs.fruit}
+              animationFrameIndex={appleSprite.animationIndex('IDLE')}
+              tweenOptions = {this.appleSprite.tweenOptions}
+              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              loopAnimation={false}
+              coordinates={this.foodBeltEndLocation()}
+              size={this.foodSize()}
+            />
             <AnimatedSprite
               ref={'birdRef'}
               character={birdSprite}
@@ -362,13 +372,19 @@ class UnlockFoodGame extends React.Component {
               coordinates={this.machineLocation()}
               size={this.machineSize()}
             />
-            <AnimatedSprite
-              character={buttonSprite}
-              characterUID={this.characterUIDs.button}
-              animationFrameIndex={[0]}
-              loopAnimation={false}
-              coordinates={this.buttonLocation()}
-              size={this.buttonSize()}
+
+            <Matrix
+              styles={{
+                  top: 350 * this.props.scale.screenHeight,
+                  left: 650 * this.props.scale.screenWidth,
+                  position: 'absolute',
+                  width: 400 * this.props.scale.screenWidth,
+                  height: 400 * this.props.scale.screenHeight,
+                }}
+              tileScale={1}
+              cardSprite={buttonSprite}
+              scale={this.props.scale}
+              activeTiles={this.state.matrixTiles}
             />
             <HomeButton
               route={this.props.route}

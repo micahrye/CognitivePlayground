@@ -38,37 +38,37 @@ class Main extends React.Component {
     const iconList = [
       {
         name: 'BUBBLE',
-        imgSrc: require('./media/game7/game7_icon_color.png'),
+        imgSrc: require('./media/game_icon/game7_icon_color.png'),
         location: this.scaleLocation({top: 130, left: 100}),
         frameIndex: [13],
         delay: 0,
       },
       {
         name: 'BUG',
-        imgSrc: require('./media/game1/game1_icon_color.png'),
+        imgSrc: require('./media/game_icon/game1_icon_color.png'),
         location: this.scaleLocation({top: 380, left: 220}),
         frameIndex: [1],
         delay: 100,
       },
       {
         name: 'MATCH',
-        imgSrc: require('./media/game2/game2_icon_color.png'),
+        imgSrc: require('./media/game_icon/game2_icon_color.png'),
         location: this.scaleLocation({top: 200, left: 440}),
         frameIndex: [3],
         delay: 200,
       },
       {
         name: 'UNLOCK_FOOD',
-        imgSrc: require('./media/game3/game3_icon_bw.png'),
+        imgSrc: require('./media/game_icon/game3_icon_color.png'),
         location: this.scaleLocation({top: 400, left: 640}),
-        frameIndex: [4],
+        frameIndex: [5],
         delay: 300,
       },
       {
         name: 'MATRIX',
-        imgSrc: require('./media/game4/game4_icon_bw.png'),
+        imgSrc: require('./media/game_icon/game4_icon_color.png'),
         location: this.scaleLocation({top: 80, left: 660}),
-        frameIndex: [6],
+        frameIndex: [7],
         delay: 400,
       },
     /*{
@@ -79,10 +79,10 @@ class Main extends React.Component {
         delay: 500,
       },*/
       {
-        name: 'COLOR',
-        imgSrc: require('./media/game6/game6_icon_bw.png'),
+        name: 'SYMBOL',
+        imgSrc: require('./media/game_icon/game6_icon_color.png'),
         location: this.scaleLocation({top: 260, left: 900}),
-        frameIndex: [10],
+        frameIndex: [11],
         delay: 600,
       },
     ];
@@ -151,8 +151,14 @@ class Main extends React.Component {
       case 'MATCH':
         this.goToGame('MatchByColorGame');
         break;
+      case 'MATRIX':
+        this.goToGame('MatrixReasoningGame');
+        break;
       case 'UNLOCK_FOOD':
         this.goToGame('UnlockFoodGame');
+        break;
+      case 'SYMBOL':
+        this.goToGame('SymbolDigitCodingGame');
         break;
       default:
         // console.warn('touched me');
