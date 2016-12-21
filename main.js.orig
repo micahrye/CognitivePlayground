@@ -38,37 +38,45 @@ class Main extends React.Component {
     const iconList = [
       {
         name: 'BUBBLE',
-        imgSrc: require('./media/game_icon/game7_icon_color.png'),
+        imgSrc: require('./media/game7/game7_icon_color.png'),
         location: this.scaleLocation({top: 130, left: 100}),
         frameIndex: [13],
         delay: 0,
       },
       {
         name: 'BUG',
-        imgSrc: require('./media/game_icon/game1_icon_color.png'),
+        imgSrc: require('./media/game1/game1_icon_color.png'),
         location: this.scaleLocation({top: 380, left: 220}),
         frameIndex: [1],
         delay: 100,
       },
       {
         name: 'MATCH',
-        imgSrc: require('./media/game_icon/game2_icon_color.png'),
+        imgSrc: require('./media/game2/game2_icon_color.png'),
         location: this.scaleLocation({top: 200, left: 440}),
         frameIndex: [3],
         delay: 200,
       },
       {
         name: 'UNLOCK_FOOD',
-        imgSrc: require('./media/game_icon/game3_icon_color.png'),
+<<<<<<< HEAD
+        imgSrc: require('./media/game3/game3_icon_bw.png'),
+=======
+        imgSrc: require('./media/icons/game3_icon_color.png'),
+>>>>>>> develop
         location: this.scaleLocation({top: 400, left: 640}),
-        frameIndex: [5],
+        frameIndex: [4],
         delay: 300,
       },
       {
         name: 'MATRIX',
-        imgSrc: require('./media/game_icon/game4_icon_color.png'),
+<<<<<<< HEAD
+        imgSrc: require('./media/game4/game4_icon_bw.png'),
+=======
+        imgSrc: require('./media/icons/game4_icon_color.png'),
+>>>>>>> develop
         location: this.scaleLocation({top: 80, left: 660}),
-        frameIndex: [7],
+        frameIndex: [6],
         delay: 400,
       },
     /*{
@@ -79,10 +87,15 @@ class Main extends React.Component {
         delay: 500,
       },*/
       {
+<<<<<<< HEAD
+        name: 'COLOR',
+        imgSrc: require('./media/game6/game6_icon_bw.png'),
+=======
         name: 'SYMBOL',
-        imgSrc: require('./media/game_icon/game6_icon_color.png'),
+        imgSrc: require('./media/icons/game6_icon_color.png'),
+>>>>>>> develop
         location: this.scaleLocation({top: 260, left: 900}),
-        frameIndex: [11],
+        frameIndex: [10],
         delay: 600,
       },
     ];
@@ -98,24 +111,13 @@ class Main extends React.Component {
     this.characterUIDs = {
       game_icon: randomstring({ length: 7 }),
     };
+
   }
 
   componentDidMount () {
-//    this.setState({showIcons: true});
-    //setTimeout(() => {
-      for (let i=0; i < this.iconList.length; i++) {
-        this.setDefaultAnimationState = setTimeout(() => {
-          this.setState(() => {this.tweenIconsOnStart(i);});
-        }, this.iconList[i].delay);
-      }
-    //}, 500);
-  }
-
-  startSize () {
-    return ({
-      width: 240 * this.scale.image,
-      height: 240 * this.scale.image,
-    });
+    this.setDefaultAnimationState = setTimeout(() => {
+      this.setState(() => {this.tweenIconsOnStart(0);});
+    }, 500);
   }
 
   scaleLocation (location) {
@@ -126,14 +128,7 @@ class Main extends React.Component {
 
   }
 
-  makeZoomTween (startScale=0.01, endScale= 1, duration=1500) {
-    //React bug (I think): Scale of 0 is set to 1 on load
-    if (startScale == 0) {
-      startScale = 0.01;
-    }
-    else if (endScale == 0) {
-      endScale == 0.1;
-    }
+  makeZoomTween (startScale=0, endScale= 1, duration=1500) {
     return ({
       tweenType: "scale",
       startScale: startScale,
@@ -145,9 +140,9 @@ class Main extends React.Component {
 
   tweenIconsOnStart (index) {
     let icon = this.refs[this.iconRefs[index]];
-    const startScale = icon.props.scale;
+    const startScale = 0;
     const endScale = 1;
-    this.game_icon.tweenOptions = this.makeZoomTween(startScale, endScale, 750);
+    this.game_icon.tweenOptions = this.makeZoomTween(startScale, endScale);
     this.setState({
       tweenCharacter: true,
     }, () => {icon.startTween();});
@@ -199,8 +194,8 @@ class Main extends React.Component {
           tweenOptions = {this.game_icon.tweenOptions}
           tweenStart={'fromCode'}
           loopAnimation={false}
-          size={this.startSize()}
-          scale={0.01}
+          size={{width: 240 * this.scale.image,
+            height: 240 * this.scale.image}}
           coordinates={{top:icon.location.top, left: icon.location.left}}
           onPress={() => this.launchGame(icon.name)}
         />
