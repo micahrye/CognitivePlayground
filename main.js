@@ -98,13 +98,24 @@ class Main extends React.Component {
     this.characterUIDs = {
       game_icon: randomstring({ length: 7 }),
     };
-
   }
 
   componentDidMount () {
-    this.setDefaultAnimationState = setTimeout(() => {
-      this.setState(() => {this.tweenIconsOnStart(0);});
-    }, 500);
+//    this.setState({showIcons: true});
+    //setTimeout(() => {
+      for (let i=0; i < this.iconList.length; i++) {
+        this.setDefaultAnimationState = setTimeout(() => {
+          this.setState(() => {this.tweenIconsOnStart(i);});
+        }, this.iconList[i].delay);
+      }
+    //}, 500);
+  }
+
+  startSize () {
+    return ({
+      width: 240 * this.scale.image,
+      height: 240 * this.scale.image,
+    });
   }
 
   scaleLocation (location) {
@@ -115,7 +126,14 @@ class Main extends React.Component {
 
   }
 
-  makeZoomTween (startScale=0, endScale= 1, duration=1500) {
+  makeZoomTween (startScale=0.01, endScale= 1, duration=1500) {
+    //React bug (I think): Scale of 0 is set to 1 on load
+    if (startScale == 0) {
+      startScale = 0.01;
+    }
+    else if (endScale == 0) {
+      endScale == 0.1;
+    }
     return ({
       tweenType: "scale",
       startScale: startScale,
@@ -127,9 +145,9 @@ class Main extends React.Component {
 
   tweenIconsOnStart (index) {
     let icon = this.refs[this.iconRefs[index]];
-    const startScale = 0;
+    const startScale = icon.props.scale;
     const endScale = 1;
-    this.game_icon.tweenOptions = this.makeZoomTween(startScale, endScale);
+    this.game_icon.tweenOptions = this.makeZoomTween(startScale, endScale, 750);
     this.setState({
       tweenCharacter: true,
     }, () => {icon.startTween();});
@@ -181,8 +199,8 @@ class Main extends React.Component {
           tweenOptions = {this.game_icon.tweenOptions}
           tweenStart={'fromCode'}
           loopAnimation={false}
-          size={{width: 240 * this.scale.image,
-            height: 240 * this.scale.image}}
+          size={this.startSize()}
+          scale={0.01}
           coordinates={{top:icon.location.top, left: icon.location.left}}
           onPress={() => this.launchGame(icon.name)}
         />
