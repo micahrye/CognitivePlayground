@@ -375,10 +375,11 @@ class UnlockFoodGame extends React.Component {
 
             <Matrix
               styles={{
-                  top: 320, left: 660,
+                  top: 350 * this.props.scale.screenHeight,
+                  left: 650 * this.props.scale.screenWidth,
                   position: 'absolute',
-                  width: 400,
-                  height: 400,
+                  width: 400 * this.props.scale.screenWidth,
+                  height: 400 * this.props.scale.screenHeight,
                 }}
               tileScale={1}
               cardSprite={buttonSprite}

@@ -135,10 +135,11 @@ class MatrixReasoningGame extends React.Component {
         />
         <Matrix
           styles={{
-            top: 40, left: 500,
+            top: 40 * this.props.scale.screenHeight,
+            left: 500 * this.props.scale.screenWidth,
             position: 'absolute',
-            width: 600,
-            height: 600,
+            width: 600 * this.props.scale.screenWidth,
+            height: 600 * this.props.scale.screenHeight,
           }}
           tileScale={1.5}
           cardSprite={hookedCardSprite}
