@@ -117,11 +117,9 @@ class Main extends React.Component {
 
   makeZoomTween (startScale=0, endScale= 1, duration=1500) {
     return ({
-      tweenType: "zoomWidth",
-      startScale: startScale,
-      endScale: endScale,
+      tweenType: "pulse",
       duration: duration,
-      loop:false,
+      loop: true,
     });
   }
 
