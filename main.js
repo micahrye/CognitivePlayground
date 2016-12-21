@@ -117,9 +117,11 @@ class Main extends React.Component {
 
   makeZoomTween (startScale=0, endScale= 1, duration=1500) {
     return ({
-      tweenType: "pulse",
+      tweenType: "scale",
+      startScale: startScale,
+      endScale: endScale,
       duration: duration,
-      loop: true,
+      loop: false,
     });
   }
 
@@ -184,19 +186,6 @@ class Main extends React.Component {
     return (
       <View style={{backgroundColor: '#738599', flex: 1}} >
         {icons}
-        <AnimatedSprite
-          ref={'testRef'}
-          character={game_icon}
-          key={'8'}
-          characterUID={this.characterUIDs.game_icon}
-          animationFrameIndex={[12]}
-          tweenOptions={{}}
-          tweenStart={'fromCode'}
-          loopAnimation={false}
-          size={{width: 240 * this.scale.image,
-            height: 240 * this.scale.image}}
-          coordinates={{top: 150, left: 300}}
-        />
       </View>
     );
   }

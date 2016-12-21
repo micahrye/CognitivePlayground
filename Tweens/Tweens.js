@@ -144,25 +144,51 @@ const linearMove = {
   },
 };
 
+const scale = {
+  name: 'scale',
+  start: function startTween (options, componentValues, onTweenFinish) {
+    componentValues.scale.setValue(options.startScale);
+      Animated.timing(
+        componentValues.scale,
+        {
+          toValue: options.endScale,
+          easing: Easing.linear,
+          duration: options.duration,
+        }
+      ).start(() => {
+      if (options.loop === false) {
+       onTweenFinish();
+     } else {
+        startTween(options, componentValues, onTweenFinish);
+      }
+    });
+  },
+  stop: function stop (componentValues, sendStopValues) {
+    let stopValues = [];
+    componentValues.scale.stopAnimation((value) => stopValues.push(value));
+    sendStopValues(stopValues);
+  },
+};
+
 const pulse = {
   name: 'pulse',
   start: function startTween (options, componentValues, onTweenFinish) {
-    componentValues.scale.setValue(1);
+    componentValues.scale.setValue(options.startScale);
     Animated.sequence([
       Animated.timing(
         componentValues.scale,
         {
-          toValue: 1.25,
+          toValue: options.endScale,
           easing: Easing.linear,
-          duration: 400,
+          duration: options.duration,
         }
       ),
       Animated.timing(
         componentValues.scale,
         {
-          toValue: 1,
+          toValue: options.startScale,
           easing: Easing.linear,
-          duration: 400,
+          duration: options.duration,
         }
       ),
     ]).start(() => {
@@ -731,6 +757,7 @@ const curveFall = {
 
 const Tweens = {
   [bounce.name]: bounce,
+  [scale.name]: scale,
   [pulse.name]: pulse,
   [linearMove.name]: linearMove,
   [sineWave.name]: sineWave,
