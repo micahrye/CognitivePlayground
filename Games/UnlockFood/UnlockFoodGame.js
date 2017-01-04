@@ -21,7 +21,7 @@ import ledSprite from "../../sprites/led/ledCharacter";
 import buttonSprite from "../../sprites/button/buttonCharacter";
 import arrowSprite from "../../sprites/arrow/arrowCharacter";
 import lightbulbSprite from "../../sprites/lightbulb/lightbulbCharacter";
-import Matrix from '../../components/Matrix/Matrix';
+import Matrix from '../../components/Matrix';
 
 import styles from "./styles";
 

@@ -11,7 +11,7 @@ import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import dogSprite from '../../sprites/dog/dogCharacter';
 import hookedCardSprite from '../../sprites/hookCard/hookCardCharacter';
-import Matrix from '../../components/Matrix/Matrix';
+import Matrix from '../../components/Matrix';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -26,15 +26,22 @@ class MatrixReasoningGame extends React.Component {
     };
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
+    this.tiles;
   }
 
   componentWillMount () {
+    this.tiles = _.map(this.state.matrixTiles, () => ({
+      sprite: hookedCardSprite,
+      frames: hookedCardSprite.animationIndex('TRIANGLE'),
+    }));
+    /*
     this.matrixShifterInterval = setInterval(() => {
       const tiles = _.map(this.state.matrixTiles, () => (
         Math.random() > 0.80 ? false : true
       ));
       this.setState({ matrixTiles: tiles })
     }, 800);
+    */
   }
 
   componentDidMount () {}
@@ -142,6 +149,7 @@ class MatrixReasoningGame extends React.Component {
             height: 600 * this.props.scale.screenHeight,
           }}
           tileScale={1.5}
+          tiles={this.tiles}
           cardSprite={hookedCardSprite}
           scale={this.props.scale}
           activeTiles={this.state.matrixTiles}

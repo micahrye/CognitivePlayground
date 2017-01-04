@@ -47,10 +47,10 @@ class Matrix extends React.Component {
       if (!active) return null;
       return (
         <AnimatedSprite
-          character={this.props.cardSprite}
+          character={this.props.tiles[index].sprite}
           ref={`card${index}`}
           key={index}
-          animationFrameIndex={[0]}
+          animationFrameIndex={this.props.tiles[index].frames}
           coordinates={this.cardStartLocation(index, this.props.cardSprite, this.props.tileScale)}
           size={this.spriteSize(this.props.cardSprite, this.props.tileScale)}
           draggable={false}
@@ -70,6 +70,7 @@ class Matrix extends React.Component {
 Matrix.propTypes = {
   scale: React.PropTypes.object.isRequired,
   activeTiles: React.PropTypes.arrayOf(React.PropTypes.bool).isRequired,
+  tiles: React.PropTypes.object,
   cardSprite: React.PropTypes.shape({
     name: React.PropTypes.string,
     size: React.PropTypes.object,
