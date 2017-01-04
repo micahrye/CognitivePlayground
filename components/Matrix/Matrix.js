@@ -51,6 +51,7 @@ class Matrix extends React.Component {
           ref={`card${index}`}
           key={index}
           animationFrameIndex={this.props.tiles[index].frames}
+          loopAnimation={false}
           coordinates={this.cardStartLocation(index, this.props.cardSprite, this.props.tileScale)}
           size={this.spriteSize(this.props.cardSprite, this.props.tileScale)}
           draggable={false}
