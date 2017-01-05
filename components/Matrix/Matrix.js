@@ -38,24 +38,24 @@ class Matrix extends React.Component {
     return {top, left};
   }
 
-  pressStub (cardId) {
-    console.log(`card = ${cardId}`);
+  tilePressed (tile, index) {
+    this.props.onPressed(tile, index);
   }
 
   render () {
-    const cards = _.map(this.props.activeTiles, (active, index) => {
-      if (!active) return null;
+    const cards = _.map(this.props.tiles, (tile, index) => {
+      if (!tile.active) return null;
       return (
         <AnimatedSprite
-          character={this.props.tiles[index].sprite}
+          character={tile.sprite}
           ref={`card${index}`}
-          key={index}
-          animationFrameIndex={this.props.tiles[index].frames}
+          key={randomstring({ length: 7 })}
+          animationFrameIndex={tile.sprite.animationIndex(tile.frameKey)}
           loopAnimation={false}
-          coordinates={this.cardStartLocation(index, this.props.cardSprite, this.props.tileScale)}
-          size={this.spriteSize(this.props.cardSprite, this.props.tileScale)}
+          coordinates={this.cardStartLocation(index, tile.sprite, this.props.tileScale)}
+          size={this.spriteSize(tile.sprite, this.props.tileScale)}
           draggable={false}
-          onPress={() => this.pressStub(index)}
+          onPress={() => this.tilePressed(tile, index)}
         />
       );
     });
@@ -70,19 +70,20 @@ class Matrix extends React.Component {
 
 Matrix.propTypes = {
   scale: React.PropTypes.object.isRequired,
-  activeTiles: React.PropTypes.arrayOf(React.PropTypes.bool).isRequired,
-  tiles: React.PropTypes.object,
-  cardSprite: React.PropTypes.shape({
-    name: React.PropTypes.string,
-    size: React.PropTypes.object,
-    animationTypes: React.PropTypes.array,
-    all: React.PropTypes.array,
-    animationIndex: React.PropTypes.func,
-  }).isRequired,
+  tiles: React.PropTypes.array,
   styles: React.PropTypes.object,
   tileScale: React.PropTypes.number,
+  onPressed: React.PropTypes.func,
 };
 
 reactMixin.onClass(Matrix, TimerMixin);
 
 export default Matrix;
+
+// cardSprite: React.PropTypes.shape({
+//   name: React.PropTypes.string,
+//   size: React.PropTypes.object,
+//   animationTypes: React.PropTypes.array,
+//   all: React.PropTypes.array,
+//   animationIndex: React.PropTypes.func,
+// }).isRequired,

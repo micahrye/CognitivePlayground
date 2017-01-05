@@ -3,7 +3,7 @@
 const hookCardCharacter = {
   name:"hookCard",
   size: {width: 124, height: 142},
-  animationTypes: ['HOOK', 'TRIANGLE', 'DIMOND', 'SQUARE', 'CIRCLE', 'ALL'],
+  animationTypes: ['BLANK', 'TRIANGLE', 'DIMOND', 'SQUARE', 'CIRCLE', 'ALL'],
   all: [
     require("./hook_and_card_small.png"),
     require("./hook_triangle.png"),
@@ -13,7 +13,7 @@ const hookCardCharacter = {
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
-      case 'HOOK':
+      case 'BLANK':
         return [0];
       case 'TRIANGLE':
         return [1];

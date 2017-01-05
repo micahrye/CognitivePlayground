@@ -51,6 +51,7 @@ class UnlockFoodGame extends React.Component {
     this.setDefaultAnimationState;
     this.bird = {tweenOptions: {}};
     this.appleSprite = {tweenOptions: {}};
+    this.tiles;
   }
 
   componentWillMount () {
@@ -79,12 +80,16 @@ class UnlockFoodGame extends React.Component {
       }, ()=>{this.birdFlyIntoScene();});
     }, 1500);
 
-    this.matrixShifterInterval = setInterval(() => {
-      const tiles = _.map(this.state.matrixTiles, () => (
-        Math.random() > 0.80 ? false : true
-      ));
-      this.setState({ matrixTiles: tiles })
-    }, 500);
+    // this.matrixShifterInterval = setInterval(() => {
+    //   const tiles = _.map(this.state.matrixTiles, () => (
+    //     Math.random() > 0.80 ? false : true
+    //   ));
+    //   this.setState({ matrixTiles: tiles })
+    // }, 500);
+    this.tiles = _.map(this.state.matrixTiles, () => ({
+      sprite: buttonSprite,
+      frames: buttonSprite.animationIndex('ALL'),
+    }));
   }
 
   componentDidMount () {
@@ -382,6 +387,7 @@ class UnlockFoodGame extends React.Component {
                   height: 400 * this.props.scale.screenHeight,
                 }}
               tileScale={1}
+              tiles={this.tiles}
               cardSprite={buttonSprite}
               scale={this.props.scale}
               activeTiles={this.state.matrixTiles}
