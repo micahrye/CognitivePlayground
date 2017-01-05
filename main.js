@@ -83,7 +83,7 @@ class Main extends React.Component {
         imgSrc: require('./media/game_icon/game6_icon_color.png'),
         location: this.scaleLocation({top: 260, left: 900}),
         frameIndex: [11],
-        delay: 500,
+        delay: 600,
       },
     ];
     this.iconList = iconList;
