@@ -2,7 +2,6 @@
 import React from 'react';
 import {
   View,
-  StyleSheet,
   Dimensions,
 } from 'react-native';
 
@@ -13,8 +12,7 @@ import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
 import AnimatedSprite from "./components/AnimatedSprite/AnimatedSprite";
-import Tweens from "./Tweens/Tweens";
-import game_icon from "./media/game_icon/game_icon";
+import gameIcon from "./media/gameIcon/gameIcon";
 
 const baseHeight = 800;
 const baseWidth = 1280;
@@ -38,35 +36,35 @@ class Main extends React.Component {
     const iconList = [
       {
         name: 'BUBBLE',
-        imgSrc: require('./media/game_icon/game7_icon_color.png'),
+        imgSrc: require('./media/gameIcon/game7_icon_color.png'),
         location: this.scaleLocation({top: 130, left: 100}),
         frameIndex: [13],
         delay: 0,
       },
       {
         name: 'BUG',
-        imgSrc: require('./media/game_icon/game1_icon_color.png'),
+        imgSrc: require('./media/gameIcon/game1_icon_color.png'),
         location: this.scaleLocation({top: 380, left: 220}),
         frameIndex: [1],
         delay: 100,
       },
       {
         name: 'MATCH',
-        imgSrc: require('./media/game_icon/game2_icon_color.png'),
+        imgSrc: require('./media/gameIcon/game2_icon_color.png'),
         location: this.scaleLocation({top: 200, left: 440}),
         frameIndex: [3],
         delay: 200,
       },
       {
         name: 'UNLOCK_FOOD',
-        imgSrc: require('./media/game_icon/game3_icon_color.png'),
+        imgSrc: require('./media/gameIcon/game3_icon_color.png'),
         location: this.scaleLocation({top: 400, left: 640}),
         frameIndex: [5],
         delay: 300,
       },
       {
         name: 'MATRIX',
-        imgSrc: require('./media/game_icon/game4_icon_color.png'),
+        imgSrc: require('./media/gameIcon/game4_icon_color.png'),
         location: this.scaleLocation({top: 80, left: 660}),
         frameIndex: [7],
         delay: 400,
@@ -80,7 +78,7 @@ class Main extends React.Component {
       },*/
       {
         name: 'SYMBOL',
-        imgSrc: require('./media/game_icon/game6_icon_color.png'),
+        imgSrc: require('./media/gameIcon/game6_icon_color.png'),
         location: this.scaleLocation({top: 260, left: 900}),
         frameIndex: [11],
         delay: 600,
@@ -89,14 +87,14 @@ class Main extends React.Component {
     this.iconList = iconList;
     this.characterUIDs ={};
     this.setDefaultAnimationState;
-    this.game_icon = {tweenOptions: {}};
+    this.gameIcon = {tweenOptions: {}};
     this.iconTweenDelays = _.map(this.iconList, 'icon.delay');
     this.iconRefs = [];
   }
 
   componentWillMount () {
     this.characterUIDs = {
-      game_icon: randomstring({ length: 7 }),
+      gameIcon: randomstring({ length: 7 }),
     };
   }
 
@@ -147,7 +145,7 @@ class Main extends React.Component {
     let icon = this.refs[this.iconRefs[index]];
     const startScale = icon.props.scale;
     const endScale = 1;
-    this.game_icon.tweenOptions = this.makeZoomTween(startScale, endScale, 750);
+    this.gameIcon.tweenOptions = this.makeZoomTween(startScale, endScale, 750);
     this.setState({
       tweenCharacter: true,
     }, () => {icon.startTween();});
@@ -192,11 +190,11 @@ class Main extends React.Component {
       return (
         <AnimatedSprite
           ref={ref}
-          character={game_icon}
+          character={gameIcon}
           key={index}
-          characterUID={this.characterUIDs.game_icon}
+          characterUID={this.characterUIDs.gameIcon}
           animationFrameIndex={icon.frameIndex}
-          tweenOptions = {this.game_icon.tweenOptions}
+          tweenOptions = {this.gameIcon.tweenOptions}
           tweenStart={'fromCode'}
           loopAnimation={false}
           size={this.startSize()}

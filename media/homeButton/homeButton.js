@@ -1,5 +1,5 @@
-const home_btn = {
-  name:"home",
+const homeButton = {
+  name:"homeButton",
   size: {width: 200, height: 200},
   animationTypes: ['UNLOCKED', 'LOCKED', 'ALL'],
   all: [
@@ -18,4 +18,4 @@ const home_btn = {
   },
 };
 
-export default home_btn;
+export default homeButton;

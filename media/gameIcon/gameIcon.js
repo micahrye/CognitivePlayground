@@ -1,5 +1,5 @@
-const game_icon = {
-  name:"game_icon",
+const gameIcon = {
+  name:"gameIcon",
   size: {width: 200, height: 200},
   animationTypes: [
     'GAME_1_UNLOCKED',
@@ -70,4 +70,4 @@ const game_icon = {
   },
 };
 
-export default game_icon;
+export default gameIcon;
