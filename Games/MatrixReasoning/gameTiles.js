@@ -1,12 +1,13 @@
 import _ from 'lodash';
+import randomstring from 'random-string';
 import hookedCardSprite from '../../sprites/hookCard/hookCardCharacter';
 
 
 function createTilesArray (activeTiles, sprites, frameKeys) {
   return _.map(activeTiles, (active, index) => ({
     sprite: sprites[index],
-    frames: sprites[index].animationIndex(frameKeys[index]),
     frameKey: frameKeys[index],
+    uid: randomstring({ length: 7 }),
     active,
   }));
 }

@@ -11,7 +11,6 @@ import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import dogSprite from '../../sprites/dog/dogCharacter';
 import Matrix from '../../components/Matrix';
-import hookedCardSprite from '../../sprites/hookCard/hookCardCharacter';
 
 import gameTiles from './gameTiles';
 
@@ -102,7 +101,7 @@ class MatrixReasoningGame extends React.Component {
 
   pressStub () {}
 
-  selectionTilePressed (tile, index) {
+  selectionTilePress (tile, index) {
     console.log(`index = ${index}, frameKey = ${tile.frameKey}`);
     const level = this.state.level;
     const trial = this.state.trial;
@@ -118,8 +117,14 @@ class MatrixReasoningGame extends React.Component {
       this.gameCharacterAction('DISGUST');
     }
   }
+  selectionTilePressIn (tile, index) {
+    console.log('selectionTilePressIn');
+  }
+  selectionTilePressOut (tile, index) {
+    console.log('selectionTilePressOut');
+  }
 
-  gameBoardTilePressed (tile, index) {
+  gameBoardTilePress (tile, index) {
     console.log(`tileInfo = ${index}`);
   }
 
@@ -165,7 +170,9 @@ class MatrixReasoningGame extends React.Component {
           tileScale={0.9}
           tiles={this.state.selectionTiles}
           scale={this.props.scale}
-          onPressed={(tile, index) => this.selectionTilePressed(tile, index)}
+          onPress={(tile, index) => this.selectionTilePress(tile, index)}
+          onPressIn={(tile, index) => this.selectionTilePressIn(tile, index)}
+          onPressOut={(tile, index) => this.selectionTilePressOut(tile, index)}
         />
 
         <Matrix
@@ -179,7 +186,7 @@ class MatrixReasoningGame extends React.Component {
           tileScale={1.5}
           tiles={this.state.gameBoardTiles}
           scale={this.props.scale}
-          onPressed={(tile, index) => this.gameBoardTilePressed(tile, index)}
+          onPress={(tile, index) => this.gameBoardTilePress(tile, index)}
         />
 
         <HomeButton
@@ -202,7 +209,7 @@ class MatrixReasoningGame extends React.Component {
 MatrixReasoningGame.propTypes = {
   route: React.PropTypes.object.isRequired,
   navigator: React.PropTypes.object.isRequired,
-  scale: React.PropTypes.object.isRequired
+  scale: React.PropTypes.object.isRequired,
 };
 
 reactMixin.onClass(MatrixReasoningGame, TimerMixin);

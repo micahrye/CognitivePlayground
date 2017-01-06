@@ -13,6 +13,12 @@ import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
+// Tile = {
+//   sprite: sprites[index],
+//   frameKey: frameKeys[index],
+//   active,
+// }
+
 class Matrix extends React.Component {
   constructor (props) {
     super(props);
@@ -38,24 +44,38 @@ class Matrix extends React.Component {
     return {top, left};
   }
 
-  tilePressed (tile, index) {
-    this.props.onPressed(tile, index);
+  tilePress (tile, index) {
+    console.log('tilePress');
+    this.props.onPress(tile, index);
+  }
+
+  tilePressIn (tile, index) {
+    console.log('tilePressIn');
+    if (!this.props.onPressIn) return;
+    this.props.onPressIn(tile, index);
+  }
+  tilePressOut (tile, index) {
+    if (!this.props.onPressOut) return;
+    this.props.onPressOut(tile, index);
   }
 
   render () {
     const cards = _.map(this.props.tiles, (tile, index) => {
       if (!tile.active) return null;
+      const uid = tile.uid ? tile.uid : randomstring({ length: 7 });
       return (
         <AnimatedSprite
           character={tile.sprite}
           ref={`card${index}`}
-          key={randomstring({ length: 7 })}
+          key={uid}
           animationFrameIndex={tile.sprite.animationIndex(tile.frameKey)}
           loopAnimation={false}
           coordinates={this.cardStartLocation(index, tile.sprite, this.props.tileScale)}
           size={this.spriteSize(tile.sprite, this.props.tileScale)}
           draggable={false}
-          onPress={() => this.tilePressed(tile, index)}
+          onPress={() => this.tilePress(tile, index)}
+          onPressIn={() => this.tilePressIn(tile, index)}
+          onPressOut={() => this.tilePressOut(tile, index)}
         />
       );
     });
@@ -73,7 +93,9 @@ Matrix.propTypes = {
   tiles: React.PropTypes.array,
   styles: React.PropTypes.object,
   tileScale: React.PropTypes.number,
-  onPressed: React.PropTypes.func,
+  onPress: React.PropTypes.func,
+  onPressIn: React.PropTypes.func,
+  onPressOut: React.PropTypes.func,
 };
 
 reactMixin.onClass(Matrix, TimerMixin);

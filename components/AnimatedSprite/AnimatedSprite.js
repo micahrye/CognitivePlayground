@@ -231,7 +231,8 @@ class AnimatedSprite extends React.Component {
   }
 
   handlePressIn (evt) {
-    evt.preventDefault();
+    console.log('handlePressIn');
+    // evt.preventDefault();
     if (this.props.onPressIn) {
       this.props.onPressIn();
     }
