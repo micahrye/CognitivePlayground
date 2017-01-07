@@ -17,7 +17,7 @@ const birdCharacter = {
       case 'IDLE':
         return [0];
       case 'CELEBRATE':
-        return [1, 2, 0, 1, 2];
+        return [1, 2, 0, 1, 2, 0, 1, 2, 0];
       case 'DISGUST':
         return [3, 3, 0, 3, 3];
       case 'EAT':

@@ -14,13 +14,12 @@ import HomeButton from '../../components/HomeButton/HomeButton';
 
 import leverSprite from '../../sprites/lever/leverCharacter';
 import birdSprite from "../../sprites/bird/birdCharacter";
-import appleSprite from "../../sprites/apple/appleCharacter";
+import foodSprite from "../../sprites/apple/appleCharacter";
 import foodMachineSprite from "../../sprites/foodMachine/foodMachineCharacter";
 import beltSprite from "../../sprites/conveyorBelt/beltCharacter";
 import ledSprite from "../../sprites/led/ledCharacter";
 import buttonSprite from "../../sprites/button/buttonCharacter";
 import arrowSprite from "../../sprites/arrow/arrowCharacter";
-import lightbulbSprite from "../../sprites/lightbulb/lightbulbCharacter";
 
 import Matrix from '../../components/Matrix';
 import gameTiles from './gameTiles';
@@ -55,8 +54,9 @@ class UnlockFoodGame extends React.Component {
     this.characterUIDs = {};
     this.setDefaultAnimationState;
     this.bird = {tweenOptions: {}};
-    this.appleSprite = {tweenOptions: {}};
-    this.tiles;
+    this.foodSpriteTween = {tweenOptions: {}};
+
+    this.pressSequence = [];
     this.btnTimeout;
     this.blinkTimeout;
     this.blinkTimeoutArray = [];
@@ -168,8 +168,8 @@ class UnlockFoodGame extends React.Component {
     // scale to 120 x 120 or closest.
     const scale = 1;
     return ({
-        width: appleSprite.size.width * scale * this.scale.image,
-        height: appleSprite.size.height * scale * this.scale.image,
+        width: foodSprite.size.width * scale * this.scale.image,
+        height: foodSprite.size.height * scale * this.scale.image,
       }
     );
   }
@@ -222,16 +222,17 @@ class UnlockFoodGame extends React.Component {
   }
 
   leverPressIn () {
-      console.log('leverPressIn');
-      // MICAH
-      const blinkSeq = gameTiles.tileBlinkSequence(1, 1);
-      this.blink(blinkSeq);
-      this.setState({
-        leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
-      });
+    console.log('leverPressIn');
+    // MICAH
+    const blinkSeq = gameTiles.tileBlinkSequence(1, 1);
+    this.blink(blinkSeq);
+    this.setState({
+      leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
+    });
   }
 
   leverPressOut () {
+    this.pressSequence = [];
     console.log('leverPressOut');
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
     const tiles = gameTiles.gameBoardTilesForTrial(this.state.level, this.state.trial);
@@ -354,9 +355,24 @@ class UnlockFoodGame extends React.Component {
     return {top, left};
   }
 
+  characterCelebrateAndEat () {
+    const frameIndex = birdSprite.animationIndex('CELEBRATE');
+    this.setState({ birdAnimationIndex: frameIndex });
+  }
+
   gameBoardTilePress (tile, index) {
     console.log(`gameBoardTilePress tileInfo = ${index}`);
     // tile press animation
+    this.pressSequence.push(index);
+    // test if sequence matched
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
+    const correct = _.every(blinkSeq, (seqNum, index) => {
+      return seqNum === this.pressSequence[index];
+    });
+    if (correct) {
+      console.log('WINNER WINNER');
+      this.characterCelebrateAndEat();
+    }
     const tiles = _.cloneDeep(this.state.tiles);
     tiles[index].frameKey = 'PRESSED';
     tiles[index].uid = randomstring({ length: 7 });
@@ -372,9 +388,11 @@ class UnlockFoodGame extends React.Component {
         }, 80);
       });
   }
+
   gameBoardTilePressIn (tile, index) {
     console.log(`onPressIn tileInfo = ${index}`);
   }
+
   gameBoardTilePressOut (tile, index) {
     console.log(`onPressOut tileInfo = ${index}`);
   }
@@ -402,10 +420,10 @@ class UnlockFoodGame extends React.Component {
               onPressOut={() => this.leverPressOut()}
             />
             <AnimatedSprite
-              character={appleSprite}
+              character={foodSprite}
               characterUID={this.characterUIDs.fruit}
-              animationFrameIndex={appleSprite.animationIndex('IDLE')}
-              tweenOptions = {this.appleSprite.tweenOptions}
+              animationFrameIndex={foodSprite.animationIndex('IDLE')}
+              tweenOptions = {this.foodSpriteTween.tweenOptions}
               onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
               loopAnimation={false}
               coordinates={this.foodBeltEndLocation()}
