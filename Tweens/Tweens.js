@@ -152,7 +152,7 @@ const scale = {
         componentValues.scale,
         {
           toValue: options.endScale,
-          easing: Easing.linear,
+          easing: Easing.bounce,
           duration: options.duration,
         }
       ).start(() => {
