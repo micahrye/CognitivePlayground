@@ -54,7 +54,10 @@ class UnlockFoodGame extends React.Component {
     this.characterUIDs = {};
     this.setDefaultAnimationState;
     this.bird = {tweenOptions: {}};
-    this.foodSpriteTween = {tweenOptions: {}};
+    this.foodSprite = {
+      tweenOptions: {},
+      coords: {top: 0, left: 0},
+    };
 
     this.pressSequence = [];
     this.btnTimeout;
@@ -74,7 +77,7 @@ class UnlockFoodGame extends React.Component {
       lightbulb: randomstring({ length: 7 }),
       bird: randomstring({ length: 7 }),
     };
-    console.log('SET STATE');
+
     this.setState({
       buttonAnimationIndex: buttonSprite.animationIndex('ALL'),
       birdAnimationIndex: birdSprite.animationIndex('ALL'),
@@ -83,28 +86,15 @@ class UnlockFoodGame extends React.Component {
       ledAnimationIndex: ledSprite.animationIndex('ALL'),
       beltAnimationIndex: beltSprite.animationIndex('ALL'),
     });
-    // this.setDefaultAnimationState = setTimeout(() =>{
-    //   this.setState({
-    //     birdAnimationIndex: birdSprite.animationIndex('FLY'),
-    //   }, ()=>{this.birdFlyIntoScene();});
-    // }, 1500);
 
-    // this.matrixShifterInterval = setInterval(() => {
-    //   const tiles = _.map(this.state.matrixTiles, () => (
-    //     Math.random() > 0.80 ? false : true
-    //   ));
-    //   this.setState({ matrixTiles: tiles })
-    // }, 500);
-    this.tiles = _.map(this.state.matrixTiles, () => ({
-      sprite: buttonSprite,
-      frames: buttonSprite.animationIndex('ALL'),
-    }));
     const level = 1; const trial = 1;
     this.setState({
       level,
       trial,
       tiles: gameTiles.gameBoardTilesForTrial(level, trial),
     });
+
+    this.foodSprite.coords = this.foodStartLocation(this.scale);
   }
 
   componentDidMount () {
@@ -126,35 +116,47 @@ class UnlockFoodGame extends React.Component {
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
   }
 
-  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
-    return ({
-      tweenType: "linear-move",
-      startXY: [startXY[0], startXY[1]],
-      endXY: [endXY[0], endXY[1]],
-      duration:duration,
-      loop: false,
-    });
+  foodStartLocation () {
+    // machine location - machine size
+    const beltCoords = this.conveyorBeltLocation();
+    const beltSize = this.conveyorBeltSize();
+    const foodSize = this.foodSize();
+    const coords = {
+      top: beltCoords.top - foodSize.height,
+      left: beltCoords.left + beltSize.width,
+    };
+    return coords;
   }
 
-  birdFlyIntoScene () {
-    const birdStartLoc = this.birdStartLocation();
-    const birdEndLoc = this.birdEndLocation();
-    const startXY = [birdStartLoc.left, birdStartLoc.top];
-    const endXY = [birdEndLoc.left, birdEndLoc.top];
-    this.bird.tweenOptions = this.makeMoveTween(startXY, endXY);
-    this.bird.loopAnimation = true;
-    // BUG: need to look into bug
-    // this.setState({
-    //   birdAnimationIndex: birdSprite.animationIndex('FLY'),
-    //   tweenCharacter: true,
-    // }, ()=> {this.refs.birdRef.startTween();});
-  }
+  // makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
+  //   return ({
+  //     tweenType: "linear-move",
+  //     startXY: [startXY[0], startXY[1]],
+  //     endXY: [endXY[0], endXY[1]],
+  //     duration:duration,
+  //     loop: false,
+  //   });
+  // }
 
-  onCharacterTweenFinish () {
-    console.log('onCharacterTweenFinish');
-    this.bird.loopAnimation = false;
-    this.setState({birdAnimationIndex: birdSprite.animationIndex('IDLE')});
-  }
+  // birdFlyIntoScene () {
+  //   const birdStartLoc = this.birdStartLocation();
+  //   const birdEndLoc = this.birdEndLocation();
+  //   const startXY = [birdStartLoc.left, birdStartLoc.top];
+  //   const endXY = [birdEndLoc.left, birdEndLoc.top];
+  //   this.bird.tweenOptions = this.makeMoveTween(startXY, endXY);
+  //   this.bird.loopAnimation = true;
+  //   // BUG: need to look into bug
+  //   // this.setState({
+  //   //   birdAnimationIndex: birdSprite.animationIndex('FLY'),
+  //   //   tweenCharacter: true,
+  //   // }, ()=> {this.refs.birdRef.startTween();});
+  // }
+
+  // onCharacterTweenFinish () {
+  //   console.log('onCharacterTweenFinish');
+  //   this.bird.loopAnimation = false;
+  //   this.setState({birdAnimationIndex: birdSprite.animationIndex('IDLE')});
+  // }
 
   birdMouthLocation () {
     const birdLoc = this.birdEndLocation();
@@ -174,9 +176,9 @@ class UnlockFoodGame extends React.Component {
     );
   }
 
-  foodBeltEndLocation () {
-    const beltLocation = this.beltLocation();
-    const beltSize = this.beltSize();
+  conveyorBeltEndLocation () {
+    const beltLocation = this.conveyorBeltLocation();
+    const beltSize = this.conveyorBeltSize();
     const foodSize = this.foodSize();
     const left = beltLocation.left-(foodSize.width/2);
     const top = beltLocation.top - (beltSize.height * 1.42);
@@ -278,7 +280,7 @@ class UnlockFoodGame extends React.Component {
     return ({top, left});
   }
 
-  beltSize () {
+  conveyorBeltSize () {
     const scaleBelt = 1;
     return ({
       width: beltSprite.size.width * scaleBelt * this.scale.image,
@@ -286,7 +288,7 @@ class UnlockFoodGame extends React.Component {
     });
   }
 
-  beltLocation () {
+  conveyorBeltLocation () {
     const locationMachine = this.machineLocation();
     const machineSize = this.machineSize();
     const leftOffset = 283 * this.scale.screenWidth;
@@ -423,10 +425,11 @@ class UnlockFoodGame extends React.Component {
               character={foodSprite}
               characterUID={this.characterUIDs.fruit}
               animationFrameIndex={foodSprite.animationIndex('IDLE')}
-              tweenOptions = {this.foodSpriteTween.tweenOptions}
+              tweenOptions = {this.foodSprite.tweenOptions}
+              tweenStart={'fromCode'}
               onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
               loopAnimation={false}
-              coordinates={this.foodBeltEndLocation()}
+              coordinates={this.foodSprite.coords}
               size={this.foodSize()}
             />
             <AnimatedSprite
@@ -443,8 +446,8 @@ class UnlockFoodGame extends React.Component {
               characterUID={this.characterUIDs.belt}
               animationFrameIndex={[0, 1]}
               loopAnimation={true}
-              coordinates={this.beltLocation()}
-              size={this.beltSize()}
+              coordinates={this.conveyorBeltLocation()}
+              size={this.conveyorBeltSize()}
             />
             <AnimatedSprite
               character={ledSprite}
