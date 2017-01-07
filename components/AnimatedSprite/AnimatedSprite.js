@@ -20,7 +20,7 @@ class AnimatedSprite extends React.Component {
     this.state = {
       top: new Animated.Value(props.coordinates.top),
       left: new Animated.Value(props.coordinates.left),
-      scale: new Animated.Value(1),
+      scale: new Animated.Value(props.scale),
       width: props.size.width,
       height: props.size.height,
       rotate: props.rotate,
