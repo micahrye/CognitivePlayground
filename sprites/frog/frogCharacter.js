@@ -8,6 +8,7 @@ const frogCharacter = {
     require('./frog_hop02.png'),
     require('./frog_eat01.png'),
     require('./frog_eat02.png'),
+    require('./frog_eat03.png'),
     require('./frog_celebrate01.png'),
     require('./frog_celebrate02.png'),
     require('./frog_disgust_01.png'),
@@ -27,7 +28,7 @@ const frogCharacter = {
       case 'ALL':
         return [0,1,2,3,4,5,6,7];
       case 'HOPON':
-          return [1];
+          return [0];
       case 'HOPOFF':
           return [2];
     }

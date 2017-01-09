@@ -58,7 +58,7 @@ class BugZapGame extends React.Component {
       bugTweenOptions: null,
       showBugLeft: false,
       showBugRight: false,
-      characterAnimationIndex: this.activeFrogColor.animationIndex("HOPON"),
+      characterAnimationIndex: this.activeFrogColor.animationIndex("IDLE"),
       splashAnimationIndex: null,
       lightbulbAnimationIndex: lightbulbCharacter.animationIndex('ON'),
       characterTweenOptions: null,
@@ -183,7 +183,6 @@ class BugZapGame extends React.Component {
   }
 
   setBugTween () {
-    let endX = this.characterPosX;
     this.setState({
       bugTweenOptions: {
         tweenType: "curve-fall",
@@ -202,9 +201,9 @@ class BugZapGame extends React.Component {
       characterKey: Math.random(),
       characterTweenOptions: {
         tweenType: "linear-move",
-        startXY: [this.characterStartX, SCREEN_HEIGHT],
+        startXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
         endXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
-        duration: 1000,
+        duration: 100,
         loop: false,
       },
     });
@@ -213,12 +212,12 @@ class BugZapGame extends React.Component {
   characterHopOff () {
     this.setState({
       characterKey: Math.random(),
-      characterAnimationIndex: this.activeFrogColor.animationIndex("HOPOFF"),
+      characterAnimationIndex: this.activeFrogColor.animationIndex("IDLE"),
       characterTweenOptions: {
         tweenType: "linear-move",
         startXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
-        endXY: [this.characterToX, SCREEN_HEIGHT],
-        duration: 1000,
+        endXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
+        duration: 100,
         loop: false,
       },
     });
@@ -376,7 +375,6 @@ class BugZapGame extends React.Component {
     this.eatInterval = setInterval(() => {
       const eatAndCelebrateIndex = _.concat(
         this.activeFrogColor.animationIndex('EAT'),
-        this.activeFrogColor.animationIndex('CELEBRATE')
       );
       this.setState({
         characterAnimationIndex: eatAndCelebrateIndex,
