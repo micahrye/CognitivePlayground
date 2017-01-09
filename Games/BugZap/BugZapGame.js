@@ -34,17 +34,17 @@ class BugZapGame extends React.Component {
   constructor (props) {
     super(props);
     this.bugPressed = false;
-    this.characterPosX = 550 * this.props.scale.screenWidth;
-    this.characterToX = 10 * this.props.scale.screenWidth;
+    this.characterPosX = 900 * this.props.scale.screenWidth;
+    this.characterToX = 900 * this.props.scale.screenWidth;
     this.characterPosY = 200 * this.props.scale.screenHeight;
     this.characterStartX = 900 * this.props.scale.screenWidth;
-    this.splashPosX = 800 * this.props.scale.screenWidth;
-    this.bugStartX = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
+    this.splashPosX = 900 * this.props.scale.screenWidth;
+    this.bugStartX = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
     this.rightSignXPos = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
     this.leftSignXPos = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
     this.rotate = undefined; // for frog to switch directions
-    this.characterDirection = 'left';
-    this.activeFrogColor = greenFrogCharacter;
+    this.characterDirection = 'right';
+    this.activeFrogColor = blueFrogCharacter;
     this.trialNumber = 1;
     this.directionMaySwitch = false;
     this.fps = 8;
@@ -158,11 +158,11 @@ class BugZapGame extends React.Component {
 
     // blue frog pointing to the right
     if (direction === 0) {
-      this.characterDirection = 'right';
-      this.activeFrogColor = blueFrogCharacter;
-      this.characterPosX = 450 * this.props.scale.screenWidth;
-      this.characterToX = 900 * this.props.scale.screenWidth;
-      this.bugStartX = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
+      this.characterDirection = 'left';
+      this.activeFrogColor = greenFrogCharacter;
+      this.characterPosX = 10 * this.props.scale.screenWidth;
+      this.characterToX = 10 * this.props.scale.screenWidth;
+      this.bugStartX = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
       this.characterStartX = 10 * this.props.scale.screenWidth;
       this.rotate = [{rotateY: '180deg'}];
       this.splashPosX = 150 * this.props.scale.screenWidth;
@@ -183,17 +183,14 @@ class BugZapGame extends React.Component {
   }
 
   setBugTween () {
-    let endX = 520;
-    if (this.characterDirection === 'right') {
-      endX = 600;
-    }
+    let endX = this.characterPosX;
     this.setState({
       bugTweenOptions: {
         tweenType: "curve-fall",
         // start on their tags
         startXY: [this.bugStartX, 95 * this.props.scale.screenHeight],
         // end at character
-        endXY: [endX * this.props.scale.screenWidth, 460 * this.props.scale.screenHeight],
+        endXY: [this.bugStartX * this.props.scale.screenWidth, 460 * this.props.scale.screenHeight],
         duration: 1000,
         loop: false,
       },
@@ -252,7 +249,6 @@ class BugZapGame extends React.Component {
       // if signs are dropping down, not going back up
       case 'signLeft':
         if (!this.retractingSign && !this.blackout) {
-          this.startSplash();
           this.setState({
             showBugLeft: true,
           });
@@ -260,6 +256,7 @@ class BugZapGame extends React.Component {
         break;
       case 'signRight':
         if (!this.retractingSign && !this.blackout) {
+          this.startSplash();
           this.setState({
             showBugRight: true,
           });
@@ -521,65 +518,62 @@ class BugZapGame extends React.Component {
     : null}
 
     <AnimatedSprite
-      key={this.state.leftSignKey}
-      characterUID={'signLeft'}
+      key={this.state.rightSignKey}
       character={signCharacter}
-      coordinates={{top: -10 * this.props.scale.screenHeight, left: this.leftSignXPos}}
-      size={{width: 140 * this.props.scale.image, height: 230 * this.props.scale.image}}
+      characterUID={'signRight'}
+      coordinates={{top: -10 * this.props.scale.screenHeight, left: this.rightSignXPos}}
+      size={{width: 140 * this.props.scale.image, height: 230* this.props.scale.image}}
       animationFrameIndex={[0]}
-      tweenOptions={this.state.leftSignTweenOptions}
-      onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+      tweenOptions={this.state.rightSignTweenOptions}
       tweenStart={'auto'}
+      onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
     />
 
-    {this.state.showBugLeft ?
+    {this.state.showBugRight ?
       <AnimatedSprite
-        character={bugCharacter}
-        ref={'bugLeftRef'}
-        characterUID={'bugLeft'}
+        ref={'bugRightRef'}
+        characterUID={'bugRight'}
         coordinates={{top: 75 * this.props.scale.screenHeight,
-          left: SCREEN_WIDTH/2 - (350 * this.props.scale.screenWidth)}}
-        size={{width: 120 * this.props.scale.image, height: 120 * this.props.scale.image}}
+          left: SCREEN_WIDTH/2 + (220 * this.props.scale.screenWidth)}}
+        size={{width: 120 * this.props.scale.image,
+          height: 120 * this.props.scale.image}}
+        character={bugCharacter}
         tweenOptions={this.state.bugTweenOptions}
         tweenStart={'fromCode'}
         onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
         onPress={(characterUID) => this.onBugPress(characterUID)}
-        animationFrameIndex={[0]}
+        animationFrameIndex={[1]}
       />
     : null}
 
     {this.showOtherBugSign ?
       <View>
         <AnimatedSprite
-          key={this.state.rightSignKey}
+          key={this.state.leftSignKey}
+          characterUID={'signLeft'}
           character={signCharacter}
-          characterUID={'signRight'}
-          coordinates={{top: -10 * this.props.scale.screenHeight, left: this.rightSignXPos}}
-          size={{width: 140 * this.props.scale.image, height: 230* this.props.scale.image}}
+          coordinates={{top: -10 * this.props.scale.screenHeight, left: this.leftSignXPos}}
+          size={{width: 140 * this.props.scale.image, height: 230 * this.props.scale.image}}
           animationFrameIndex={[0]}
-          tweenOptions={this.state.rightSignTweenOptions}
-          tweenStart={'auto'}
+          tweenOptions={this.state.leftSignTweenOptions}
           onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+          tweenStart={'auto'}
         />
-
-        {this.state.showBugRight ?
+        {this.state.showBugLeft ?
           <AnimatedSprite
-            ref={'bugRightRef'}
-            characterUID={'bugRight'}
-            coordinates={{top: 75 * this.props.scale.screenHeight,
-              left: SCREEN_WIDTH/2 + (220 * this.props.scale.screenWidth)}}
-            size={{width: 120 * this.props.scale.image,
-              height: 120 * this.props.scale.image}}
             character={bugCharacter}
+            ref={'bugLeftRef'}
+            characterUID={'bugLeft'}
+            coordinates={{top: 75 * this.props.scale.screenHeight,
+              left: SCREEN_WIDTH/2 - (350 * this.props.scale.screenWidth)}}
+            size={{width: 120 * this.props.scale.image, height: 120 * this.props.scale.image}}
             tweenOptions={this.state.bugTweenOptions}
             tweenStart={'fromCode'}
             onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
             onPress={(characterUID) => this.onBugPress(characterUID)}
-            animationFrameIndex={[1]}
-          />
-        : null}
-        </View>
-    : null}
+            animationFrameIndex={[0]}
+          /> : null}
+      </View>: null}
 
     <AnimatedSprite
       key={this.state.lightbulbKey}
