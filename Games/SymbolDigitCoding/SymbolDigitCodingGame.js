@@ -13,11 +13,7 @@ import styles from './styles';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import monsterSprite from '../../sprites/monster/monsterCharacter';
-
-import appleSprite from "../../sprites/apple/appleCharacter";
-import grassSprite from "../../sprites/grass/grassCharacter";
-import canSprite from "../../sprites/can/canCharacter";
-import bugSprite from '../../sprites/bug/bugCharacter';
+import Matrix from '../../components/Matrix';
 
 import symbolTable from '../../sprites/symbolTable/symbolTableCharacter';
 import Signs from './Signs';
@@ -35,6 +31,7 @@ class SymbolDigitCodingGame extends React.Component {
       symbolOrder: [],
       showFood: false,
       monsterAnimationIndex: [0],
+      selectionTiles: {},
     };
     this.monsterScale = 1.5;
     this.tableScale = 1.3;
@@ -43,7 +40,6 @@ class SymbolDigitCodingGame extends React.Component {
       tweenOptions: {},
       coords: {},
       size: {},
-      tweenOptions: {},
     };
   }
 
@@ -53,18 +49,23 @@ class SymbolDigitCodingGame extends React.Component {
 
     this.food.sprite = gameUtil.foodSprite(level, trial);
     this.food.coords = this.foodStartLocation(1);
-    this.food.tweenOptions = this.makeFoodTweenObject();
     this.food.size = this.spriteSize(this.food.sprite, 1);
-
+    const tiles = gameUtil.selectionTilesForTrial(1,1);
+    debugger;
     this.setState({
       level,
       trial,
       tweenOptions: this.makeFoodTweenObject(),
       symbolOrder: gameUtil.symbols(level, trial),
+      selectionTiles: gameUtil.selectionTilesForTrial(level, trial),
     });
   }
 
   componentDidMount () {}
+
+  componentWillUnmount () {
+    clearTimeout(this.stateTimeout);
+  }
 
   monsterMouthLocation () {
     const size = this.spriteSize(monsterSprite, this.monsterScale);
@@ -114,7 +115,7 @@ class SymbolDigitCodingGame extends React.Component {
 
   monsterStartLocation () {
     const height = this.spriteSize(monsterSprite, this.monsterScale).height;
-    const left = 80 * this.props.scale.screenWidth;
+    const left = 150 * this.props.scale.screenWidth;
     const top = SCREEN_HEIGHT - height - (50 * this.props.scale.screenHeight);
     return {top, left};
   }
@@ -134,9 +135,22 @@ class SymbolDigitCodingGame extends React.Component {
       },
     () => {
       this.refs.food.startTween();
-      setTimeout(() => {
+      this.stateTimeout = setTimeout(() => {
         this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
       }, 500 * this.props.scale.screenHeight);
+    });
+  }
+
+  nextTrial () {
+    const level = this.state.level;
+    const trial = this.state.trial + 1;
+    const symbolOrder = gameUtil.symbols(level, trial);
+    this.food.sprite = gameUtil.foodSprite(level, trial);
+    this.setState({
+      level,
+      trial,
+      symbolOrder: symbolOrder,
+      selectionTiles: gameUtil.selectionTilesForTrial(level, trial),
     });
   }
 
@@ -151,18 +165,55 @@ class SymbolDigitCodingGame extends React.Component {
       this.setState({
         symbolOrder: showSymbols,
       }, () => {
-        setTimeout(() => {
+        this.stateTimeout = setTimeout(() => {
           this.foodFall(signInfo.signNumber);
         }, 120);
 
       });
     } else {
-      this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('DISGUST') });
+      this.setState({
+        monsterAnimationIndex: monsterSprite.animationIndex('DISGUST'),
+        resetTrial: true,
+      }, () => {
+        this.stateTimeout = setTimeout(() => {
+          this.nextTrial();
+        }, 500)
+      });
     }
   }
 
   onFoodTweenFinish () {
-    this.setState({ showFood: false });
+    this.setState({
+      showFood: false,
+    }, () => {
+      this.nextTrial();
+    });
+  }
+
+  cloudStyle () {
+    const width = 193 * 1.5 * this.props.scale.image;
+    const height =  135 * 1.5 * this.props.scale.image;
+    const top = this.monsterStartLocation().top - (height * 0.6);
+    const left = this.monsterStartLocation().left - (width * 0.45);
+
+    return {
+      width,
+      height,
+      top,
+      left,
+      position: 'absolute',
+    };
+  }
+
+  matrixStyle () {
+    const cloudStyle = this.cloudStyle();
+    return {
+      width: 200,
+      height: 100,
+      top: cloudStyle.top + 30 * this.props.scale.screenHeight,
+      left: cloudStyle.left + 40 * this.props.scale.screenWidth,
+      position: 'absolute',
+    };
   }
 
   render () {
@@ -199,6 +250,17 @@ class SymbolDigitCodingGame extends React.Component {
             onTweenFinish={() => this.onFoodTweenFinish()}
           />
         : null}
+
+        <Image source={require('../../sprites/thoughtBubble/thought_bubble.png')}
+          style={this.cloudStyle()}
+        />
+
+        <Matrix
+          styles={this.matrixStyle()}
+          tileScale={0.25}
+          tiles={this.state.selectionTiles}
+          scale={this.props.scale}
+        />
 
         <AnimatedSprite
           character={monsterSprite}

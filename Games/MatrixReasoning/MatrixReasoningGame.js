@@ -49,15 +49,9 @@ class MatrixReasoningGame extends React.Component {
     );
     this.setState({ dog });
   }
+
   componentWillMount () {
-    const level = 1;
-    const trial = 1;
-    this.setState({
-      level,
-      trial,
-      gameBoardTiles: gameTiles.gameBoardTilesForTrial(level, trial),
-      selectionTiles: gameTiles.selectionTilesForTrial(level, trial),
-    });
+    this.readyTrial(1, 1);
     this.loadCharacter();
   }
 
@@ -83,13 +77,30 @@ class MatrixReasoningGame extends React.Component {
     return {top, left};
   }
 
+  readyTrial (level, trial) {
+    this.setState({
+      level,
+      trial,
+      gameBoardTiles: gameTiles.gameBoardTilesForTrial(level, trial),
+      selectionTiles: gameTiles.selectionTilesForTrial(level, trial),
+    });
+  }
+
   gameCharacterAction (action) {
     let dog = _.cloneDeep(this.state.dog);
     dog.frameIndex = _.concat(
       dogSprite.animationIndex(action),
       dogSprite.animationIndex(action)
     );
-    this.setState({ dog });
+    this.setState(
+      {
+        dog,
+      }, () => {
+        this.readTrialTimeout = setTimeout(() => {
+          this.readyTrial(this.state.level, this.state.trial + 1);
+        }, 2000);
+    });
+
   }
 
   leverLocation (scale) {
@@ -130,6 +141,7 @@ class MatrixReasoningGame extends React.Component {
 
   componentWillUnmount () {
     clearInterval(this.matrixShifterInterval);
+    clearTimeout(this.readTrialTimeout);
   }
 
   render () {

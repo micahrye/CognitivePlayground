@@ -131,7 +131,9 @@ class Main extends React.Component {
     this.gameIcon.tweenOptions = this.makeZoomTween(startScale, endScale, 1000);
     this.setState({
       tweenCharacter: true,
-    }, () => {icon.startTween();});
+    }, () => {
+      icon.startTween();
+    });
   }
 
   goToGame = (gameId) => {
@@ -174,6 +176,7 @@ class Main extends React.Component {
         <AnimatedSprite
           ref={ref}
           character={gameIcon}
+          style={{opacity: 1}}
           key={index}
           characterUID={this.characterUIDs.gameIcon}
           animationFrameIndex={icon.frameIndex}

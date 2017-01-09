@@ -46,6 +46,7 @@ class Matrix extends React.Component {
 
   tilePress (tile, index) {
     console.log('tilePress');
+    if (!this.props.onPress) return;
     this.props.onPress(tile, index);
   }
 
@@ -63,6 +64,7 @@ class Matrix extends React.Component {
     const cards = _.map(this.props.tiles, (tile, index) => {
       if (!tile.active) return null;
       const uid = tile.uid ? tile.uid : randomstring({ length: 7 });
+      const tileScale = tile.scale ? tile.scale : this.props.tileScale;
       return (
         <AnimatedSprite
           character={tile.sprite}
@@ -71,7 +73,7 @@ class Matrix extends React.Component {
           animationFrameIndex={tile.sprite.animationIndex(tile.frameKey)}
           loopAnimation={false}
           coordinates={this.cardStartLocation(index, tile.sprite, this.props.tileScale)}
-          size={this.spriteSize(tile.sprite, this.props.tileScale)}
+          size={this.spriteSize(tile.sprite, tileScale)}
           draggable={false}
           onPress={() => this.tilePress(tile, index)}
           onPressIn={() => this.tilePressIn(tile, index)}
