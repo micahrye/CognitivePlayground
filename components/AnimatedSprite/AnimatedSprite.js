@@ -185,6 +185,7 @@ class AnimatedSprite extends React.Component {
   startTween () {
     const tweenOptions = this.props.tweenOptions;
     const tweenType = this.props.tweenOptions.tweenType;
+    
     Tweens[tweenType].start(tweenOptions,
       this.tweenablValues,
       () => this.tweenHasEnded(this.props.characterUID),

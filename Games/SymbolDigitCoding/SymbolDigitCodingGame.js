@@ -13,9 +13,15 @@ import styles from './styles';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import monsterSprite from '../../sprites/monster/monsterCharacter';
+
+import appleSprite from "../../sprites/apple/appleCharacter";
+import grassSprite from "../../sprites/grass/grassCharacter";
+import canSprite from "../../sprites/can/canCharacter";
+import bugSprite from '../../sprites/bug/bugCharacter';
+
 import symbolTable from '../../sprites/symbolTable/symbolTableCharacter';
-import signSprite from '../../sprites/sign/signCharacter';
 import Signs from './Signs';
+import gameUtil from './gameUtil';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -24,14 +30,82 @@ class SymbolDigitCodingGame extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-
+      level: 1,
+      trial: 1,
+      symbolOrder: [],
+      showFood: false,
+      monsterAnimationIndex: [0],
     };
     this.monsterScale = 1.5;
     this.tableScale = 1.3;
+    this.food = {
+      sprite : {},
+      tweenOptions: {},
+      coords: {},
+      size: {},
+      tweenOptions: {},
+    };
   }
 
-  componentWillMount () {}
+  componentWillMount () {
+    const level = 1;
+    const trial = 1;
+
+    this.food.sprite = gameUtil.foodSprite(level, trial);
+    this.food.coords = this.foodStartLocation(1);
+    this.food.tweenOptions = this.makeFoodTweenObject();
+    this.food.size = this.spriteSize(this.food.sprite, 1);
+
+    this.setState({
+      level,
+      trial,
+      tweenOptions: this.makeFoodTweenObject(),
+      symbolOrder: gameUtil.symbols(level, trial),
+    });
+  }
+
   componentDidMount () {}
+
+  monsterMouthLocation () {
+    const size = this.spriteSize(monsterSprite, this.monsterScale);
+    const loc = this.monsterStartLocation();
+    const top = loc.top + size.height * 0.4;
+    const left = loc.left + size.width * 0.5;
+    return {
+      top,
+      left,
+    };
+  }
+
+  makeFoodTweenObject () {
+    const mouthLocation = this.monsterMouthLocation();
+    return {
+      tweenType: "linear-move",
+      startXY: [this.food.coords.left, this.food.coords.top],
+      endXY: [mouthLocation.left, mouthLocation.top],
+      duration: 1000,
+      loop: false,
+    };
+  }
+
+  foodStartLocation (position) {
+    console.log(`food position = ${position}`);
+    const scaleWidth = this.props.scale.screenWidth;
+    const top = 100 * this.props.scale.screenHeight;
+    const baseLeft = 320;
+    switch (position) {
+      case 0:
+        return {top, left: baseLeft * scaleWidth};
+      case 1:
+        return {top, left: (baseLeft + 200) * scaleWidth};
+      case 2:
+        return {top, left: (baseLeft + 400) * scaleWidth};
+      case 3:
+        return {top, left: (baseLeft + 600) * scaleWidth};
+    }
+
+    return {top, left: baseLeft * this.props.scale.screenWidth};
+  }
 
   spriteSize (sprite, scale) {
     const scaleBy = scale * this.props.scale.image;
@@ -52,22 +126,44 @@ class SymbolDigitCodingGame extends React.Component {
     return {top, left};
   }
 
-  signStartLocation (position, scale) {
-    const top = 0; // -350 * scale.screenHeight;
-    const baseLeft = 280;
-    switch (position) {
-      case 1:
-        return {top, left: baseLeft * scale.screenWidth};
-      case 2:
-        return {top, left: (baseLeft + 200) * scale.screenWidth};
-      case 3:
-        return {top, left: (baseLeft + 400) * scale.screenWidth};
-      case 4:
-        return {top, left: (baseLeft + 600) * scale.screenWidth};
+  foodFall (item) {
+    this.food.coords = this.foodStartLocation(item);
+    this.setState({
+      showFood: true,
+      tweenOptions: this.makeFoodTweenObject(),
+      },
+    () => {
+      this.refs.food.startTween();
+      setTimeout(() => {
+        this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
+      }, 500 * this.props.scale.screenHeight);
+    });
+  }
+
+  signPressed (signInfo) {
+    const correctSymbol = gameUtil.correctSymbol(this.state.level, this.state.trial);
+    if (_.isEqual(correctSymbol, signInfo.symbol)) {
+      const symbolOrder = gameUtil.symbols(this.state.level, this.state.trial);
+      const showSymbols = _.map(symbolOrder, (symbol) => (
+        _.isEqual(correctSymbol, symbol) ? 'BLANK' : symbol
+      ));
+      // start food fall, monster eat and celebrate
+      this.setState({
+        symbolOrder: showSymbols,
+      }, () => {
+        setTimeout(() => {
+          this.foodFall(signInfo.signNumber);
+        }, 120);
+
+      });
+    } else {
+      this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('DISGUST') });
     }
   }
 
-  pressStub () {}
+  onFoodTweenFinish () {
+    this.setState({ showFood: false });
+  }
 
   render () {
     return (
@@ -76,20 +172,44 @@ class SymbolDigitCodingGame extends React.Component {
           style={{width: 1280 * this.props.scale.screenWidth,
           height: 800 * this.props.scale.screenHeight, flex: 1}}
         />
+        <View style={{
+            top: 0, left: 280,
+            width: 780 * this.props.scale.screenWidth,
+            height: 300 * this.props.scale.screenHeight,
+            position: 'absolute',
+          }}>
+
+          <Signs
+            symbolOrder={this.state.symbolOrder}
+            scale={this.props.scale}
+            onPress={(signInfo) => this.signPressed(signInfo)}
+          />
+        </View>
+
+        {this.state.showFood ?
+          <AnimatedSprite
+            character={this.food.sprite}
+            ref={'food'}
+            animationFrameIndex={[0]}
+            coordinates={this.food.coords}
+            size={this.food.size}
+            draggable={false}
+            tweenOptions={this.state.tweenOptions}
+            tweenStart={'fromCode'}
+            onTweenFinish={() => this.onFoodTweenFinish()}
+          />
+        : null}
 
         <AnimatedSprite
           character={monsterSprite}
-          characterUID={randomstring({ length: 7})}
-          animationFrameIndex={[0]}
+          characterUID={'sasdkfja'}
+          animationFrameIndex={this.state.monsterAnimationIndex}
           loopAnimation={false}
           tweenOptions={{}}
           tweenStart={'fromCode'}
           coordinates={this.monsterStartLocation()}
           size={this.spriteSize(monsterSprite, this.monsterScale)}
           rotate={[{rotateY:'180deg'}]}
-          onPress={() => this.pressStub()}
-          onPressIn={() => this.pressStub()}
-          onPressOut={() => this.pressStub()}
         />
 
         <AnimatedSprite
@@ -102,21 +222,7 @@ class SymbolDigitCodingGame extends React.Component {
           coordinates={this.tableLocation()}
           size={this.spriteSize(symbolTable, this.tableScale)}
           rotate={[{rotateY:'0deg'}]}
-          onPress={() => this.pressStub()}
-          onPressIn={() => this.pressStub()}
-          onPressOut={() => this.pressStub()}
         />
-
-        <View style={{
-            top: 0, left: 280,
-            width: 780 * this.props.scale.screenWidth,
-            height: 300 * this.props.scale.screenHeight,
-            position: 'absolute',
-          }}>
-        <Signs
-          scale={this.props.scale}
-        />
-    </View>
 
         <HomeButton
           route={this.props.route}

@@ -44,8 +44,7 @@ class UnlockFoodGame extends React.Component {
       beltAnimationIndex: [0],
       lightbulbAnimationIndex: [0],
       loadContent: false,
-      showFood: false,
-      matrixTiles: [true, true, true, true, true, true, true, true, true],
+      showFood: true,
       tiles: {},
       level: 1,
       trial: 1,
@@ -94,7 +93,18 @@ class UnlockFoodGame extends React.Component {
       tiles: gameTiles.gameBoardTilesForTrial(level, trial),
     });
 
-    this.foodSprite.coords = this.foodStartLocation(this.scale);
+    this.foodSprite.coords = this.foodStartLocation();
+    const beltCoords = this.conveyorBeltLocation();
+    const birdMouthLoc = this.birdMouthLocation();
+    this.foodSprite.tweenOptions = {
+      tweenType: 'sine-wave',
+      startXY: [this.foodSprite.coords.left, this.foodSprite.coords.top],
+      xTo: [beltCoords.left, birdMouthLoc.left],
+      yTo: [this.foodSprite.coords.top, birdMouthLoc.top],
+      duration: 1500,
+      loop: false,
+    };
+
   }
 
   componentDidMount () {
@@ -128,16 +138,6 @@ class UnlockFoodGame extends React.Component {
     return coords;
   }
 
-  // makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
-  //   return ({
-  //     tweenType: "linear-move",
-  //     startXY: [startXY[0], startXY[1]],
-  //     endXY: [endXY[0], endXY[1]],
-  //     duration:duration,
-  //     loop: false,
-  //   });
-  // }
-
   // birdFlyIntoScene () {
   //   const birdStartLoc = this.birdStartLocation();
   //   const birdEndLoc = this.birdEndLocation();
@@ -161,9 +161,9 @@ class UnlockFoodGame extends React.Component {
   birdMouthLocation () {
     const birdLoc = this.birdEndLocation();
     const birdSize = this.birdSize();
-    const x = birdLoc.left + birdSize.width/2;
-    const y = birdLoc.top + birdSize.height/2;
-    return [x, y];
+    const left = birdLoc.left + birdSize.width * 0.6;
+    const top = birdLoc.top + birdSize.height * 0.6;
+    return {top, left};
   }
 
   foodSize () {
@@ -185,27 +185,8 @@ class UnlockFoodGame extends React.Component {
     return {top, left};
   }
 
-  foodFall (startX, startY) {
-    console.log('foodFall');
-    this.setState({showFood: true});
-
-    clearInterval(this.eatInterval);
-    this.eatInterval = setInterval(() => {
-      this.setState({
-        birdAnimationIndex: birdSprite.animationIndex('EAT'),
-      }, () => {
-        this.celebrateTimeout = setTimeout(() => {
-          this.setState({
-            birdAnimationIndex: birdSprite.animationIndex('CELEBRATE'),
-          });
-        }, 600);
-      });
-      clearInterval(this.eatInterval);
-    }, 600);
-  }
-
   onFoodTweenFinish () {
-    console.log('onFoodTweenFinish');
+    this.foodSprite.coords = this.foodStartLocation();
     this.setState({
       showFood: false,
     });
@@ -231,6 +212,7 @@ class UnlockFoodGame extends React.Component {
     this.setState({
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
     });
+
   }
 
   leverPressOut () {
@@ -238,7 +220,6 @@ class UnlockFoodGame extends React.Component {
     console.log('leverPressOut');
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
     const tiles = gameTiles.gameBoardTilesForTrial(this.state.level, this.state.trial);
-    debugger;
     this.setState({
       tiles,
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
@@ -334,7 +315,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   birdSize () {
-    const scaleBird = 1.2;
+    const scaleBird = 1.9;
     return {
       width: birdSprite.size.width * scaleBird * this.scale.image,
       height: birdSprite.size.height * scaleBird * this.scale.image,
@@ -345,7 +326,7 @@ class UnlockFoodGame extends React.Component {
     const topOffset = 60 * this.scale.screenHeight;
     const birdHeight = this.birdSize().height;
     const top = SCREEN_HEIGHT - birdHeight - topOffset;
-    const left = 40 * this.scale.screenWidth;
+    const left = 20 * this.scale.screenWidth;
     return {top, left};
   }
 
@@ -358,8 +339,18 @@ class UnlockFoodGame extends React.Component {
   }
 
   characterCelebrateAndEat () {
+    this.refs.foodRef.startTween();
     const frameIndex = birdSprite.animationIndex('CELEBRATE');
-    this.setState({ birdAnimationIndex: frameIndex });
+    this.setState({
+      birdAnimationIndex: frameIndex,
+      showFood: true,
+    }, () => {
+      this.celebrateTimeout = setTimeout(() => {
+        this.setState({
+          birdAnimationIndex: birdSprite.animationIndex('EAT'),
+        });
+      }, 1300);
+    });
   }
 
   gameBoardTilePress (tile, index) {
@@ -401,6 +392,7 @@ class UnlockFoodGame extends React.Component {
 
   render () {
     console.log('RENDERING');
+    const fruitOpacity = this.state.showFood ? 1 : 0;
     return (
       <View style={styles.container}>
         <Image
@@ -422,7 +414,9 @@ class UnlockFoodGame extends React.Component {
               onPressOut={() => this.leverPressOut()}
             />
             <AnimatedSprite
+              style={{opacity: fruitOpacity}}
               character={foodSprite}
+              ref={'foodRef'}
               characterUID={this.characterUIDs.fruit}
               animationFrameIndex={foodSprite.animationIndex('IDLE')}
               tweenOptions = {this.foodSprite.tweenOptions}

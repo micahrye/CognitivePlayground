@@ -113,7 +113,7 @@ class Main extends React.Component {
       startScale = 0.01;
     }
     else if (endScale == 0) {
-      endScale == 0.1;
+      endScale == 0.01;
     }
     return ({
       tweenType: "scale",
