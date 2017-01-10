@@ -86,20 +86,16 @@ class UnlockFoodGame extends React.Component {
       beltAnimationIndex: beltSprite.animationIndex('ALL'),
     });
 
-    const level = 1; const trial = 1;
-    this.setState({
-      level,
-      trial,
-      tiles: gameTiles.gameBoardTilesForTrial(level, trial),
-    });
+    this.nextTrial(1, 1);
 
     this.foodSprite.coords = this.foodStartLocation();
     const beltCoords = this.conveyorBeltLocation();
     const birdMouthLoc = this.birdMouthLocation();
+    const pastBelt = 50 * this.props.scale.screenWidth;
     this.foodSprite.tweenOptions = {
       tweenType: 'sine-wave',
       startXY: [this.foodSprite.coords.left, this.foodSprite.coords.top],
-      xTo: [beltCoords.left, birdMouthLoc.left],
+      xTo: [beltCoords.left - pastBelt, birdMouthLoc.left],
       yTo: [this.foodSprite.coords.top, birdMouthLoc.top],
       duration: 1500,
       loop: false,
@@ -124,6 +120,14 @@ class UnlockFoodGame extends React.Component {
     clearInterval(this.matrixShifterInterval);
     clearTimeout(this.blinkTimeout);
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
+  }
+
+  nextTrial (level, trial) {
+    this.setState({
+      level,
+      trial,
+      tiles: gameTiles.gameBoardTilesForTrial(level, trial),
+    });
   }
 
   foodStartLocation () {
@@ -201,13 +205,11 @@ class UnlockFoodGame extends React.Component {
         this.setState({ tiles });
       }, (400 + 600 * index));
       this.blinkTimeoutArray.push(blinkTimeout);
-    })
+    });
   }
 
   leverPressIn () {
-    console.log('leverPressIn');
-    // MICAH
-    const blinkSeq = gameTiles.tileBlinkSequence(1, 1);
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
     this.blink(blinkSeq);
     this.setState({
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
@@ -217,7 +219,6 @@ class UnlockFoodGame extends React.Component {
 
   leverPressOut () {
     this.pressSequence = [];
-    console.log('leverPressOut');
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
     const tiles = gameTiles.gameBoardTilesForTrial(this.state.level, this.state.trial);
     this.setState({
@@ -338,6 +339,18 @@ class UnlockFoodGame extends React.Component {
     return {top, left};
   }
 
+  characterDisapointed () {
+    const frameIndex = _.concat(
+      birdSprite.animationIndex('DISGUST'),
+      birdSprite.animationIndex('DISGUST'),
+      birdSprite.animationIndex('DISGUST')
+    );
+    this.setState({
+      birdAnimationIndex: frameIndex,
+      showFood: false,
+    });
+  }
+
   characterCelebrateAndEat () {
     this.refs.foodRef.startTween();
     const frameIndex = birdSprite.animationIndex('CELEBRATE');
@@ -346,52 +359,41 @@ class UnlockFoodGame extends React.Component {
       showFood: true,
     }, () => {
       this.celebrateTimeout = setTimeout(() => {
+        this.nextTrial(this.state.level, this.state.trial + 1);
         this.setState({
           birdAnimationIndex: birdSprite.animationIndex('EAT'),
         });
-      }, 1300);
+      }, 1200 * this.props.scale.image);
     });
   }
 
   gameBoardTilePress (tile, index) {
-    console.log(`gameBoardTilePress tileInfo = ${index}`);
-    // tile press animation
-    this.pressSequence.push(index);
-    // test if sequence matched
-    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
-    const correct = _.every(blinkSeq, (seqNum, index) => {
-      return seqNum === this.pressSequence[index];
-    });
-    if (correct) {
-      console.log('WINNER WINNER');
-      this.characterCelebrateAndEat();
-    }
     const tiles = _.cloneDeep(this.state.tiles);
     tiles[index].frameKey = 'PRESSED';
     tiles[index].uid = randomstring({ length: 7 });
-    console.log('SET STATE');
     this.setState(
-      { tiles }, () => {
+      { tiles },
+      () => {
         this.btnTimeout = setTimeout(() => {
           const tiles = _.cloneDeep(this.state.tiles);
           tiles[index].frameKey = 'IDLE';
           tiles[index].uid = randomstring({ length: 7 });
-          console.log('SET STATE');
           this.setState({ tiles });
         }, 80);
-      });
-  }
-
-  gameBoardTilePressIn (tile, index) {
-    console.log(`onPressIn tileInfo = ${index}`);
-  }
-
-  gameBoardTilePressOut (tile, index) {
-    console.log(`onPressOut tileInfo = ${index}`);
+    });
+    this.pressSequence.push(index);
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
+    const correct = _.every(this.pressSequence, (seqNum, index) => {
+      return seqNum === blinkSeq[index];
+    });
+    if (correct && (this.pressSequence.length === blinkSeq.length)) {
+      this.characterCelebrateAndEat();
+    } else if (!correct) {
+      this.characterDisapointed();
+    }
   }
 
   render () {
-    console.log('RENDERING');
     const fruitOpacity = this.state.showFood ? 1 : 0;
     return (
       <View style={styles.container}>
@@ -472,8 +474,6 @@ class UnlockFoodGame extends React.Component {
               tiles={this.state.tiles}
               scale={this.props.scale}
               onPress={(tile, index) => this.gameBoardTilePress(tile, index)}
-              onPressIn={(tile, index) => this.gameBoardTilePressIn(tile, index)}
-              onPressOut={(tile, index) => this.gameBoardTilePressOut(tile, index)}
             />
             <HomeButton
               route={this.props.route}

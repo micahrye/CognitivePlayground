@@ -6,13 +6,8 @@ import {
 import _ from 'lodash';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
-import randomstring from 'random-string';
-
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
-import signSprite from '../../sprites/sign/signCharacter';
-
-const SCREEN_WIDTH = require('Dimensions').get('window').width;
-const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+import foodSignsCharacter from '../../sprites/foodSigns/foodSignsCharacter';
 
 class Signs extends React.Component {
   constructor (props) {
@@ -54,44 +49,44 @@ class Signs extends React.Component {
       <View>
         {this.props.symbolOrder[0] ?
           <AnimatedSprite
-            character={signSprite}
+            character={foodSignsCharacter}
             ref={'sign1'}
-            animationFrameIndex={signSprite.animationIndex(this.props.symbolOrder[0])}
+            animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[0])}
             coordinates={this.signStartLocation(0, this.props.scale)}
-            size={this.spriteSize(signSprite, 1)}
+            size={this.spriteSize(foodSignsCharacter, 1)}
             draggable={false}
             onPress={() => this.signOnPress({signNumber: 0, symbol: this.props.symbolOrder[0]})}
           />
         : null}
         {this.props.symbolOrder[1] ?
           <AnimatedSprite
-            character={signSprite}
+            character={foodSignsCharacter}
             ref={'sign2'}
-            animationFrameIndex={signSprite.animationIndex(this.props.symbolOrder[1])}
+            animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[1])}
             coordinates={this.signStartLocation(1, this.props.scale)}
-            size={this.spriteSize(signSprite, 1)}
+            size={this.spriteSize(foodSignsCharacter, 1)}
             draggable={false}
             onPress={() => this.signOnPress({signNumber: 1, symbol: this.props.symbolOrder[1]})}
           />
         : null}
         {this.props.symbolOrder[2] ?
           <AnimatedSprite
-            character={signSprite}
+            character={foodSignsCharacter}
             ref={'sign3'}
-            animationFrameIndex={signSprite.animationIndex(this.props.symbolOrder[2])}
+            animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[2])}
             coordinates={this.signStartLocation(2, this.props.scale)}
-            size={this.spriteSize(signSprite, 1)}
+            size={this.spriteSize(foodSignsCharacter, 1)}
             draggable={false}
             onPress={() => this.signOnPress({signNumber: 2, symbol: this.props.symbolOrder[2]})}
           />
         : null}
         {this.props.symbolOrder[3] ?
           <AnimatedSprite
-            character={signSprite}
+            character={foodSignsCharacter}
             ref={'sign4'}
-            animationFrameIndex={signSprite.animationIndex(this.props.symbolOrder[3])}
+            animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[3])}
             coordinates={this.signStartLocation(3, this.props.scale)}
-            size={this.spriteSize(signSprite, 1)}
+            size={this.spriteSize(foodSignsCharacter, 1)}
             draggable={false}
             onPress={() => this.signOnPress({signNumber: 3, symbol: this.props.symbolOrder[3]})}
           />

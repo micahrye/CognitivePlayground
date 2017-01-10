@@ -1,31 +1,18 @@
-"use strict";
+"use strict"
 
 const signCharacter = {
   name:"sign",
-  // size: {width: 188, height: 300},
-  size: {width: 188, height: 250},
-  animationTypes: ['BUG', 'CAN', 'FRUIT', 'GRASS', 'BLANK', 'ALL'],
+  size: {width: 188, height: 300},
+  animationTypes: ['IDLE', 'ALL'],
   all: [
-    require("./card_bug.png"),
-    require("./card_can.png"),
-    require("./card_fruit.png"),
-    require("./card_grass.png"),
-    require("./card_blank.png"),
+    require("./sign.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
-      case 'BUG':
+      case 'IDLE':
         return [0];
-      case 'CAN':
-        return [1];
-      case 'FRUIT':
-        return [2];
-      case 'GRASS':
-        return [3];
-      case 'BLANK':
-        return [4];
       case 'ALL':
-        return [0, 1, 2, 3, 4];
+        return [0];
     }
   },
 };

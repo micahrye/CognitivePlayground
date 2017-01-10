@@ -19,7 +19,7 @@ const birdCharacter = {
       case 'CELEBRATE':
         return [1, 2, 0, 1, 2, 0];
       case 'DISGUST':
-        return [3, 3, 0, 3, 3];
+        return [3, 3, 0];
       case 'EAT':
         return [4, 5, 4, 5, 0];
       case 'FLY':

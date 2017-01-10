@@ -16,9 +16,11 @@ function tileBlinkSequence (level, trialNumber) {
   if (level === 1) {
     switch (trialNumber) {
       case 1:
+        return seq = [1, 7, 4];
+      case 2:
         return seq = [1, 7, 4, 7 ,7, 4];
       default:
-        return seq = [1, 7, 4, 7 ,7, 4];
+        return seq = [1, 4, 7];
     }
   }
   return seq;
@@ -30,6 +32,10 @@ function gameBoardTilesForTrial (level, trialNumber) {
   if (level === 1) {
     switch (trialNumber) {
       case 1:
+        activeTiles = [false, true, false, false, true, false, false, true, false];
+        frameKeys = ['', 'IDLE', '', '', 'IDLE', '', '', 'IDLE', ''];
+        break;
+      case 2:
         activeTiles = [false, true, false, false, true, false, false, true, false];
         frameKeys = ['', 'IDLE', '', '', 'IDLE', '', '', 'IDLE', ''];
         break;
