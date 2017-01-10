@@ -119,6 +119,7 @@ class BugZapGame extends React.Component {
     this.setState({
       leverAnimationIndex: lever.animationIndex('SWITCH_ON'),
     });
+    //we don't want the lever to respond to input mid-trial
     if (!this.readyForInput) {
       return;
     }
