@@ -2,12 +2,13 @@
 import React from 'react';
 import {
   View,
+  Image,
   Dimensions,
 } from 'react-native';
 
 import _ from 'lodash';
 
-var reactMixin = require('react-mixin');
+import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 
@@ -71,25 +72,28 @@ class Main extends React.Component {
         frameIndex: [11],
       },
     ];
-    this.iconList = iconList;
-    this.characterUIDs ={};
-    this.setDefaultAnimationState;
+    this.iconList = _.shuffle(iconList);
+    this.iconAppearTimeout = [];
     this.gameIcon = {tweenOptions: {}};
     this.iconRefs = [];
   }
 
   componentWillMount () {
-    this.characterUIDs = {
-      gameIcon: randomstring({ length: 7 }),
-    };
+
   }
 
   componentDidMount () {
-    for (let i=0; i < this.iconList.length; i++) {
-      this.setDefaultAnimationState = setTimeout(() => {
-        this.tweenIconsOnStart(i);
-      }, 100 * i);
-    }
+    _.forEach(this.iconList, (icon, index) => {
+      const timeout = setTimeout(() => {
+        let iconRef = this.refs[this.iconRefs[index]];
+        iconRef.startTween();
+      }, 100 * index);
+      this.iconAppearTimeout.push(timeout);
+    });
+  }
+
+  componentWillUnmount () {
+    _.forEach(this.iconAppearTimeout, timeout => clearTimeout(timeout));
   }
 
   startSize () {
@@ -116,28 +120,16 @@ class Main extends React.Component {
       endScale == 0.01;
     }
     return ({
-      tweenType: "scale",
+      tweenType: "zoom-into-existence",
       startScale: startScale,
+      startOpacity: 0,
       endScale: endScale,
       duration: duration,
       loop: false,
     });
   }
 
-  tweenIconsOnStart (index) {
-    let icon = this.refs[this.iconRefs[index]];
-    const startScale = icon.props.scale;
-    const endScale = 1;
-    this.gameIcon.tweenOptions = this.makeZoomTween(startScale, endScale, 1000);
-    this.setState({
-      tweenCharacter: true,
-    }, () => {
-      icon.startTween();
-    });
-  }
-
   goToGame = (gameId) => {
-    //console.warn('goToGame : ', gameId);
     this.props.navigator.replace({id: gameId});
   }
 
@@ -168,7 +160,6 @@ class Main extends React.Component {
   }
 
   render () {
-
     const icons = _.map(this.iconList, (icon, index) => {
       const ref = ("gameRef" + index);
       this.iconRefs.push(ref);
@@ -176,23 +167,31 @@ class Main extends React.Component {
         <AnimatedSprite
           ref={ref}
           character={gameIcon}
-          style={{opacity: 1}}
           key={index}
-          characterUID={this.characterUIDs.gameIcon}
           animationFrameIndex={icon.frameIndex}
-          tweenOptions = {this.gameIcon.tweenOptions}
+          tweenOptions = {this.makeZoomTween(0.01, 1, 1000)}
           tweenStart={'fromCode'}
           loopAnimation={false}
           size={this.startSize()}
           scale={0.01}
+          opacity={0}
           coordinates={{top:icon.location.top, left: icon.location.left}}
           onPress={() => this.launchGame(icon.name)}
         />
       );
     });
-    this.iconRefs.push('testRef');
+
     return (
       <View style={{backgroundColor: '#738599', flex: 1}} >
+        <Image
+          source={require('./media/backgrounds/back01.jpg')}
+          style={{
+            flex: 1,
+            opacity: 0.3,
+            width: screenWidth,
+            height: screenHeight,
+          }}
+        />
         {icons}
       </View>
     );
