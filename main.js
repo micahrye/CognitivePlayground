@@ -169,11 +169,11 @@ class Main extends React.Component {
           character={gameIcon}
           key={index}
           animationFrameIndex={icon.frameIndex}
-          tweenOptions = {this.makeZoomTween(0.01, 1, 1000)}
+          tweenOptions = {this.makeZoomTween(0.1, 1, 1000)}
           tweenStart={'fromCode'}
           loopAnimation={false}
           size={this.startSize()}
-          scale={0.01}
+          scale={0.1}
           opacity={0}
           coordinates={{top:icon.location.top, left: icon.location.left}}
           onPress={() => this.launchGame(icon.name)}
