@@ -52,13 +52,15 @@ class BugZapGame extends React.Component {
     this.characterDirection = 'right';
     this.activeFrogColor = blueFrogCharacter;
     this.trialNumber = 1;
+    this.validTrial =true;
+    this.trialStarted = false;
     this.directionMaySwitch = false;
     this.fps = 8;
     this.showOtherBugSign = false;
     this.whichBug = ' ';
     this.retractingSign = false;
     this.frogLanded = false;
-    this.frogAppeared = false;
+    this.bugAppeared = false;
     this.givenTime = 3500; // given this many seconds on timed trials to start with
     this.blackout = false;
     this.readyForInput = false;
@@ -84,6 +86,8 @@ class BugZapGame extends React.Component {
   componentWillMount () {
     let directionMaySwitch = false;
     if (this.props.route.trialNumber != undefined) {
+      this.trialNumber = this.props.route.trialNumber + 1;
+      this.validTrial = true;
       if (this.trialNumber > LEVEL_ONBOARD) {
         // now two bug choices
         directionMaySwitch = true;
@@ -126,7 +130,9 @@ class BugZapGame extends React.Component {
     });
     //we don't want the lever to respond to input mid-trial
     if (this.readyForInput) {
+      this.validTrial = true;
       this.leverInterval = setTimeout (() => {
+        this.trialStarted = true;
         if (this.trialNumber > LEVEL_TIMED) {
           this.lightbulbDrop();
         }
@@ -138,33 +144,40 @@ class BugZapGame extends React.Component {
 
   leverPressOut () {
     clearTimeout(this.leverInterval); //clear if fingerUp before timer complete
-    this.readyForInput = false;
+    if (this.trialStarted) {this.readyForInput = false;}
     this.setState({
       leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
     });
     //TODO: interrupt code flow if leverPressOut too early
-    if (!this.frogAppeared) {
-      /*this.setState({
-        leftSignTweenOptions: {},
-        rightSignTweenOptions: {},
-        characterTweenOptions: {},
-        lightbulbTweenOptions: {},
-        showBugLeft: false,
-        showBugRight: false,
-      });*/
-      this.finishCurrentTrial();
+    if (this.trialStarted && !this.bugAppeared) {
+      this.validTrial = false;
+      this.retractBothSigns();
+      if (this.trialNumber > LEVEL_TIMED) {
+        this.lightbulbUp();
+      }
     }
     else {
-      this.frogAppeared = false;
+      this.bugAppeared = false;
+    }
+  }
+
+  resetTrialSettings () {
+    this.readyForInput = true;
+    this.retractingSign = false;
+    this.showBugLeft = false;
+    this.showBugRight = false;
+    this.trialStarted = false;
+    if (this.bugAppeared) {
+      this.characterHopOff();
     }
   }
 
   signDown () {
     let signTweenOptions = {
       tweenType: "bounce-drop",
-      startY: -300,
+      startY: this.signYStart,
       endY: -10 * this.props.scale.screenHeight,
-      duration: 2000,
+      duration: 1500,
       repeatable: false,
       loop: false,
     };
@@ -254,17 +267,19 @@ class BugZapGame extends React.Component {
   }
 
   characterHopOn () {
-    this.setState({
-      characterKey: Math.random(),
-      characterTweenOptions: {
-        tweenType: "linear-move",
-        startXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
-        endXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
-        duration: 100,
-        loop: false,
-      },
-    });
-    this.frogAppeared = true;
+    if (this.validTrial) {
+      this.setState({
+        characterKey: Math.random(),
+        characterTweenOptions: {
+          tweenType: "linear-move",
+          startXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
+          endXY: [this.characterPosX, 300 * this.props.scale.screenHeight],
+          duration: 100,
+          loop: false,
+        },
+      });
+      this.bugAppeared = true;
+    }
   }
 
   characterHopOff () {
@@ -279,13 +294,19 @@ class BugZapGame extends React.Component {
         loop: false,
       },
     });
-    this.goToNextTrial();
+    if (this.validTrial) {
+      this.goToNextTrial();
+    }
   }
 
 
   // level 2 has timeouts
   bugTapTimeout () {
     this.characterDissapear = setTimeout (() => {
+      this.setState ({
+        showBugLeft: false,
+        showBugRight: false,
+      });
       this.startSplash();
       this.characterHopOff();
     }, this.givenTime);
@@ -306,22 +327,28 @@ class BugZapGame extends React.Component {
         break;
       // if signs are dropping down, not going back up
       case 'signLeft':
-        if (!this.retractingSign && !this.blackout) {
+        if (!this.retractingSign && !this.blackout && this.validTrial) {
           this.setState({
             showBugLeft: true,
           });
         }
         break;
       case 'signRight':
-        if (!this.retractingSign && !this.blackout) {
+        if (!this.retractingSign && !this.blackout && this.validTrial) {
           this.startRipple();
           this.setState({
             showBugRight: true,
           });
+          this.bugAppeared = true;
+        }
+        else if (!this.validTrial && this.retractingSign) {
+          this.resetTrialSettings();
         }
         break;
       case 'lightbulb':
-        this.lightbulbOff();
+        if (this.validTrial) {
+          this.lightbulbOff();
+        }
         break;
     }
   }
@@ -358,7 +385,8 @@ class BugZapGame extends React.Component {
     }
   }
 
-  finishCurrentTrial () {
+  goToNextTrial () {
+    this.readyForInput =false;
     this.nextTrialTimeout = setTimeout (() => {
       this.props.navigator.replace({
         id: 'BugZapGame',
@@ -366,10 +394,6 @@ class BugZapGame extends React.Component {
         givenTime: this.givenTime,
       });
     }, 500);
-  }
-  goToNextTrial () {
-    this.trialNumber = this.props.route.trialNumber + 1;
-    this.finishCurrentTrial();
   }
 
   onBugPress (whichBug) {
@@ -385,6 +409,41 @@ class BugZapGame extends React.Component {
     if (this.frogLanded) {
       this.whichBugTapped();
     }
+  }
+
+  retractBothSigns () {
+    const startRight = SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
+    const startLeft = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
+    let leftSignTweenOptions = {};
+    const rightSignTweenOptions = {
+      tweenType: 'linear-move',
+      startXY: [startRight, -10 * this.props.scale.screenHeight],
+      endXY: [startRight, this.signYStart],
+      duration: 1000,
+      loop: false,
+    };
+    if (this.showOtherBugSign) {
+       leftSignTweenOptions = {
+        tweenType: 'linear-move',
+        startXY: [startLeft, this.props.scale.screenHeight],
+        endXY: [startLeft, this.signYStart],
+        duration: 1000,
+        loop: false,
+      };
+    }
+
+    this.setState({
+        rightSignTweenOptions: rightSignTweenOptions,
+        showBugRight: false,
+        leftSignTweenOptions: leftSignTweenOptions,
+        showBugLeft: false,
+    }, () => {
+        if (this.showOtherBugSign) {
+          this.refs.signLeftRef.startTween();
+        }
+        this.refs.signRightRef.startTween();
+        this.retractingSign = true;
+      });
   }
 
   retractOtherSign () {
@@ -481,8 +540,22 @@ class BugZapGame extends React.Component {
     }, () => {this.refs.lightbulbRef.startTween();});
   }
 
+  lightbulbUp () {
+    this.setState({
+      lightbulbTweenOptions: {
+        tweenType: "linear-move",
+        startXY: [SCREEN_WIDTH/2 - (50 * this.props.scale.screenWidth), -10 * this.props.scale.screenHeight],
+        endXY: [SCREEN_WIDTH/2 - (50 * this.props.scale.screenWidth), -300],
+        duration: 1000,
+        repeatable: false,
+        loop: false,
+      },
+    }, () => {this.refs.lightbulbRef.startTween();});
+  }
+
   // turns lightbulb off and sets blackout
   lightbulbOff () {
+    this.bugAppeared = true;
     this.lightbulbOff = setTimeout(() => {
       this.setState({
         lightbulbAnimationIndex: lightbulbCharacter.animationIndex('OFF'),
