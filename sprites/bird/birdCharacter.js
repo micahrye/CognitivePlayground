@@ -1,6 +1,6 @@
 const birdCharacter = {
   name: "bird",
-  size: {width: 250, height: 250},
+  size: {width: 180, height: 164},
   animationTypes: ['IDLE', 'ALL', 'CELEBRATE', 'EAT', 'FLY', 'DISGUST'],
   all:[
     require ("./bird_idle.png"),
@@ -17,15 +17,15 @@ const birdCharacter = {
       case 'IDLE':
         return [0];
       case 'CELEBRATE':
-        return [1, 2, 0, 1, 2];
+        return [1, 2, 0, 1, 2, 0];
       case 'DISGUST':
-        return [3, 3, 0, 3, 3];
+        return [3, 3, 0];
       case 'EAT':
         return [4, 5, 4, 5, 0];
       case 'FLY':
         return [6, 7];
       case 'ALL':
-        return [0, 1, 2, 3, 4, 5, 6, 7];
+        return [0, 1, 2, 3, 4, 5, 6, 7, 0];
     }
   },
 };

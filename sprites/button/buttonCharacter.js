@@ -1,7 +1,9 @@
+import _ from 'lodash';
+
 const buttonCharacter = {
   name: "button",
   size: {width: 129, height: 129},
-  animationTypes: ['IDLE', 'PRESSED', 'LIT', 'ALL'],
+  animationTypes: ['IDLE', 'PRESSED', 'LIT', 'BLINK', 'ALL'],
   all:[
     require ("./button_neutral.png"),
     require ("./button_lit.png"),
@@ -17,6 +19,14 @@ const buttonCharacter = {
         return [2];
       case 'ALL':
         return [0,1,2];
+      default:
+        if (_.includes(animationType, 'BLINK_')) {
+          const parts = _.split(animationType, '_');
+          const seqNum = Number(_.last(parts));
+          const seq = _.concat(_.fill(Array(4 * seqNum), 0), [0, 1, 1, 0]);
+          return seq;
+        }
+        return [0];
     }
   },
 };

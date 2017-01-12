@@ -20,7 +20,7 @@ const hookCardCharacter = {
       case 'DIMOND':
         return [3];
       case 'SQUARE':
-        return [3];
+        return [2];
       case 'CIRCLE':
         return [4];
       case 'ALL':

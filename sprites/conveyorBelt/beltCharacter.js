@@ -9,11 +9,11 @@ const beltCharacter = {
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'RUN':
-        return [0,1];
+        return [0, 1];
       case 'IDLE':
         return [0];
       case 'ALL':
-        return [0,1];
+        return [0, 1];
     }
   },
 };

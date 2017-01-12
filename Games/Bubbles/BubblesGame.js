@@ -396,7 +396,7 @@ class BubblesGame extends React.Component {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
     const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
-    const top = SCREEN_HEIGHT - foutainSize.height * 1.05;
+    const top = SCREEN_HEIGHT - foutainSize.height * 1.1;
 
     return {top, left};
   }
