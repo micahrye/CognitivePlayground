@@ -137,7 +137,7 @@ class SymbolDigitCodingGame extends React.Component {
       this.refs.food.startTween();
       this.stateTimeout = setTimeout(() => {
         this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
-      }, 500 * this.props.scale.screenHeight);
+      }, 500);
     });
   }
 
@@ -167,7 +167,7 @@ class SymbolDigitCodingGame extends React.Component {
       }, () => {
         this.stateTimeout = setTimeout(() => {
           this.foodFall(signInfo.signNumber);
-        }, 120);
+        }, 120 * this.props.scale.screenHeight);
 
       });
     } else {
@@ -177,7 +177,7 @@ class SymbolDigitCodingGame extends React.Component {
       }, () => {
         this.stateTimeout = setTimeout(() => {
           this.nextTrial();
-        }, 500)
+        }, 500 * this.props.scale.screenHeight)
       });
     }
   }
@@ -224,9 +224,10 @@ class SymbolDigitCodingGame extends React.Component {
           height: 800 * this.props.scale.screenHeight, flex: 1}}
         />
         <View style={{
-            top: 0, left: 280,
-            width: 780 * this.props.scale.screenWidth,
-            height: 300 * this.props.scale.screenHeight,
+            top: 0 * this.props.scale.screenHeight,
+            left: 280 * this.props.scale.screenWidth,
+            width: 780 * this.props.scale.image,
+            height: 300 * this.props.scale.image,
             position: 'absolute',
           }}>
 

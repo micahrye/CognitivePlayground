@@ -34,6 +34,7 @@ class Main extends React.Component {
       screenHeight: scaleHeight,
       image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
     };
+
     const iconList = [
       {
         name: 'BUBBLE',
@@ -72,6 +73,7 @@ class Main extends React.Component {
         frameIndex: [11],
       },
     ];
+
     this.iconList = _.shuffle(iconList);
     this.iconAppearTimeout = [];
     this.gameIcon = {tweenOptions: {}};

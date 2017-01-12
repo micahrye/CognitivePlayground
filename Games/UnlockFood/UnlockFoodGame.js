@@ -363,7 +363,7 @@ class UnlockFoodGame extends React.Component {
         this.setState({
           birdAnimationIndex: birdSprite.animationIndex('EAT'),
         });
-      }, 1200 * this.props.scale.image);
+      }, 1200 );
     });
   }
 
