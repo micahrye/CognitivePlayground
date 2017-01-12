@@ -1,8 +1,6 @@
 import React from 'react';
 import {
   Image,
-  TouchableOpacity,
-  Dimensions,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -311,7 +309,7 @@ class BubblesGame extends React.Component {
     this.food = this.getFoodSprite(this.targetBubble.name, startX, startY);
     this.setState({showFood: true});
 
-    clearInterval(this.eatInterval)
+    clearInterval (this.eatInterval);
     this.eatInterval = setInterval(() => {
       this.setState({
         monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
@@ -397,7 +395,6 @@ class BubblesGame extends React.Component {
   leverLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
-    const leverSize = this.leverSize();
     const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
     const top = SCREEN_HEIGHT - foutainSize.height * 1.1;
 
