@@ -7,7 +7,7 @@ const signCharacter = {
   all: [
     require("./sign.png"),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];

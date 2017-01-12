@@ -144,18 +144,31 @@ const linearMove = {
   },
 };
 
-const scale = {
-  name: 'scale',
+const zoomIntoExistence = {
+  name: 'zoom-into-existence',
   start: function startTween (options, componentValues, onTweenFinish) {
     componentValues.scale.setValue(options.startScale);
-      Animated.timing(
-        componentValues.scale,
-        {
-          toValue: options.endScale,
-          easing: Easing.linear,
-          duration: options.duration,
-        }
-      ).start(() => {
+    componentValues.opacity.setValue(options.startOpacity);
+    Animated.parallel(
+      [
+        Animated.timing(
+          componentValues.scale,
+          {
+            toValue: options.endScale,
+            easing: Easing.bounce,
+            duration: options.duration,
+          }
+        ),
+        Animated.timing(
+          componentValues.opacity,
+          {
+            toValue: 1,
+            easing: Easing.linear,
+            duration: 500,
+          }
+        ),
+      ]
+    ).start(() => {
       if (options.loop === false) {
        onTweenFinish();
      } else {
@@ -757,7 +770,7 @@ const curveFall = {
 
 const Tweens = {
   [bounce.name]: bounce,
-  [scale.name]: scale,
+  [zoomIntoExistence.name]: zoomIntoExistence,
   [pulse.name]: pulse,
   [linearMove.name]: linearMove,
   [sineWave.name]: sineWave,
