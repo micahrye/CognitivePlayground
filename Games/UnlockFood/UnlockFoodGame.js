@@ -4,6 +4,7 @@ import {
   Image,
 } from 'react-native';
 
+import _ from 'lodash';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
@@ -13,13 +14,15 @@ import HomeButton from '../../components/HomeButton/HomeButton';
 
 import leverSprite from '../../sprites/lever/leverCharacter';
 import birdSprite from "../../sprites/bird/birdCharacter";
-import appleSprite from "../../sprites/apple/appleCharacter";
+import foodSprite from "../../sprites/apple/appleCharacter";
 import foodMachineSprite from "../../sprites/foodMachine/foodMachineCharacter";
 import beltSprite from "../../sprites/conveyorBelt/beltCharacter";
 import ledSprite from "../../sprites/led/ledCharacter";
 import buttonSprite from "../../sprites/button/buttonCharacter";
 import arrowSprite from "../../sprites/arrow/arrowCharacter";
-import lightbulbSprite from "../../sprites/lightbulb/lightbulbCharacter";
+
+import Matrix from '../../components/Matrix';
+import gameTiles from './gameTiles';
 
 import styles from "./styles";
 
@@ -41,13 +44,24 @@ class UnlockFoodGame extends React.Component {
       beltAnimationIndex: [0],
       lightbulbAnimationIndex: [0],
       loadContent: false,
-      showFood: false,
+      showFood: true,
+      tiles: {},
+      level: 1,
+      trial: 1,
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
     this.setDefaultAnimationState;
     this.bird = {tweenOptions: {}};
-    this.appleSprite = {tweenOptions: {}};
+    this.foodSprite = {
+      tweenOptions: {},
+      coords: {top: 0, left: 0},
+    };
+
+    this.pressSequence = [];
+    this.btnTimeout;
+    this.blinkTimeout;
+    this.blinkTimeoutArray = [];
   }
 
   componentWillMount () {
@@ -62,6 +76,7 @@ class UnlockFoodGame extends React.Component {
       lightbulb: randomstring({ length: 7 }),
       bird: randomstring({ length: 7 }),
     };
+
     this.setState({
       buttonAnimationIndex: buttonSprite.animationIndex('ALL'),
       birdAnimationIndex: birdSprite.animationIndex('ALL'),
@@ -70,11 +85,22 @@ class UnlockFoodGame extends React.Component {
       ledAnimationIndex: ledSprite.animationIndex('ALL'),
       beltAnimationIndex: beltSprite.animationIndex('ALL'),
     });
-    this.setDefaultAnimationState = setTimeout(() =>{
-      this.setState({
-        birdAnimationIndex: birdSprite.animationIndex('FLY'),
-      }, ()=>{this.birdFlyIntoScene();});
-    }, 1500);
+
+    this.nextTrial(1, 1);
+
+    this.foodSprite.coords = this.foodStartLocation();
+    const beltCoords = this.conveyorBeltLocation();
+    const birdMouthLoc = this.birdMouthLocation();
+    const pastBelt = 50 * this.props.scale.screenWidth;
+    this.foodSprite.tweenOptions = {
+      tweenType: 'sine-wave',
+      startXY: [this.foodSprite.coords.left, this.foodSprite.coords.top],
+      xTo: [beltCoords.left - pastBelt, birdMouthLoc.left],
+      yTo: [this.foodSprite.coords.top, birdMouthLoc.top],
+      duration: 1500,
+      loop: false,
+    };
+
   }
 
   componentDidMount () {
@@ -86,100 +112,117 @@ class UnlockFoodGame extends React.Component {
   }
 
   componentWillUnmount () {
-    clearInterval (this.eatInterval);
-    clearTimeout (this.timeoutGameOver);
-    clearTimeout (this.celebrateTimeout);
-    clearTimeout (this.setDefaultAnimationState);
+    clearInterval(this.eatInterval);
+    clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.celebrateTimeout);
+    clearTimeout(this.setDefaultAnimationState);
+    clearTimeout(this.btnTimeout);
+    clearInterval(this.matrixShifterInterval);
+    clearTimeout(this.blinkTimeout);
+    _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
   }
 
-  makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
-    return ({
-      tweenType: "linear-move",
-      startXY: [startXY[0], startXY[1]],
-      endXY: [endXY[0], endXY[1]],
-      duration:duration,
-      loop: false,
+  nextTrial (level, trial) {
+    this.setState({
+      level,
+      trial,
+      tiles: gameTiles.gameBoardTilesForTrial(level, trial),
     });
   }
 
-  birdFlyIntoScene () {
-    const birdStartLoc = this.birdStartLocation();
-    const birdEndLoc = this.birdEndLocation();
-    const startXY = [birdStartLoc.left, birdStartLoc.top];
-    const endXY = [birdEndLoc.left, birdEndLoc.top];
-    this.bird.tweenOptions = this.makeMoveTween(startXY, endXY);
-    this.bird.loopAnimation = true;
-    // BUG: need to look into bug
-    // this.setState({
-    //   birdAnimationIndex: birdSprite.animationIndex('FLY'),
-    //   tweenCharacter: true,
-    // }, ()=> {this.refs.birdRef.startTween();});
+  foodStartLocation () {
+    // machine location - machine size
+    const beltCoords = this.conveyorBeltLocation();
+    const beltSize = this.conveyorBeltSize();
+    const foodSize = this.foodSize();
+    const coords = {
+      top: beltCoords.top - foodSize.height,
+      left: beltCoords.left + beltSize.width,
+    };
+    return coords;
   }
 
-  onCharacterTweenFinish () {
-    this.bird.loopAnimation = false;
-    this.setState({birdAnimationIndex: birdSprite.animationIndex('IDLE')});
-  }
+  // birdFlyIntoScene () {
+  //   const birdStartLoc = this.birdStartLocation();
+  //   const birdEndLoc = this.birdEndLocation();
+  //   const startXY = [birdStartLoc.left, birdStartLoc.top];
+  //   const endXY = [birdEndLoc.left, birdEndLoc.top];
+  //   this.bird.tweenOptions = this.makeMoveTween(startXY, endXY);
+  //   this.bird.loopAnimation = true;
+  //   // BUG: need to look into bug
+  //   // this.setState({
+  //   //   birdAnimationIndex: birdSprite.animationIndex('FLY'),
+  //   //   tweenCharacter: true,
+  //   // }, ()=> {this.refs.birdRef.startTween();});
+  // }
+
+  // onCharacterTweenFinish () {
+  //   console.log('onCharacterTweenFinish');
+  //   this.bird.loopAnimation = false;
+  //   this.setState({birdAnimationIndex: birdSprite.animationIndex('IDLE')});
+  // }
 
   birdMouthLocation () {
     const birdLoc = this.birdEndLocation();
     const birdSize = this.birdSize();
-    const x = birdLoc.left + birdSize.width/2;
-    const y = birdLoc.top + birdSize.height/2;
-    return [x, y];
+    const left = birdLoc.left + birdSize.width * 0.6;
+    const top = birdLoc.top + birdSize.height * 0.6;
+    return {top, left};
   }
 
   foodSize () {
     // scale to 120 x 120 or closest.
     const scale = 1;
     return ({
-        width: appleSprite.size.width * scale * this.scale.image,
-        height: appleSprite.size.height * scale * this.scale.image,
+        width: foodSprite.size.width * scale * this.scale.image,
+        height: foodSprite.size.height * scale * this.scale.image,
       }
     );
   }
 
-  foodBeltEndLocation () {
-    const beltLocation = this.beltLocation();
-    const beltSize = this.beltSize();
+  conveyorBeltEndLocation () {
+    const beltLocation = this.conveyorBeltLocation();
+    const beltSize = this.conveyorBeltSize();
     const foodSize = this.foodSize();
     const left = beltLocation.left-(foodSize.width/2);
     const top = beltLocation.top - (beltSize.height * 1.42);
     return {top, left};
   }
 
-  foodFall (startX, startY) {
-    this.setState({showFood: true});
-
-    clearInterval(this.eatInterval);
-    this.eatInterval = setInterval(() => {
-      this.setState({
-        birdAnimationIndex: birdSprite.animationIndex('EAT'),
-      }, () => {
-        this.celebrateTimeout = setTimeout(() => {
-          this.setState({
-            birdAnimationIndex: birdSprite.animationIndex('CELEBRATE'),
-          });
-        }, 600);
-      });
-      clearInterval(this.eatInterval);
-    }, 600);
-  }
-
   onFoodTweenFinish () {
+    this.foodSprite.coords = this.foodStartLocation();
     this.setState({
       showFood: false,
     });
   }
 
-  leverPressIn () {
-      this.setState({
-        leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
+  blink (blinkSeq) {
+    _.forEach(blinkSeq, (blinkIndex, index) => {
+      const blinkTimeout = setTimeout(()=> {
+        const tiles = _.cloneDeep(this.state.tiles);
+        _.forEach(tiles, tile => tile.frameKey = 'IDLE');
+        tiles[blinkIndex].frameKey = 'BLINK_0';
+        this.setState({ tiles });
+      }, (400 + 600 * index));
+      this.blinkTimeoutArray.push(blinkTimeout);
     });
   }
 
-  leverPressOut () {
+  leverPressIn () {
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
+    this.blink(blinkSeq);
     this.setState({
+      leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
+    });
+
+  }
+
+  leverPressOut () {
+    this.pressSequence = [];
+    _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
+    const tiles = gameTiles.gameBoardTilesForTrial(this.state.level, this.state.trial);
+    this.setState({
+      tiles,
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
     });
   }
@@ -211,7 +254,6 @@ class UnlockFoodGame extends React.Component {
 
   machineLocation () {
     //placement for food machine
-    console.log('machineLocation');
     const machineSize = this.machineSize();
     const leverSize = this.leverSize();
     const leftOffset = 20 * this.scale.screenWidth;
@@ -220,7 +262,7 @@ class UnlockFoodGame extends React.Component {
     return ({top, left});
   }
 
-  beltSize () {
+  conveyorBeltSize () {
     const scaleBelt = 1;
     return ({
       width: beltSprite.size.width * scaleBelt * this.scale.image,
@@ -228,7 +270,7 @@ class UnlockFoodGame extends React.Component {
     });
   }
 
-  beltLocation () {
+  conveyorBeltLocation () {
     const locationMachine = this.machineLocation();
     const machineSize = this.machineSize();
     const leftOffset = 283 * this.scale.screenWidth;
@@ -274,7 +316,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   birdSize () {
-    const scaleBird = 1.2;
+    const scaleBird = 1.9;
     return {
       width: birdSprite.size.width * scaleBird * this.scale.image,
       height: birdSprite.size.height * scaleBird * this.scale.image,
@@ -285,7 +327,7 @@ class UnlockFoodGame extends React.Component {
     const topOffset = 60 * this.scale.screenHeight;
     const birdHeight = this.birdSize().height;
     const top = SCREEN_HEIGHT - birdHeight - topOffset;
-    const left = 40 * this.scale.screenWidth;
+    const left = 20 * this.scale.screenWidth;
     return {top, left};
   }
 
@@ -297,38 +339,95 @@ class UnlockFoodGame extends React.Component {
     return {top, left};
   }
 
+  characterDisapointed () {
+    const frameIndex = _.concat(
+      birdSprite.animationIndex('DISGUST'),
+      birdSprite.animationIndex('DISGUST'),
+      birdSprite.animationIndex('DISGUST')
+    );
+    this.setState({
+      birdAnimationIndex: frameIndex,
+      showFood: false,
+    });
+  }
+
+  characterCelebrateAndEat () {
+    this.refs.foodRef.startTween();
+    const frameIndex = birdSprite.animationIndex('CELEBRATE');
+    this.setState({
+      birdAnimationIndex: frameIndex,
+      showFood: true,
+    }, () => {
+      this.celebrateTimeout = setTimeout(() => {
+        this.nextTrial(this.state.level, this.state.trial + 1);
+        this.setState({
+          birdAnimationIndex: birdSprite.animationIndex('EAT'),
+        });
+      }, 1200 );
+    });
+  }
+
+  gameBoardTilePress (tile, index) {
+    const tiles = _.cloneDeep(this.state.tiles);
+    tiles[index].frameKey = 'PRESSED';
+    tiles[index].uid = randomstring({ length: 7 });
+    this.setState(
+      { tiles },
+      () => {
+        this.btnTimeout = setTimeout(() => {
+          const tiles = _.cloneDeep(this.state.tiles);
+          tiles[index].frameKey = 'IDLE';
+          tiles[index].uid = randomstring({ length: 7 });
+          this.setState({ tiles });
+        }, 80);
+    });
+    this.pressSequence.push(index);
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
+    const correct = _.every(this.pressSequence, (seqNum, index) => {
+      return seqNum === blinkSeq[index];
+    });
+    if (correct && (this.pressSequence.length === blinkSeq.length)) {
+      this.characterCelebrateAndEat();
+    } else if (!correct) {
+      this.characterDisapointed();
+    }
+  }
+
   render () {
+    const fruitOpacity = this.state.showFood ? 1 : 0;
     return (
       <View style={styles.container}>
         <Image
-          source={require('../../media/backgrounds/Game_3_Background_1280.png')}
+          source={require('../../media/backgrounds/Game_6_Background_1280.png')}
           style={{
             flex: 1,
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
           }}>
-              <AnimatedSprite
-                character= {leverSprite}
-                characterUID={this.characterUIDs.lever}
-                animationFrameIndex={this.state.leverAnimationIndex}
-                loopAnimation={false}
-                coordinates={this.leverLocation()}
-                size={this.leverSize()}
-                rotate={[{rotateY:'180deg'}]}
-                onPress={() => this.leverPress()}
-                onPressIn={() => this.leverPressIn()}
-                onPressOut={() => this.leverPressOut()}
-              />
-              <AnimatedSprite
-                character={appleSprite}
-                characterUID={this.characterUIDs.fruit}
-                animationFrameIndex={appleSprite.animationIndex('IDLE')}
-                tweenOptions = {this.appleSprite.tweenOptions}
-                onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
-                loopAnimation={false}
-                coordinates={this.foodBeltEndLocation()}
-                size={this.foodSize()}
-              />
+            <AnimatedSprite
+              character= {leverSprite}
+              characterUID={this.characterUIDs.lever}
+              animationFrameIndex={this.state.leverAnimationIndex}
+              loopAnimation={false}
+              coordinates={this.leverLocation()}
+              size={this.leverSize()}
+              rotate={[{rotateY:'180deg'}]}
+              onPressIn={() => this.leverPressIn()}
+              onPressOut={() => this.leverPressOut()}
+            />
+            <AnimatedSprite
+              style={{opacity: fruitOpacity}}
+              character={foodSprite}
+              ref={'foodRef'}
+              characterUID={this.characterUIDs.fruit}
+              animationFrameIndex={foodSprite.animationIndex('IDLE')}
+              tweenOptions = {this.foodSprite.tweenOptions}
+              tweenStart={'fromCode'}
+              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              loopAnimation={false}
+              coordinates={this.foodSprite.coords}
+              size={this.foodSize()}
+            />
             <AnimatedSprite
               ref={'birdRef'}
               character={birdSprite}
@@ -341,10 +440,10 @@ class UnlockFoodGame extends React.Component {
             <AnimatedSprite
               character={beltSprite}
               characterUID={this.characterUIDs.belt}
-              animationFrameIndex={[0]}
-              loopAnimation={false}
-              coordinates={this.beltLocation()}
-              size={this.beltSize()}
+              animationFrameIndex={[0, 1]}
+              loopAnimation={true}
+              coordinates={this.conveyorBeltLocation()}
+              size={this.conveyorBeltSize()}
             />
             <AnimatedSprite
               character={ledSprite}
@@ -362,13 +461,19 @@ class UnlockFoodGame extends React.Component {
               coordinates={this.machineLocation()}
               size={this.machineSize()}
             />
-            <AnimatedSprite
-              character={buttonSprite}
-              characterUID={this.characterUIDs.button}
-              animationFrameIndex={[0]}
-              loopAnimation={false}
-              coordinates={this.buttonLocation()}
-              size={this.buttonSize()}
+
+            <Matrix
+              styles={{
+                  top: 350 * this.props.scale.screenHeight,
+                  left: 650 * this.props.scale.screenWidth,
+                  position: 'absolute',
+                  width: 400 * this.props.scale.screenWidth,
+                  height: 400 * this.props.scale.screenHeight,
+                }}
+              tileScale={1}
+              tiles={this.state.tiles}
+              scale={this.props.scale}
+              onPress={(tile, index) => this.gameBoardTilePress(tile, index)}
             />
             <HomeButton
               route={this.props.route}

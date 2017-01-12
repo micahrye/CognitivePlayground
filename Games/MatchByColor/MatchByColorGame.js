@@ -159,13 +159,6 @@ class MatchByColorGame extends React.Component {
         duration: duration,
         loop: false,
       }
-      // {
-      //   tweenType: "linear-move",
-      //   startXY: [startXY[0] * this.scale.screenWidth, startXY[1] * this.scale.screenHeight],
-      //   endXY: [endXY[0] * this.scale.screenWidth, endXY[1] * this.scale.screenHeight],
-      //   duration: duration,
-      //   loop: false,
-      // }
     );
   }
 

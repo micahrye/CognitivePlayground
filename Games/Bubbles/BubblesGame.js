@@ -49,6 +49,7 @@ class BubblesGame extends React.Component {
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
+
 }
 
   componentWillMount () {
@@ -398,7 +399,7 @@ class BubblesGame extends React.Component {
     const foutainSize = this.foutainSize();
     const leverSize = this.leverSize();
     const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
-    const top = SCREEN_HEIGHT - foutainSize.height * 1.05;
+    const top = SCREEN_HEIGHT - foutainSize.height * 1.1;
 
     return {top, left};
   }
