@@ -20,7 +20,8 @@ class AnimatedSprite extends React.Component {
     this.state = {
       top: new Animated.Value(props.coordinates.top),
       left: new Animated.Value(props.coordinates.left),
-      scale: new Animated.Value(1),
+      scale: new Animated.Value(props.scale),
+      opacity: new Animated.Value(props.opacity),
       width: props.size.width,
       height: props.size.height,
       rotate: props.rotate,
@@ -60,7 +61,7 @@ class AnimatedSprite extends React.Component {
           this.handlePanResponderEnd(e, gestureState);},
         });
     }
-    // used by PanResponder
+    // characterStyles used by PanResponder
     this.previousTop = this.state.top._value;
     this.previousLeft =  this.state.left._value;
     this.characterStyles = {
@@ -71,11 +72,13 @@ class AnimatedSprite extends React.Component {
         height: this.state._height,
       },
     };
+
     // used by Tweens
     this.tweenablValues = {
       top: this.state.top,
       left: this.state.left,
       scale: this.state.scale,
+      opacity: this.state.opacity,
       // rotateZ: this.state.rotateZ,
       // rotation: this.state.rotation,
     };
@@ -185,6 +188,7 @@ class AnimatedSprite extends React.Component {
   startTween () {
     const tweenOptions = this.props.tweenOptions;
     const tweenType = this.props.tweenOptions.tweenType;
+
     Tweens[tweenType].start(tweenOptions,
       this.tweenablValues,
       () => this.tweenHasEnded(this.props.characterUID),
@@ -231,7 +235,8 @@ class AnimatedSprite extends React.Component {
   }
 
   handlePressIn (evt) {
-    evt.preventDefault();
+    console.log('handlePressIn');
+    // evt.preventDefault();
     if (this.props.onPressIn) {
       this.props.onPressIn();
     }
@@ -251,23 +256,25 @@ class AnimatedSprite extends React.Component {
   }
 
   getStyle () {
-
+    const opacity = this.props.style ? this.props.style.opacity : this.state.opacity;
     return (
       // TODO: this.props.style.opacity part of hack to what may be a
       // RN bug associated with premiture stopping of Tween and removing
       // The related component
       {
+        opacity,
         top: this.state.top,
         left: this.state.left,
         position: 'absolute',
-        opacity: this.props.style ? this.props.style.opacity : 1,
-        transform: [{scale: this.state.scale}],
+        transform: [{
+          scale: this.state.scale
+        }],
       }
+
     );
   }
 
   render () {
-    // console.log('AnimatedSprite Render');
     return (
       <Animated.View
         {...this.panResponder.panHandlers}
@@ -317,7 +324,9 @@ AnimatedSprite.propTypes = {
   stopAutoTweenOnPressIn: React.PropTypes.bool,
   onTweenStopped: React.PropTypes.func,
   onTweenFinish: React.PropTypes.func,
+  onAnimationFinish: React.PropTypes.func,
   scale: React.PropTypes.number,
+  opacity: React.PropTypes.number,
   fps: React.PropTypes.number,
 };
 
@@ -326,6 +335,7 @@ AnimatedSprite.defaultProps = {
   characterUID: randomstring({ length: 7 }),
   rotate: [{rotateY: '0deg'}],
   scale: 1,
+  opacity: 1,
 };
 
 

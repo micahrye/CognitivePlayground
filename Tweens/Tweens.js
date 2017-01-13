@@ -144,6 +144,45 @@ const linearMove = {
   },
 };
 
+const zoomIntoExistence = {
+  name: 'zoom-into-existence',
+  start: function startTween (options, componentValues, onTweenFinish) {
+    componentValues.scale.setValue(options.startScale);
+    componentValues.opacity.setValue(options.startOpacity);
+    Animated.parallel(
+      [
+        Animated.timing(
+          componentValues.scale,
+          {
+            toValue: options.endScale,
+            easing: Easing.bounce,
+            duration: options.duration,
+          }
+        ),
+        Animated.timing(
+          componentValues.opacity,
+          {
+            toValue: 1,
+            easing: Easing.linear,
+            duration: 500,
+          }
+        ),
+      ]
+    ).start(() => {
+      if (options.loop === false) {
+       onTweenFinish();
+     } else {
+        startTween(options, componentValues, onTweenFinish);
+      }
+    });
+  },
+  stop: function stop (componentValues, sendStopValues) {
+    let stopValues = [];
+    componentValues.scale.stopAnimation((value) => stopValues.push(value));
+    sendStopValues(stopValues);
+  },
+};
+
 const pulse = {
   name: 'pulse',
   start: function startTween (options, componentValues, onTweenFinish) {
@@ -731,6 +770,7 @@ const curveFall = {
 
 const Tweens = {
   [bounce.name]: bounce,
+  [zoomIntoExistence.name]: zoomIntoExistence,
   [pulse.name]: pulse,
   [linearMove.name]: linearMove,
   [sineWave.name]: sineWave,
