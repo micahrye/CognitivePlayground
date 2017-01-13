@@ -19,7 +19,7 @@ import bugCharacter from '../../sprites/bug/bugCharacter';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
 import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
-import lever from "../../sprites/lever/leverCharacter";
+import lever from "../../sprites/verticalLever/verticalLeverCharacter";
 
 import styles from "./BugZapStyles";
 
@@ -35,9 +35,9 @@ class BugZapGame extends React.Component {
   constructor (props) {
     super(props);
     this.leverX = SCREEN_WIDTH/2 - 100*this.props.scale.screenWidth;
-    this.leverY = SCREEN_HEIGHT - 270 * this.props.scale.screenHeight;
-    this.leverHeight = 350 * this.props.scale.image;
-    this.leverWidth =  160 * this.props.scale.image;
+    this.leverY = SCREEN_HEIGHT - 220 * this.props.scale.screenHeight;
+    this.leverHeight = 194 * this.props.scale.image;
+    this.leverWidth =  158 * this.props.scale.image;
     this.bugPressed = false;
     this.characterPosX = 900 * this.props.scale.screenWidth;
     this.characterToX = 900 * this.props.scale.screenWidth;
@@ -198,29 +198,17 @@ class BugZapGame extends React.Component {
   // so once in a while animations will be janky at first
 
   // // runs through all animations once before first trial to load them
-  // setCharacterAnimations () {
-  //   this.fps = 20;
-  //   this.setState({
-  //     characterAnimationIndex: greenFrogCharacter.animationIndex('ALL'),
-  //     splashAnimationIndex: splashCharacter.animationIndex("SPLASH"),
-  //   });
-  //   this.setState({
-  //     characterAnimationIndex: blueFrogCharacter.animationIndex('ALL'),
-  //   });
-  //   // reset character to default state
-  //   this.setDefaultAnimationState = setTimeout(() => {
-  //     this.fps = 8;
-  //     this.setState({
-  //       characterAnimationIndex: this.hopOn,
-  //     });
-  //   }, 1000);
-  // }
+  setCharacterAnimations () {
+    //this.fps = 20;
+    this.setState({
+      characterAnimationIndex: this.activeFrogColor.animationIndex('ALL'),
+    });
+  }
 
   setCharacterDirection () {
     let direction = Math.floor(Math.random() * 2);
 
-    // blue frog pointing to the right
-    if (direction === 0) {
+    if (direction >= 0.5) {
       this.characterDirection = 'left';
       this.activeFrogColor = greenFrogCharacter;
       this.characterPosX = 10 * this.props.scale.screenWidth;
@@ -230,6 +218,7 @@ class BugZapGame extends React.Component {
       this.rotate = [{rotateY: '180deg'}];
       this.splashPosX = this.characterPosX;
     }
+    this.setCharacterAnimations();
   }
 
   startRipple () {
@@ -253,13 +242,14 @@ class BugZapGame extends React.Component {
   }
 
   setBugTween () {
+    let offset = this.characterDirection === 'left' ? -60 : 60;
     this.setState({
       bugTweenOptions: {
         tweenType: "curve-fall",
         // start on their tags
         startXY: [this.bugStartX, 95 * this.props.scale.screenHeight],
         // end at character
-        endXY: [this.bugStartX, 460 * this.props.scale.screenHeight],
+        endXY: [this.bugStartX + offset, 460 * this.props.scale.screenHeight],
         duration: 1000,
         loop: false,
       },
