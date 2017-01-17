@@ -1,6 +1,8 @@
 
 import _ from 'lodash';
-import monster from '../../sprites/monster/monsterCharacter';
+import blueMonster from '../../sprites/blueMonster/blueMonster';
+import redMonster from '../../sprites/redMonster/redMonster';
+import greenMonster from '../../sprites/greenMonster/greenMonster';
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
 // foods
@@ -10,10 +12,18 @@ import canCharacter from "../../sprites/can/canCharacter";
 
 function getCharacterObject (characterName) {
   switch (characterName) {
-    case 'monster':
+    case 'redMonster':
     // TODO: make this Object.assign do not mutate.
-      monster.rotate = [{rotateY:'180deg'}];
-      return monster;
+      redMonster.rotate = [{rotateY:'180deg'}];
+      return redMonster;
+    case 'blueMonster':
+    // TODO: make this Object.assign do not mutate.
+      blueMonster.rotate = [{rotateY:'180deg'}];
+      return blueMonster;
+    case 'greenMonster':
+    // TODO: make this Object.assign do not mutate.
+      greenMonster.rotate = [{rotateY:'180deg'}];
+      return greenMonster;
     case 'goat':
       goat.rotate = [{rotateY:'0deg'}];
       return goat;
@@ -29,7 +39,7 @@ function getValidCharacterNameForLevel (level) {
     case 1:
     case 2:
     case 3:
-      const names = [monster.name, goat.name, dog.name];
+      const names = [blueMonster.name, redMonster.name, greenMonster.name, goat.name, dog.name];
       index = _.random(0, names.length-1);
       return names[index];
   }
@@ -38,7 +48,11 @@ function getValidCharacterNameForLevel (level) {
 function getFoodsToDisplay (characterName) {
   // return array of foods to show.
   switch (characterName) {
-    case 'monster':
+    case 'blueMonster':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'redMonster':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'greenMonster':
       return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
     case 'goat':
       return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
@@ -48,9 +62,16 @@ function getFoodsToDisplay (characterName) {
 }
 
 function favoriteFood (characterName) {
+  let food = "";
   switch (characterName) {
-    case 'monster':
-        const food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
+    case 'blueMonster':
+        food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
+        return food.name;
+    case 'redMonster':
+        food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
+        return food.name;
+    case 'greenMonster':
+        food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
         return food.name;
     case 'goat':
       return canCharacter.name;
@@ -75,7 +96,13 @@ function characterMouthLocation (characterComponent) {
 
 function startEatingPriorToFoodDropEnd (characterName) {
   switch (characterName) {
-    case 'monster':
+    case 'blueMonster':
+      // top, left
+      return 400;
+    case 'redMonster':
+      // top, left
+      return 400;
+    case 'greenMonster':
       // top, left
       return 400;
     case 'goat':
