@@ -2,7 +2,7 @@ const frogCharacter = {
   name:"frogCharacter",
   size: {width: 228, height: 288},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
-  all: [
+  frames: [
     require('./blue_frog_idle.png'),
     require('./blue_frog_hop01.png'),
     require('./blue_frog_hop02.png'),

@@ -18,7 +18,7 @@ const gameIcon = {
     'GAME_7_LOCKED',
     'ALL',
   ],
-  all: [
+  frames: [
     require("./game1_icon_bw.png"),
     require("./game1_icon_color.png"),
     require("./game2_icon_bw.png"),

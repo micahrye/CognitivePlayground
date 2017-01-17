@@ -1,10 +1,10 @@
-"use strict"
+'use strict';
 
 const signCharacter = {
   name:"sign",
   size: {width: 188, height: 300},
   animationTypes: ['IDLE', 'ALL'],
-  all: [
+  frames: [
     require("./sign.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {

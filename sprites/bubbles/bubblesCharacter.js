@@ -2,7 +2,7 @@ const bubblesCharacter = {
   name:"bubble",
   size: {width: 200, height: 200},
   animationTypes: ['IDLE', 'ALL', 'CAN', 'FRUIT', 'FLY', 'GRASS'],
-  all:[
+  frames:[
     require("./bubble_clockwise_large01.png"),
     require("./bubble_can01.png"),
     require("./bubble_fruit01.png"),

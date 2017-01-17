@@ -4,7 +4,7 @@ const buttonCharacter = {
   name: "button",
   size: {width: 129, height: 129},
   animationTypes: ['IDLE', 'PRESSED', 'LIT', 'BLINK', 'ALL'],
-  all:[
+  frames:[
     require ("./button_neutral.png"),
     require ("./button_lit.png"),
     require ("./button_pressed.png"),

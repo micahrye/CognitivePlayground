@@ -109,7 +109,7 @@ class BubblesGame extends React.Component {
     this.setState({
       monsterAnimationIndex: monsterCharacter.animationIndex('WALK'),
       tweenCharacter: true,
-    }, ()=> {this.refs.monsterRef.startTween();});
+    }, ()=> {this.refs.monsterRef.spriteTween();});
   }
 
   onTweenFinish (characterUID) {
@@ -200,7 +200,7 @@ class BubblesGame extends React.Component {
           this.targetBubble.name = 'grass';
           break;
       }
-      this.targetBubble.opacity = 1;
+      this.targetBubble.visable = true;
       this.targetBubble.uid = uid;
       this.targetBubble.tweenOptions = backgroundBubbleTween;
       this.targetBubble.coordinates = {
@@ -212,12 +212,12 @@ class BubblesGame extends React.Component {
     } else if (bubbles.length < MAX_NUMBER_BUBBLES) {
       bubbles.push(
         <AnimatedSprite
-          character={bubbleCharacter}
+          sprite={bubbleCharacter}
           key={randomstring({ length: 7 })}
-          characterUID={uid}
+          spriteUID={uid}
           animationFrameIndex={[0]}
           tweenOptions={backgroundBubbleTween}
-          tweenStart={'auto'}
+          tweenStart={'fromMount'}
           onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
           loopAnimation={false}
           coordinates={{
@@ -333,8 +333,8 @@ class BubblesGame extends React.Component {
   popBubble (stopValues) {
     // NOTE: b/c of bug and use of opacity it is possible to pop the
     // transparent bubbble, since this should not happen we check if
-    // targetBubble.opacity == 0 and ignore.
-    if (!this.targetBubble.opacity) {
+    // targetBubble.visable == 0 and ignore.
+    if (!this.targetBubble.visable) {
       return;
     }
     const stopValueX = stopValues[0];
@@ -342,14 +342,14 @@ class BubblesGame extends React.Component {
     // TODO: opacity part of hack to what may be a
     // RN bug associated with premiture stopping of Tween and removing
     // The related component
-    this.targetBubble.opacity = 0;
+    this.targetBubble.visable = false;
     this.setState({targetBubbleActive: true});
     // time to play pop sound
     this.foodFall(stopValueX, stopValueY);
   }
 
   targetBubbleTweenFinish () {
-    this.targetBubble.opacity = 1;
+    this.targetBubble.visable = true;
     this.setState({targetBubbleActive: false});
   }
 
@@ -434,8 +434,8 @@ class BubblesGame extends React.Component {
           height: SCREEN_HEIGHT,
       }}>
           <AnimatedSprite
-            character={leverCharacter}
-            characterUID={this.characterUIDs.lever}
+            sprite={leverCharacter}
+            spriteUID={this.characterUIDs.lever}
             animationFrameIndex={this.state.leverAnimationIndex}
             loopAnimation={false}
             coordinates={this.leverLocation()}
@@ -448,8 +448,8 @@ class BubblesGame extends React.Component {
 
           {this.state.loadContent ?
             <AnimatedSprite
-              character={bubbleCharacter}
-              characterUID={randomstring({length: 7})}
+              sprite={bubbleCharacter}
+              spriteUID={randomstring({length: 7})}
               animationFrameIndex={this.state.bubbleAnimationIndex}
               loopAnimation={false}
               coordinates={{top: 400 * this.scale.screenHeight,
@@ -463,13 +463,13 @@ class BubblesGame extends React.Component {
 
           {this.state.targetBubbleActive ?
             <AnimatedSprite
-              style={{opacity: this.targetBubble.opacity}}
-              character={bubbleCharacter}
-              characterUID={this.targetBubble.uid}
+              visable={this.targetBubble.visable}
+              sprite={bubbleCharacter}
+              spriteUID={this.targetBubble.uid}
               animationFrameIndex={this.targetBubble.frameIndex}
               loopAnimation={false}
               tweenOptions={this.targetBubble.tweenOptions}
-              tweenStart={'auto'}
+              tweenStart={'fromMount'}
               onTweenFinish={(characterUID) => this.targetBubbleTweenFinish(characterUID)}
               coordinates={this.targetBubble.coordinates}
               size={this.targetBubble.size}
@@ -480,12 +480,12 @@ class BubblesGame extends React.Component {
 
           {this.state.showFood ?
             <AnimatedSprite
-              character={this.food.character}
-              characterUID={this.food.uid}
+              sprite={this.food.character}
+              spriteUID={this.food.uid}
               key={this.food.uid}
               animationFrameIndex={this.food.index}
               tweenOptions={this.food.tweenOptions}
-              tweenStart='auto'
+              tweenStart={'fromMount'}
               onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
               loopAnimation={false}
               coordinates={this.food.location}
@@ -495,10 +495,10 @@ class BubblesGame extends React.Component {
 
           <AnimatedSprite
             ref={'monsterRef'}
-            character={monsterCharacter}
-            characterUID={this.characterUIDs.monster}
+            sprite={monsterCharacter}
+            spriteUID={this.characterUIDs.monster}
             animationFrameIndex={this.state.monsterAnimationIndex}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             tweenOptions={this.monster.tweenOptions}
             onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
             loopAnimation={this.monster.loopAnimation}
@@ -509,8 +509,8 @@ class BubblesGame extends React.Component {
           />
 
           <AnimatedSprite
-            character={fountainCharacter}
-            characterUID={this.characterUIDs.fountain}
+            sprite={fountainCharacter}
+            spriteUID={this.characterUIDs.fountain}
             animationFrameIndex={[0]}
             loopAnimation={false}
             coordinates={this.fountainLocation()}

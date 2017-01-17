@@ -4,7 +4,7 @@ const canCharacter = {
   name:"can",
   size: {width: 135, height: 144},
   animationTypes: ['IDLE', 'ALL'],
-  all: [
+  frames: [
     require("./can.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {

@@ -2,7 +2,7 @@ const symbolTableCharacter = {
   name:"splashCharacter",
   size: {width: 400, height: 203},
   animationTypes: ['ALL', 'IDLE'],
-  all: [
+  frames: [
     require('./symbol_table.png'),
   ],
   animationIndex: function getAnimationIndex (animationType) {

@@ -3,10 +3,10 @@ const fountainCharacter = {
   name:"fauntain",
   size: {width: 487, height: 266},
   animationTypes: ['IDLE', 'ALL'],
-  all:[
+  frames:[
     require("./bubble_machine.png"),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];

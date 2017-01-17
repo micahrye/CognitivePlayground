@@ -2,7 +2,7 @@ const birdCharacter = {
   name: "bird",
   size: {width: 180, height: 164},
   animationTypes: ['IDLE', 'ALL', 'CELEBRATE', 'EAT', 'FLY', 'DISGUST'],
-  all:[
+  frames:[
     require ("./bird_idle.png"),
     require ("./bird_celebrate01.png"),
     require ("./bird_celebrate02.png"),

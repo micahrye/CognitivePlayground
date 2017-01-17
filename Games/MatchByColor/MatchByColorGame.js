@@ -2,7 +2,6 @@ import React from 'react';
 import {
   Image,
   View,
-  PixelRatio,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -614,12 +613,12 @@ class MatchByColorGame extends React.Component {
           height: 800 * this.scale.screenHeight, flex: 1}}
         />
         <AnimatedSprite
-          character={leverSprite}
-          characterUID={this.characterUIDs.lever}
+          sprite={leverSprite}
+          spriteUID={this.characterUIDs.lever}
           animationFrameIndex={this.state.leverAnimationIndex}
           loopAnimation={false}
           tweenOptions={this.leverSprite.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.leverLocation(this.scale.image)}
           size={this.leverSize(this.scale.image)}
           rotate={[{rotateY:'0deg'}]}
@@ -629,41 +628,41 @@ class MatchByColorGame extends React.Component {
         />
 
         <AnimatedSprite
-          character={signSprite}
+          sprite={signSprite}
           ref={'leftSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('left', this.scale)}
           size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.leftSign.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
 
         <AnimatedSprite
-          character={signSprite}
+          sprite={signSprite}
           ref={'middleSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('middle', this.scale)}
           size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.middleSign.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
 
         <AnimatedSprite
-          character={signSprite}
+          sprite={signSprite}
           ref={'rightSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('right', this.scale)}
           size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.rightSign.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
 
         {this.leftFood.character ?
           <AnimatedSprite
-            character={this.leftFood.character}
+            sprite={this.leftFood.character}
             ref={'leftFood'}
             key={this.leftFood.key}
             animationFrameIndex={[0]}
@@ -671,7 +670,7 @@ class MatchByColorGame extends React.Component {
             size={this.spriteSize(120, this.leftFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.leftFood.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onPress={() => this.foodPressed(LEFT)}
             onTweenFinish={() => this.onFoodTweenFinish(LEFT)}
           />
@@ -679,7 +678,7 @@ class MatchByColorGame extends React.Component {
 
         {this.middleFood.character ?
           <AnimatedSprite
-            character={this.middleFood.character}
+            sprite={this.middleFood.character}
             ref={'middleFood'}
             key={this.middleFood.key}
             animationFrameIndex={[0]}
@@ -687,7 +686,7 @@ class MatchByColorGame extends React.Component {
             size={this.spriteSize(120, this.middleFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.middleFood.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onPress={() => this.foodPressed(MIDDLE)}
             onTweenFinish={() => this.onFoodTweenFinish(MIDDLE)}
           />
@@ -695,7 +694,7 @@ class MatchByColorGame extends React.Component {
 
         {this.rightFood.character ?
           <AnimatedSprite
-            character={this.rightFood.character}
+            sprite={this.rightFood.character}
             ref={'rightFood'}
             key={this.rightFood.key}
             animationFrameIndex={[0]}
@@ -703,25 +702,24 @@ class MatchByColorGame extends React.Component {
             size={this.spriteSize(120, this.rightFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.rightFood.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onPress={() => this.foodPressed(RIGHT)}
-            onTweenFinish={(ref) => this.onFoodTweenFinish(RIGHT)}
+            onTweenFinish={() => this.onFoodTweenFinish(RIGHT)}
           />
         : null}
 
         <AnimatedSprite
           ref={'characterRef'}
-          character={this.state.character}
-          characterUID={this.characterUIDs.character}
+          sprite={this.state.character}
+          spriteUID={this.characterUIDs.character}
           key={this.characterUIDs.character}
-          style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
           loopAnimation={this.state.characterAnimationLoop}
           coordinates={this.characterStartLocation(this.state.character, this.scale.image)}
           size={this.spriteSize(340, this.state.character, this.scale.image)}
           rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
         />
 
