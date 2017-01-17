@@ -84,8 +84,12 @@ function characterMouthLocation (characterComponent) {
   const width = characterComponent.props.size.width;
   const height = characterComponent.props.size.height;
   switch (characterComponent.props.sprite.name) {
-    case 'monster':
+    case 'redMonster':
       // top, left
+      return [(height * 0.5), (width * 0.40)];
+    case 'blueMonster':
+      return [(height * 0.5), (width * 0.40)];
+    case 'greenMonster':
       return [(height * 0.5), (width * 0.40)];
     case 'goat':
       return [(height * 0.35), (width * 0.65)];
@@ -100,10 +104,8 @@ function startEatingPriorToFoodDropEnd (characterName) {
       // top, left
       return 400;
     case 'redMonster':
-      // top, left
       return 400;
     case 'greenMonster':
-      // top, left
       return 400;
     case 'goat':
       return 350;
