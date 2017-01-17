@@ -1,12 +1,13 @@
-"use strict"
+'use strict';
 
 const bugfoodCharacter = {
   name:"bugfood",
+  size: {width: 192, height: 192},
   animationTypes: ['IDLE', 'ALL'],
-  default:[
-    require("./bug_idle01.png")
+  frames:[
+    require("./bug_idle01.png"),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];

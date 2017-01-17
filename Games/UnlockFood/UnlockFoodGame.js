@@ -142,26 +142,6 @@ class UnlockFoodGame extends React.Component {
     return coords;
   }
 
-  // birdFlyIntoScene () {
-  //   const birdStartLoc = this.birdStartLocation();
-  //   const birdEndLoc = this.birdEndLocation();
-  //   const startXY = [birdStartLoc.left, birdStartLoc.top];
-  //   const endXY = [birdEndLoc.left, birdEndLoc.top];
-  //   this.bird.tweenOptions = this.makeMoveTween(startXY, endXY);
-  //   this.bird.loopAnimation = true;
-  //   // BUG: need to look into bug
-  //   // this.setState({
-  //   //   birdAnimationIndex: birdSprite.animationIndex('FLY'),
-  //   //   tweenCharacter: true,
-  //   // }, ()=> {this.refs.birdRef.startTween();});
-  // }
-
-  // onCharacterTweenFinish () {
-  //   console.log('onCharacterTweenFinish');
-  //   this.bird.loopAnimation = false;
-  //   this.setState({birdAnimationIndex: birdSprite.animationIndex('IDLE')});
-  // }
-
   birdMouthLocation () {
     const birdLoc = this.birdEndLocation();
     const birdSize = this.birdSize();
@@ -352,7 +332,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   characterCelebrateAndEat () {
-    this.refs.foodRef.startTween();
+    this.refs.foodRef.spriteTween();
     const frameIndex = birdSprite.animationIndex('CELEBRATE');
     this.setState({
       birdAnimationIndex: frameIndex,
@@ -394,7 +374,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   render () {
-    const fruitOpacity = this.state.showFood ? 1 : 0;
+    const fruitVisable = this.state.showFood ? true : false;
     return (
       <View style={styles.container}>
         <Image
@@ -405,8 +385,8 @@ class UnlockFoodGame extends React.Component {
             height: SCREEN_HEIGHT,
           }}>
             <AnimatedSprite
-              character= {leverSprite}
-              characterUID={this.characterUIDs.lever}
+              sprite={leverSprite}
+              spriteUID={this.characterUIDs.lever}
               animationFrameIndex={this.state.leverAnimationIndex}
               loopAnimation={false}
               coordinates={this.leverLocation()}
@@ -416,13 +396,13 @@ class UnlockFoodGame extends React.Component {
               onPressOut={() => this.leverPressOut()}
             />
             <AnimatedSprite
-              style={{opacity: fruitOpacity}}
-              character={foodSprite}
+              visable={fruitVisable}
+              sprite={foodSprite}
               ref={'foodRef'}
-              characterUID={this.characterUIDs.fruit}
+              spriteUID={this.characterUIDs.fruit}
               animationFrameIndex={foodSprite.animationIndex('IDLE')}
               tweenOptions = {this.foodSprite.tweenOptions}
-              tweenStart={'fromCode'}
+              tweenStart={'fromMethod'}
               onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
               loopAnimation={false}
               coordinates={this.foodSprite.coords}
@@ -430,32 +410,32 @@ class UnlockFoodGame extends React.Component {
             />
             <AnimatedSprite
               ref={'birdRef'}
-              character={birdSprite}
-              characterUID={this.characterUIDs.bird}
+              sprite={birdSprite}
+              spriteUID={this.characterUIDs.bird}
               animationFrameIndex={this.state.birdAnimationIndex}
               loopAnimation={false}
               coordinates={this.birdStartLocation()}
               size={this.birdSize()}
             />
             <AnimatedSprite
-              character={beltSprite}
-              characterUID={this.characterUIDs.belt}
+              sprite={beltSprite}
+              spriteUID={this.characterUIDs.belt}
               animationFrameIndex={[0, 1]}
               loopAnimation={true}
               coordinates={this.conveyorBeltLocation()}
               size={this.conveyorBeltSize()}
             />
             <AnimatedSprite
-              character={ledSprite}
-              characterUID={this.characterUIDs.led}
+              sprite={ledSprite}
+              spriteUID={this.characterUIDs.led}
               animationFrameIndex={[0]}
               loopAnimation={false}
               coordinates={this.ledLocation()}
               size={this.ledSize()}
             />
             <AnimatedSprite
-              character={foodMachineSprite}
-              characterUID={this.characterUIDs.machine}
+              sprite={foodMachineSprite}
+              spriteUID={this.characterUIDs.machine}
               animationFrameIndex={[0]}
               loopAnimation={false}
               coordinates={this.machineLocation()}

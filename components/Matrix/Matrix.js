@@ -10,9 +10,6 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 
-const SCREEN_WIDTH = require('Dimensions').get('window').width;
-const SCREEN_HEIGHT = require('Dimensions').get('window').height;
-
 // Tile = {
 //   sprite: sprites[index],
 //   frameKey: frameKeys[index],
@@ -45,13 +42,11 @@ class Matrix extends React.Component {
   }
 
   tilePress (tile, index) {
-    console.log('tilePress');
     if (!this.props.onPress) return;
     this.props.onPress(tile, index);
   }
 
   tilePressIn (tile, index) {
-    console.log('tilePressIn');
     if (!this.props.onPressIn) return;
     this.props.onPressIn(tile, index);
   }
@@ -67,7 +62,7 @@ class Matrix extends React.Component {
       const tileScale = tile.scale ? tile.scale : this.props.tileScale;
       return (
         <AnimatedSprite
-          character={tile.sprite}
+          sprite={tile.sprite}
           ref={`card${index}`}
           key={uid}
           animationFrameIndex={tile.sprite.animationIndex(tile.frameKey)}

@@ -50,8 +50,6 @@ class SymbolDigitCodingGame extends React.Component {
     this.food.sprite = gameUtil.foodSprite(level, trial);
     this.food.coords = this.foodStartLocation(1);
     this.food.size = this.spriteSize(this.food.sprite, 1);
-    const tiles = gameUtil.selectionTilesForTrial(1,1);
-    debugger;
     this.setState({
       level,
       trial,
@@ -90,7 +88,6 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   foodStartLocation (position) {
-    console.log(`food position = ${position}`);
     const scaleWidth = this.props.scale.screenWidth;
     const top = 100 * this.props.scale.screenHeight;
     const baseLeft = 320;
@@ -134,7 +131,7 @@ class SymbolDigitCodingGame extends React.Component {
       tweenOptions: this.makeFoodTweenObject(),
       },
     () => {
-      this.refs.food.startTween();
+      this.refs.food.spriteTween();
       this.stateTimeout = setTimeout(() => {
         this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
       }, 500);
@@ -177,7 +174,7 @@ class SymbolDigitCodingGame extends React.Component {
       }, () => {
         this.stateTimeout = setTimeout(() => {
           this.nextTrial();
-        }, 500 * this.props.scale.screenHeight)
+        }, 500 * this.props.scale.screenHeight);
       });
     }
   }
@@ -240,14 +237,14 @@ class SymbolDigitCodingGame extends React.Component {
 
         {this.state.showFood ?
           <AnimatedSprite
-            character={this.food.sprite}
+            sprite={this.food.sprite}
             ref={'food'}
             animationFrameIndex={[0]}
             coordinates={this.food.coords}
             size={this.food.size}
             draggable={false}
             tweenOptions={this.state.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onTweenFinish={() => this.onFoodTweenFinish()}
           />
         : null}
@@ -264,24 +261,24 @@ class SymbolDigitCodingGame extends React.Component {
         />
 
         <AnimatedSprite
-          character={monsterSprite}
-          characterUID={'sasdkfja'}
+          sprite={monsterSprite}
+          spriteUID={'sasdkfja'}
           animationFrameIndex={this.state.monsterAnimationIndex}
           loopAnimation={false}
           tweenOptions={{}}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.monsterStartLocation()}
           size={this.spriteSize(monsterSprite, this.monsterScale)}
           rotate={[{rotateY:'180deg'}]}
         />
 
         <AnimatedSprite
-          character={symbolTable}
-          characterUID={randomstring({ length: 7})}
+          sprite={symbolTable}
+          spriteUID={randomstring({ length: 7})}
           animationFrameIndex={[0]}
           loopAnimation={false}
           tweenOptions={{}}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.tableLocation()}
           size={this.spriteSize(symbolTable, this.tableScale)}
           rotate={[{rotateY:'0deg'}]}

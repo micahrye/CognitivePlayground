@@ -4,7 +4,7 @@ const appleCharacter = {
   name:"apple",
   size: {width: 135, height: 146},
   animationTypes: ['IDLE', 'ALL'],
-  all: [
+  frames: [
     require("./apple.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {

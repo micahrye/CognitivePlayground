@@ -3,7 +3,7 @@ const goatCharacter = {
   name:"goat",
   size: {width: 288, height: 240},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
-  all: [
+  frames: [
     require('./goat_idle.png'),
     require('./goat_walk01.png'),
     require('./goat_walk02.png'),

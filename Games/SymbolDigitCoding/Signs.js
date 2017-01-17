@@ -12,9 +12,6 @@ import foodSignsCharacter from '../../sprites/foodSigns/foodSignsCharacter';
 class Signs extends React.Component {
   constructor (props) {
     super(props);
-    this.state = {
-
-    };
   }
 
   componentWillMount () {}
@@ -49,7 +46,7 @@ class Signs extends React.Component {
       <View>
         {this.props.symbolOrder[0] ?
           <AnimatedSprite
-            character={foodSignsCharacter}
+            sprite={foodSignsCharacter}
             ref={'sign1'}
             animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[0])}
             coordinates={this.signStartLocation(0, this.props.scale)}
@@ -60,7 +57,7 @@ class Signs extends React.Component {
         : null}
         {this.props.symbolOrder[1] ?
           <AnimatedSprite
-            character={foodSignsCharacter}
+            sprite={foodSignsCharacter}
             ref={'sign2'}
             animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[1])}
             coordinates={this.signStartLocation(1, this.props.scale)}
@@ -71,7 +68,7 @@ class Signs extends React.Component {
         : null}
         {this.props.symbolOrder[2] ?
           <AnimatedSprite
-            character={foodSignsCharacter}
+            sprite={foodSignsCharacter}
             ref={'sign3'}
             animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[2])}
             coordinates={this.signStartLocation(2, this.props.scale)}
@@ -82,7 +79,7 @@ class Signs extends React.Component {
         : null}
         {this.props.symbolOrder[3] ?
           <AnimatedSprite
-            character={foodSignsCharacter}
+            sprite={foodSignsCharacter}
             ref={'sign4'}
             animationFrameIndex={foodSignsCharacter.animationIndex(this.props.symbolOrder[3])}
             coordinates={this.signStartLocation(3, this.props.scale)}
@@ -101,6 +98,7 @@ class Signs extends React.Component {
 Signs.propTypes = {
   symbolOrder: React.PropTypes.array.isRequired,
   scale: React.PropTypes.object.isRequired,
+  onPress: React.PropTypes.func,
 };
 
 reactMixin.onClass(Signs, TimerMixin);

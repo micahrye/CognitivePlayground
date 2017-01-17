@@ -4,7 +4,7 @@ const hookCardCharacter = {
   name:"hookCard",
   size: {width: 124, height: 142},
   animationTypes: ['BLANK', 'TRIANGLE', 'DIMOND', 'SQUARE', 'CIRCLE', 'ALL'],
-  all: [
+  frames: [
     require("./hook_and_card_small.png"),
     require("./hook_triangle.png"),
     require("./hook_square.png"),

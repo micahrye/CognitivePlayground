@@ -2,7 +2,7 @@ const foodMachineCharacter = {
   name: "foodMachine",
   size: {width: 493, height: 590},
   animationTypes: ['IDLE', 'ALL'],
-  all: [
+  frames: [
     require ("./food_machine.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {

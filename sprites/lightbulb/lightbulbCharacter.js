@@ -2,10 +2,9 @@
 
 const lightbulbCharacter = {
   name:"lightbulb",
-  //TODO size: {width: 170, height: 100},
+  size: {width: 170, height: 100},
   animationTypes: ['ON', 'OFF'],
-
-  all:[
+  frames:[
     require("./lightbulb_on.png"),
     require("./lightbulb_off.png"),
   ],

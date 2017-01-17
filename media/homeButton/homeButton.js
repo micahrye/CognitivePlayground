@@ -2,7 +2,7 @@ const homeButton = {
   name:"homeButton",
   size: {width: 200, height: 200},
   animationTypes: ['UNLOCKED', 'LOCKED', 'ALL'],
-  all: [
+  frames: [
     require("./home_btn_bw.png"),
     require("./home_btn_color.png"),
   ],
