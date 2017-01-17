@@ -62,7 +62,7 @@ function favoriteFood (characterName) {
 function characterMouthLocation (characterComponent) {
   const width = characterComponent.props.size.width;
   const height = characterComponent.props.size.height;
-  switch (characterComponent.props.character.name) {
+  switch (characterComponent.props.sprite.name) {
     case 'monster':
       // top, left
       return [(height * 0.5), (width * 0.40)];

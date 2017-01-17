@@ -2,7 +2,7 @@ const beltCharacter = {
   name: "belt",
   size: {width: 300, height: 90},
   animationTypes: ['RUN', 'IDLE', 'ALL'],
-  all:[
+  frames:[
     require ("./belt_01.png"),
     require ("./belt_02.png"),
   ],

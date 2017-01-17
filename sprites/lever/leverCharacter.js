@@ -4,7 +4,7 @@ const leverCharacter = {
   name:"lever",
   size: {width: 160, height: 350},
   animationTypes: ['IDLE', 'ALL', 'SWITCH'],
-  all:[
+  frames:[
     require("./lever_up.png"),
     require("./lever_wiggle.png"),
     require("./lever_down.png"),

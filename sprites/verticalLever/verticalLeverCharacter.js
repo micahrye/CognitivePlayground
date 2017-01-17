@@ -4,7 +4,7 @@ const verticalLeverCharacter = {
   name:"verticalLever",
   size: {width: 158, height: 194},
   animationTypes: ['IDLE', 'ALL', 'SWITCH'],
-  all:[
+  frames:[
     require("./lever_up.png"),
     require("./lever_down.png"),
   ],

@@ -2,7 +2,7 @@ const splashCharacter = {
   name:"splashCharacter",
   size: {width: 170, height: 100},
   animationTypes: ['RIPPLE', 'SPLASH'],
-  all: [
+  frames: [
     require('./ripple01.png'),
     require('./ripple02.png'),
     require('./ripple03.png'),

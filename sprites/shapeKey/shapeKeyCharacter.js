@@ -2,7 +2,7 @@ const shapeKeyCharacter = {
   name: "shapeKey",
   size: {width: 124, height: 142},
   animationTypes: ['CAN', 'GRASS', 'BUG', 'FRUIT', 'ALL'],
-  all:[
+  frames:[
     require ("./blue_triangle.png"),
     require ("./green_circle.png"),
     require ("./orange_triangle.png"),

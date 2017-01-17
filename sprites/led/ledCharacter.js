@@ -2,7 +2,7 @@ const ledCharacter = {
   name: "led",
   size: {width: 70, height: 120},
   animationTypes: ['ON', 'OFF', 'ALL'],
-  all:[
+  frames:[
     require ("./led_off.png"),
     require ("./led_on.png"),
   ],

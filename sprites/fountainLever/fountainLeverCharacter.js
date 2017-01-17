@@ -3,7 +3,7 @@ const fountainLeverCharacter = {
   name:"fauntainLever",
   size: {width: 90, height: 158},
   animationTypes: ['IDLE', 'ALL'],
-  all:[
+  frames:[
     require("./flever_up.png"),
     require("./flever_wiggle.png"),
     require("./flever_down.png"),

@@ -32,13 +32,20 @@ class MatrixReasoningGame extends React.Component {
       },
 
     };
-    // gameBoardTiles = {
-    //   sprite,
-    //   frames,
-    //   active,
-    // }
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
+  }
+
+  componentWillMount () {
+    this.readyTrial(1, 1);
+    this.loadCharacter();
+  }
+
+  componentDidMount () {}
+
+  componentWillUnmount () {
+    clearInterval(this.matrixShifterInterval);
+    clearTimeout(this.readTrialTimeout);
   }
 
   loadCharacter () {
@@ -49,13 +56,6 @@ class MatrixReasoningGame extends React.Component {
     );
     this.setState({ dog });
   }
-
-  componentWillMount () {
-    this.readyTrial(1, 1);
-    this.loadCharacter();
-  }
-
-  componentDidMount () {}
 
   makeCharacterUIDs () {
     return _.zipObject(this.gameCharacters,
@@ -113,36 +113,22 @@ class MatrixReasoningGame extends React.Component {
   pressStub () {}
 
   selectionTilePress (tile, index) {
-    console.log(`index = ${index}, frameKey = ${tile.frameKey}`);
     const level = this.state.level;
     const trial = this.state.trial;
     if (tile.frameKey === gameTiles.correctSelection(level, trial)) {
-      console.log('WINNER WINNER');
       // redraw matrix with correct
       this.setState({
         gameBoardTiles: gameTiles.gameBoardTilesWithSelectionResult(level, trial, tile.frameKey),
       });
       this.gameCharacterAction('CELEBRATE');
     } else {
-      console.log('NO NO NO');
       this.gameCharacterAction('DISGUST');
     }
   }
-  selectionTilePressIn (tile, index) {
-    console.log('selectionTilePressIn');
-  }
-  selectionTilePressOut (tile, index) {
-    console.log('selectionTilePressOut');
-  }
 
-  gameBoardTilePress (tile, index) {
-    console.log(`tileInfo = ${index}`);
-  }
-
-  componentWillUnmount () {
-    clearInterval(this.matrixShifterInterval);
-    clearTimeout(this.readTrialTimeout);
-  }
+  selectionTilePressIn (tile, index) {}
+  selectionTilePressOut (tile, index) {}
+  gameBoardTilePress (tile, index) {}
 
   render () {
     return (
@@ -154,16 +140,14 @@ class MatrixReasoningGame extends React.Component {
         }}
         />
         <AnimatedSprite
-          character={dogSprite}
-          characterUID={this.characterUIDs.dog}
+          sprite={dogSprite}
+          spriteUID={this.characterUIDs.dog}
           animationFrameIndex={this.state.dog.frameIndex}
-
           loopAnimation={false}
           tweenOptions={{}}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.dogStartLocation()}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
-
           size={this.dogSize()}
           rotate={[{rotateY:'180deg'}]}
           onPress={() => this.pressStub()}

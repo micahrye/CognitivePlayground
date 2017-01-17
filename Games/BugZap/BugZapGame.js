@@ -187,9 +187,9 @@ class BugZapGame extends React.Component {
       },
       () => {
               if (this.showOtherBugSign) {
-                this.refs.signLeftRef.startTween();
+                this.refs.signLeftRef.spriteTween();
               }
-              this.refs.signRightRef.startTween();
+              this.refs.signRightRef.spriteTween();
             }
       );
   }
@@ -429,9 +429,9 @@ class BugZapGame extends React.Component {
         showBugLeft: false,
     }, () => {
         if (this.showOtherBugSign) {
-          this.refs.signLeftRef.startTween();
+          this.refs.signLeftRef.spriteTween();
         }
-        this.refs.signRightRef.startTween();
+        this.refs.signRightRef.spriteTween();
         this.retractingSign = true;
       });
   }
@@ -481,10 +481,10 @@ class BugZapGame extends React.Component {
     let delay = 700;
 
     if (this.whichBug === 'bugLeft') {
-      this.refs.bugLeftRef.startTween();
+      this.refs.bugLeftRef.spriteTween();
     }
     else {
-      this.refs.bugRightRef.startTween();
+      this.refs.bugRightRef.spriteTween();
     }
 
     clearInterval(this.eatInterval);
@@ -527,7 +527,7 @@ class BugZapGame extends React.Component {
         repeatable: false,
         loop: false,
       },
-    }, () => {this.refs.lightbulbRef.startTween();});
+    }, () => {this.refs.lightbulbRef.spriteTween();});
   }
 
   lightbulbUp () {
@@ -540,7 +540,7 @@ class BugZapGame extends React.Component {
         repeatable: false,
         loop: false,
       },
-    }, () => {this.refs.lightbulbRef.startTween();});
+    }, () => {this.refs.lightbulbRef.spriteTween();});
   }
 
   // turns lightbulb off and sets blackout
@@ -614,8 +614,8 @@ class BugZapGame extends React.Component {
 
       <AnimatedSprite
         key={this.state.characterKey}
-        characterUID={'character'}
-        character={this.activeFrogColor}
+        spriteUID={'character'}
+        sprite={this.activeFrogColor}
         coordinates={{top: SCREEN_HEIGHT + 100,
           left: this.characterPosX}}
         size={{
@@ -626,15 +626,15 @@ class BugZapGame extends React.Component {
         rotate={this.rotate}
         fps={this.fps}
         tweenOptions={this.state.characterTweenOptions}
-        tweenStart={'auto'}
+        tweenStart={'fromMount'}
         onTweenFinish={() => this.onFrogTweenFinish()}
         onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
       />
 
     {this.state.showSplashCharacter ?
       <AnimatedSprite
-        characterUID={'splash'}
-        character={splashCharacter}
+        spriteUID={'splash'}
+        sprite={splashCharacter}
         coordinates={{top: 580 * this.props.scale.screenHeight,
           left: this.splashPosX}}
         size={{
@@ -646,8 +646,8 @@ class BugZapGame extends React.Component {
       />
     : null}
     <AnimatedSprite
-      characterUID={'lever'}
-      character={lever}
+      spriteUID={'lever'}
+      sprite={lever}
       coordinates={{top: this.leverY, left: this.leverX}}
       size={{width: this.leverWidth, height: this.leverHeight}}
       animationFrameIndex={this.state.leverAnimationIndex}
@@ -658,27 +658,27 @@ class BugZapGame extends React.Component {
     <AnimatedSprite
       ref={'signRightRef'}
       key={this.state.rightSignKey}
-      character={signCharacter}
-      characterUID={'signRight'}
+      sprite={signCharacter}
+      spriteUID={'signRight'}
       coordinates={{top: this.signYStart, left: this.rightSignXPos}}
       size={{width: 140 * this.props.scale.image, height: 230 * this.props.scale.image}}
       animationFrameIndex={[0]}
       tweenOptions={this.state.rightSignTweenOptions}
-      tweenStart={'fromCode'}
+      tweenStart={'fromMethod'}
       onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
     />
 
     {this.state.showBugRight ?
       <AnimatedSprite
         ref={'bugRightRef'}
-        characterUID={'bugRight'}
+        spriteUID={'bugRight'}
         coordinates={{top: 75 * this.props.scale.screenHeight,
           left: SCREEN_WIDTH/2 + (220 * this.props.scale.screenWidth)}}
         size={{width: 120 * this.props.scale.image,
           height: 120 * this.props.scale.image}}
-        character={bugCharacter}
+        sprite={bugCharacter}
         tweenOptions={this.state.bugTweenOptions}
-        tweenStart={'fromCode'}
+        tweenStart={'fromMethod'}
         onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
         onPress={(characterUID) => this.onBugPress(characterUID)}
         animationFrameIndex={[1]}
@@ -690,25 +690,25 @@ class BugZapGame extends React.Component {
         <AnimatedSprite
           ref={'signLeftRef'}
           key={this.state.leftSignKey}
-          characterUID={'signLeft'}
-          character={signCharacter}
+          spriteUID={'signLeft'}
+          sprite={signCharacter}
           coordinates={{top: this.signYStart, left: this.leftSignXPos}}
           size={{width: 140 * this.props.scale.image, height: 230 * this.props.scale.image}}
           animationFrameIndex={[0]}
           tweenOptions={this.state.leftSignTweenOptions}
           onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
         {this.state.showBugLeft ?
           <AnimatedSprite
-            character={bugCharacter}
+            sprite={bugCharacter}
             ref={'bugLeftRef'}
-            characterUID={'bugLeft'}
+            spriteUID={'bugLeft'}
             coordinates={{top: 75 * this.props.scale.screenHeight,
               left: SCREEN_WIDTH/2 - (350 * this.props.scale.screenWidth)}}
             size={{width: 120 * this.props.scale.image, height: 120 * this.props.scale.image}}
             tweenOptions={this.state.bugTweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
             onPress={(characterUID) => this.onBugPress(characterUID)}
             animationFrameIndex={[0]}
@@ -718,13 +718,13 @@ class BugZapGame extends React.Component {
     <AnimatedSprite
       ref={'lightbulbRef'}
       key={this.state.lightbulbKey}
-      character={lightbulbCharacter}
-      characterUID={'lightbulb'}
+      sprite={lightbulbCharacter}
+      spriteUID={'lightbulb'}
       coordinates={{top: -1000 * this.props.scale.screenHeight, left: SCREEN_WIDTH/2 - (50 * this.props.scale.screenWidth)}}
       size={{width: 125 * this.props.scale.image, height: 250 * this.props.scale.image}}
       animationFrameIndex={this.state.lightbulbAnimationIndex}
       tweenOptions={this.state.lightbulbTweenOptions}
-      tweenStart={'fromCode'}
+      tweenStart={'fromMethod'}
       onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
     />
 

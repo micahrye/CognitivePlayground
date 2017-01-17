@@ -1,13 +1,13 @@
-"use strict"
+'use strict';
 
 const grassCharacter = {
   name:"grass",
   size: {width: 135, height: 135},
   animationTypes: ['IDLE', 'ALL'],
-  all:[
+  frames:[
     require("./grass.png"),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];

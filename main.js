@@ -10,7 +10,6 @@ import _ from 'lodash';
 
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
-import randomstring from 'random-string';
 
 import AnimatedSprite from "./components/AnimatedSprite/AnimatedSprite";
 import gameIcon from "./media/gameIcon/gameIcon";
@@ -168,11 +167,11 @@ class Main extends React.Component {
       return (
         <AnimatedSprite
           ref={ref}
-          character={gameIcon}
+          sprite={gameIcon}
           key={index}
           animationFrameIndex={icon.frameIndex}
           tweenOptions = {this.makeZoomTween(0.1, 1, 1000)}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           loopAnimation={false}
           size={this.startSize()}
           scale={0.1}
