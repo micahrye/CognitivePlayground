@@ -36,9 +36,7 @@ function getValidCharacterNameForLevel (level) {
   const names = [blueMonster.name, redMonster.name, greenMonster.name, goat.name, dog.name];
   switch (level) {
     case 1:
-      break;
     case 2:
-      break;
     case 3:
       index = _.random(0, names.length-1);
       return names[index];
