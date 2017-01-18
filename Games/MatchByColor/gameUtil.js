@@ -1,8 +1,8 @@
 
 import _ from 'lodash';
-import blueMonster from '../../sprites/blueMonster/blueMonster';
-import redMonster from '../../sprites/redMonster/redMonster';
-import greenMonster from '../../sprites/greenMonster/greenMonster';
+import blueMonster from '../../sprites/blueMonster/blueMonsterCharacter';
+import redMonster from '../../sprites/redMonster/redMonsterCharacter';
+import greenMonster from '../../sprites/greenMonster/greenMonsterCharacter';
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
 // foods
@@ -17,11 +17,9 @@ function getCharacterObject (characterName) {
       redMonster.rotate = [{rotateY:'180deg'}];
       return redMonster;
     case 'blueMonster':
-    // TODO: make this Object.assign do not mutate.
       blueMonster.rotate = [{rotateY:'180deg'}];
       return blueMonster;
     case 'greenMonster':
-    // TODO: make this Object.assign do not mutate.
       greenMonster.rotate = [{rotateY:'180deg'}];
       return greenMonster;
     case 'goat':
@@ -35,11 +33,13 @@ function getCharacterObject (characterName) {
 
 function getValidCharacterNameForLevel (level) {
   let index;
+  const names = [blueMonster.name, redMonster.name, greenMonster.name, goat.name, dog.name];
   switch (level) {
     case 1:
+      break;
     case 2:
+      break;
     case 3:
-      const names = [blueMonster.name, redMonster.name, greenMonster.name, goat.name, dog.name];
       index = _.random(0, names.length-1);
       return names[index];
   }
