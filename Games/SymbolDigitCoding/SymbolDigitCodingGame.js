@@ -12,6 +12,7 @@ import randomstring from 'random-string';
 import styles from './styles';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 import monsterSprite from '../../sprites/monster/monsterCharacter';
 import Matrix from '../../components/Matrix';
 
@@ -32,6 +33,7 @@ class SymbolDigitCodingGame extends React.Component {
       showFood: false,
       monsterAnimationIndex: [0],
       selectionTiles: {},
+      loadingScreen: true,
     };
     this.monsterScale = 1.5;
     this.tableScale = 1.3;
@@ -213,6 +215,10 @@ class SymbolDigitCodingGame extends React.Component {
     };
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     return (
       <View style={styles.container}>
@@ -293,6 +299,14 @@ class SymbolDigitCodingGame extends React.Component {
             height: 150 * this.props.scale.image,
             top:0, left: 0, position: 'absolute' }}
         />
+
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </View>
     );
   }

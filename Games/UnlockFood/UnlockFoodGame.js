@@ -11,6 +11,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 
 import leverSprite from '../../sprites/lever/leverCharacter';
 import birdSprite from "../../sprites/bird/birdCharacter";
@@ -48,6 +49,7 @@ class UnlockFoodGame extends React.Component {
       tiles: {},
       level: 1,
       trial: 1,
+      loadingScreen: true,
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -373,6 +375,10 @@ class UnlockFoodGame extends React.Component {
     }
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     const fruitVisable = this.state.showFood ? true : false;
     return (
@@ -464,6 +470,14 @@ class UnlockFoodGame extends React.Component {
                 height: 150 * this.scale.image,
                 top:0, left: 0, position: 'absolute' }}
             />
+            {this.state.loadingScreen ?
+              <LoadScreen
+                onTweenFinish={() => this.onLoadScreenFinish()}
+                width={SCREEN_WIDTH}
+                height={SCREEN_HEIGHT}
+              />
+            : null}
+
           </Image>
         </View>
     );

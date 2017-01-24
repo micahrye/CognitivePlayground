@@ -12,6 +12,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 // props
 import leverSprite from '../../sprites/lever/leverCharacter';
 import signSprite from '../../sprites/sign/signCharacter';
@@ -49,6 +50,7 @@ class MatchByColorGame extends React.Component {
       signsVisable: false,
       foodDisplayed: false,
       level: LEVEL01,
+      loadingScreen: true,
     };
     this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
@@ -605,6 +607,10 @@ class MatchByColorGame extends React.Component {
     this.props.navigator.replace({ id: 'Main' });
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     return (
       <View style={styles.container}>
@@ -732,7 +738,13 @@ class MatchByColorGame extends React.Component {
           height: 150 * this.scale.image,
           top:0, left: 0, position: 'absolute' }}
       />
-
+      {this.state.loadingScreen ?
+        <LoadScreen
+          onTweenFinish={() => this.onLoadScreenFinish()}
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
+        />
+      : null}
       </View>
     );
   }

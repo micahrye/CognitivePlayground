@@ -9,6 +9,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from "../../components/AnimatedSprite/AnimatedSprite";
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
@@ -39,6 +40,7 @@ class BubblesGame extends React.Component {
       monsterAnimationIndex: [0],
       loadContent: false,
       showFood: false,
+      loadingScreen: true,
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -424,6 +426,10 @@ class BubblesGame extends React.Component {
     return {top, left};
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     return (
       <Image
@@ -527,6 +533,13 @@ class BubblesGame extends React.Component {
             height: 150 * this.scale.image,
             top:0, left: 0, position: 'absolute' }}
         />
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </Image>
     );
   }
