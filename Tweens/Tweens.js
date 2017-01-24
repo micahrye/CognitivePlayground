@@ -183,6 +183,45 @@ const zoomIntoExistence = {
   },
 };
 
+const zoomOutExistence = {
+  name: 'zoom-out-existence',
+  start: function startTween (options, componentValues, onTweenFinish) {
+    componentValues.scale.setValue(options.startScale);
+    componentValues.opacity.setValue(options.startOpacity);
+    Animated.parallel(
+      [
+        Animated.timing(
+          componentValues.scale,
+          {
+            toValue: options.endScale,
+            easing: Easing.linear,
+            duration: options.duration,
+          }
+        ),
+        Animated.timing(
+          componentValues.opacity,
+          {
+            toValue: 0,
+            easing: Easing.linear,
+            duration: options.duration - (options.duration/10),
+          }
+        ),
+      ]
+    ).start(() => {
+      if (options.loop === false) {
+       onTweenFinish();
+     } else {
+        startTween(options, componentValues, onTweenFinish);
+      }
+    });
+  },
+  stop: function stop (componentValues, sendStopValues) {
+    let stopValues = [];
+    componentValues.scale.stopAnimation((value) => stopValues.push(value));
+    sendStopValues(stopValues);
+  },
+};
+
 const pulse = {
   name: 'pulse',
   start: function startTween (options, componentValues, onTweenFinish) {
@@ -689,7 +728,7 @@ const curveSpin3= {
           componentValues.left,
           {
             toValue: options.endXY[0],
-            easing: Easing.linear,
+            easing: Easing.quad,
             duration: options.duration,
           }
         ),
@@ -771,6 +810,7 @@ const curveFall = {
 const Tweens = {
   [bounce.name]: bounce,
   [zoomIntoExistence.name]: zoomIntoExistence,
+  [zoomOutExistence.name]: zoomOutExistence,
   [pulse.name]: pulse,
   [linearMove.name]: linearMove,
   [sineWave.name]: sineWave,

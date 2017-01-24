@@ -9,9 +9,9 @@ import styles from './styles';
 
 import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
-import dogSprite from '../../sprites/dog/dogCharacter';
 import Matrix from '../../components/Matrix';
-
+import LoadScreen from '../../components/LoadScreen';
+import dogSprite from '../../sprites/dog/dogCharacter';
 import gameTiles from './gameTiles';
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
@@ -30,7 +30,7 @@ class MatrixReasoningGame extends React.Component {
       dog: {
         frameIndex: [0],
       },
-
+      loadingScreen: true,
     };
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
@@ -126,6 +126,10 @@ class MatrixReasoningGame extends React.Component {
     }
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   selectionTilePressIn (tile, index) {}
   selectionTilePressOut (tile, index) {}
   gameBoardTilePress (tile, index) {}
@@ -196,6 +200,14 @@ class MatrixReasoningGame extends React.Component {
             position: 'absolute',
           }}
         />
+
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </View>
     );
   }

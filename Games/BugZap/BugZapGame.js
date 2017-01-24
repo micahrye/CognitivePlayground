@@ -12,6 +12,7 @@ import TimerMixin from 'react-timer-mixin';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 // import characters for AnimatedSprite to use
 import greenFrogCharacter from '../../sprites/frog/frogCharacter';
 import blueFrogCharacter from '../../sprites/blueFrog/blueFrogCharacter';
@@ -80,6 +81,7 @@ class BugZapGame extends React.Component {
       showSplashCharacter: false,
       showBlackout: false,
       showSpotlight: false,
+      loadingScreen: true,
     };
   }
 
@@ -606,6 +608,10 @@ class BugZapGame extends React.Component {
     };
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     return (
       <Image
@@ -745,6 +751,13 @@ class BugZapGame extends React.Component {
         height: 150 * this.props.scale.image,
         top:0, left: 0, position: 'absolute' }}
     />
+    {this.state.loadingScreen ?
+      <LoadScreen
+        onTweenFinish={() => this.onLoadScreenFinish()}
+        width={SCREEN_WIDTH}
+        height={SCREEN_HEIGHT}
+      />
+    : null}
   </Image>
   );
   }
