@@ -1,0 +1,50 @@
+[
+	{
+    "correctSelection": "TRIANGLE",
+    "selectionTiles": {
+      "activeTiles": [true, false, false, true, false, false, true, false, false],
+      "frameKeys": ["CIRCLE", "", "", "DIMOND", "", "", "TRIANGLE", "", ""]
+    },
+    "gameboardTiles": {
+      "activeTiles": [true, true, false, true, true, false, false, false, false],
+      "frameKeys": ["TRIANGLE", "TRIANGLE", "", "TRIANGLE", "BLANK", "", "", "", ""]
+    }
+	},
+
+  {
+    "correctSelection": "SQUARE",
+    "selectionTiles": {
+      "activeTiles": [true, false, false, true, false, false, true, false, false],
+      "frameKeys": ["SQUARE", "", "", "DIMOND", "", "", "CIRCLE", "", ""]
+    },
+    "gameboardTiles": {
+      "activeTiles": [true, true, false, true, true, false, false, false, false],
+      "frameKeys": ["SQUARE", "SQUARE", "", "BLANK", "SQUARE", "", "", "", ""]
+    }
+	},
+
+  {
+    "correctSelection": "CIRCLE",
+    "selectionTiles": {
+      "activeTiles": [true, false, false, true, false, false, true, false, false],
+      "frameKeys": ["SQUARE", "", "", "CIRCLE", "", "", "DIMOND", "", ""]
+    },
+    "gameboardTiles": {
+      "activeTiles": [true, true, false, true, true, false, false, false, false],
+      "frameKeys": ["CIRCLE", "BLANK", "", "CIRCLE", "CIRCLE", "", "", "", ""]
+    }
+	},
+
+  {
+    "correctSelection": "DIMOND",
+    "selectionTiles": {
+      "activeTiles": [true, false, false, true, false, false, true, false, false],
+      "frameKeys": ["SQUARE", "", "", "CIRCLE", "", "", "DIMOND", "", ""]
+    },
+    "gameboardTiles": {
+      "activeTiles": [true, true, true, true, true, true, true, true, true],
+      "frameKeys": ["DIMOND", "BLANK", "DIMOND", "DIMOND", "DIMOND", "SQUARE", "CIRCLE", "DIMOND", "CIRCLE"]
+    }
+	},
+
+]

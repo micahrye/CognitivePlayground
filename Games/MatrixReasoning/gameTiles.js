@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import randomstring from 'random-string';
 import hookedCardSprite from '../../sprites/hookCard/hookCardCharacter';
-
+import trials from './trials';
 
 function createTilesArray (activeTiles, sprites, frameKeys) {
   return _.map(activeTiles, (active, index) => ({
@@ -13,61 +13,31 @@ function createTilesArray (activeTiles, sprites, frameKeys) {
 }
 
 function correctSelection (level, trialNumber) {
-  if (level === 1) {
-    switch (trialNumber) {
-      case 1:
-        return 'TRIANGLE';
-      case 2:
-        return 'SQUARE';
-      default:
-        return 'CIRCLE';
-    }
-  }
+  // check valid trialNumber
+  const numTrials = trials.length;
+  const trialIndex = (!trialNumber || numTrials <= trialNumber-1) ? 0 : trialNumber-1;
+  return trials[trialIndex].correctSelection;
 }
 
 function selectionTilesForTrial (level, trialNumber) {
-  let activeTiles;
-  let frameKeys;
-  if (level === 1) {
-    switch (trialNumber) {
-      case 1:
-        activeTiles = [true, false, false, true, false, false, true, false, false];
-        frameKeys = ['CIRCLE', '', '', 'DIMOND', '', '', 'TRIANGLE', '', ''];
-        break;
-      case 2:
-        activeTiles = [true, false, false, true, false, false, true, false, false];
-        frameKeys = ['SQUARE', '', '', 'DIMOND', '', '', 'CIRCLE', '', ''];
-        break;
-      default:
-        activeTiles = [true, false, false, true, false, false, true, false, false];
-        frameKeys = ['SQUARE', '', '', 'CIRCLE', '', '', 'DIMOND', '', ''];
-    }
-  }
+  const numTrials = trials.length;
+  const trialIndex = (!trialNumber || numTrials <= trialNumber-1) ? 0 : trialNumber-1;
+  const activeTiles = trials[trialIndex].selectionTiles.activeTiles;
+  const frameKeys = trials[trialIndex].selectionTiles.frameKeys;
+
   const sprites = _.fill(Array(activeTiles.length), hookedCardSprite);
-  console.log('11111');
   return createTilesArray(activeTiles, sprites, frameKeys);
 }
 
 function gameBoardTilesForTrial (level, trialNumber) {
-  let activeTiles;
-  let frameKeys;
-  if (level === 1) {
-    switch (trialNumber) {
-      case 1:
-        activeTiles = [true, true, false, true, true, false, false, false, false];
-        frameKeys = ['TRIANGLE', 'TRIANGLE', '', 'TRIANGLE', 'BLANK', '', '', '', ''];
-        break;
-      case 2:
-        activeTiles = [true, true, false, true, true, false, false, false, false];
-        frameKeys = ['SQUARE', 'SQUARE', '', 'BLANK', 'SQUARE', '', '', '', ''];
-        break;
-      default:
-        activeTiles = [true, true, false, true, true, false, false, false, false];
-        frameKeys = ['CIRCLE', 'BLANK', '', 'CIRCLE', 'CIRCLE', '', '', '', ''];
-    }
-  }
+  const numTrials = trials.length;
+  const trialIndex = (!trialNumber || numTrials <= trialNumber-1) ? 0 : trialNumber-1;
+  // console.warn(`numTrials = ${numTrials}`);
+  // console.warn(`trialIndex = ${numTrials}`);
+  const activeTiles = trials[trialIndex].gameboardTiles.activeTiles;
+  const frameKeys = trials[trialIndex].gameboardTiles.frameKeys;
+
   const sprites = _.fill(Array(activeTiles.length), hookedCardSprite);
-  console.log('2222');
   return createTilesArray(activeTiles, sprites, frameKeys);
 }
 
