@@ -6,6 +6,8 @@ import canSprite from "../../sprites/can/canCharacter";
 import bugSprite from '../../sprites/bug/bugCharacter';
 import shapeKeyCharacter from '../../sprites/shapeKey/shapeKeyCharacter';
 
+import trials from './trials';
+
 const SCALES = [0.4, 0.5, 0.8, 1, 1, 1, 1, 1, 1];
 
 function createTilesArray (activeTiles, sprites, frameKeys) {
@@ -19,55 +21,29 @@ function createTilesArray (activeTiles, sprites, frameKeys) {
 }
 
 
-function selectionTilesForTrial (level, trialNumber) {
-  let frameKeys;
-  const activeTiles = [true, true, true, false, false, false, false, false, false];
+function thoughtTilesForTrial (trialNumber) {
+  // assuming there is always one valid trial in trails.
+  // use trails[0] for default.
+  const trial = !trials[trialNumber] ? trials[0] : trials[trialNumber];
+
+  const frameKeys = trial.thoughtTiles.frameKeys;
+  const activeTiles = trial.thoughtTiles.activeTiles;
   const sprites = _.fill(Array(activeTiles.length), shapeKeyCharacter);
-  if (level === 1) {
-    switch (trialNumber) {
-      case 1:
-        frameKeys = ['CAN', 'FRUIT', 'GRASS', '', '', '', '', '', ''];
-        break;
-      case 2:
-        frameKeys = ['BUG', 'CAN', 'FRUIT', '', '', '', '', '', ''];
-        break;
-      default:
-        frameKeys = ['GRASS', 'BUG', 'CAN', '', '', '', '', '', ''];
-    }
-
-  }
-
   return createTilesArray(activeTiles, sprites, frameKeys);
 }
 
-function symbols (level, trialNumber) {
-  if (level === 1) {
-    switch (trialNumber) {
-      case 1:
-        return ['CAN', 'FRUIT', 'BUG', 'GRASS'];
-      case 2:
-        return ['FRUIT', 'BUG', 'CAN', 'GRASS'];
-      default:
-        return ['GRASS', 'BUG', 'FRUIT', 'CAN'];
-    }
-  }
+function symbols (trialNumber) {
+  const trial = !trials[trialNumber] ? trials[0] : trials[trialNumber];
+  return trial.displaySymbols.symbols;
 }
 
-function correctSymbol (level, trialNumber) {
-  if (level === 1) {
-    switch (trialNumber) {
-      case 1:
-        return 'GRASS';
-      case 2:
-        return 'FRUIT';
-      default:
-        return 'CAN';
-    }
-  }
+function correctSymbol (trialNumber) {
+  const trial = !trials[trialNumber] ? trials[0] : trials[trialNumber];
+  return trial.correctSymbol;
 }
 
-function foodSprite (level, trial) {
-  switch (correctSymbol(level, trial)) {
+function foodSprite (trial) {
+  switch (correctSymbol(trial)) {
     case 'CAN':
       return canSprite;
     case 'FRUIT':
@@ -83,5 +59,5 @@ export default {
   symbols,
   correctSymbol,
   foodSprite,
-  selectionTilesForTrial,
+  thoughtTilesForTrial,
 };

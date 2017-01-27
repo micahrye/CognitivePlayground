@@ -47,8 +47,7 @@ class UnlockFoodGame extends React.Component {
       loadContent: false,
       showFood: true,
       tiles: {},
-      level: 1,
-      trial: 1,
+      trial: 0,
       loadingScreen: true,
     };
     this.scale = this.props.scale;
@@ -88,7 +87,7 @@ class UnlockFoodGame extends React.Component {
       beltAnimationIndex: beltSprite.animationIndex('ALL'),
     });
 
-    this.nextTrial(1, 1);
+    this.nextTrial(0);
 
     this.foodSprite.coords = this.foodStartLocation();
     const beltCoords = this.conveyorBeltLocation();
@@ -124,11 +123,10 @@ class UnlockFoodGame extends React.Component {
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
   }
 
-  nextTrial (level, trial) {
+  nextTrial (trial) {
     this.setState({
-      level,
       trial,
-      tiles: gameTiles.gameBoardTilesForTrial(level, trial),
+      tiles: gameTiles.gameBoardTilesForTrial(trial),
     });
   }
 
@@ -191,7 +189,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   leverPressIn () {
-    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
     this.blink(blinkSeq);
     this.setState({
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
@@ -202,7 +200,7 @@ class UnlockFoodGame extends React.Component {
   leverPressOut () {
     this.pressSequence = [];
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
-    const tiles = gameTiles.gameBoardTilesForTrial(this.state.level, this.state.trial);
+    const tiles = gameTiles.gameBoardTilesForTrial(this.state.trial);
     this.setState({
       tiles,
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
@@ -341,7 +339,7 @@ class UnlockFoodGame extends React.Component {
       showFood: true,
     }, () => {
       this.celebrateTimeout = setTimeout(() => {
-        this.nextTrial(this.state.level, this.state.trial + 1);
+        this.nextTrial(this.state.trial + 1);
         this.setState({
           birdAnimationIndex: birdSprite.animationIndex('EAT'),
         });
@@ -364,7 +362,7 @@ class UnlockFoodGame extends React.Component {
         }, 80);
     });
     this.pressSequence.push(index);
-    const blinkSeq = gameTiles.tileBlinkSequence(this.state.level, this.state.trial);
+    const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
     const correct = _.every(this.pressSequence, (seqNum, index) => {
       return seqNum === blinkSeq[index];
     });

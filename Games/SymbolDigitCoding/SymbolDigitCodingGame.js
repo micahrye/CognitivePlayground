@@ -27,12 +27,11 @@ class SymbolDigitCodingGame extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      level: 1,
-      trial: 1,
+      trial: 0,
       symbolOrder: [],
       showFood: false,
       monsterAnimationIndex: [0],
-      selectionTiles: {},
+      thoughtTiles: {},
       loadingScreen: true,
     };
     this.monsterScale = 1.5;
@@ -46,18 +45,16 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   componentWillMount () {
-    const level = 1;
-    const trial = 1;
+    const trial = 0;
 
-    this.food.sprite = gameUtil.foodSprite(level, trial);
+    this.food.sprite = gameUtil.foodSprite(trial);
     this.food.coords = this.foodStartLocation(1);
     this.food.size = this.spriteSize(this.food.sprite, 1);
     this.setState({
-      level,
       trial,
       tweenOptions: this.makeFoodTweenObject(),
-      symbolOrder: gameUtil.symbols(level, trial),
-      selectionTiles: gameUtil.selectionTilesForTrial(level, trial),
+      symbolOrder: gameUtil.symbols(trial),
+      thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
     });
   }
 
@@ -141,22 +138,20 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   nextTrial () {
-    const level = this.state.level;
     const trial = this.state.trial + 1;
-    const symbolOrder = gameUtil.symbols(level, trial);
-    this.food.sprite = gameUtil.foodSprite(level, trial);
+    const symbolOrder = gameUtil.symbols(trial);
+    this.food.sprite = gameUtil.foodSprite(trial);
     this.setState({
-      level,
       trial,
       symbolOrder: symbolOrder,
-      selectionTiles: gameUtil.selectionTilesForTrial(level, trial),
+      thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
     });
   }
 
   signPressed (signInfo) {
-    const correctSymbol = gameUtil.correctSymbol(this.state.level, this.state.trial);
+    const correctSymbol = gameUtil.correctSymbol(this.state.trial);
     if (_.isEqual(correctSymbol, signInfo.symbol)) {
-      const symbolOrder = gameUtil.symbols(this.state.level, this.state.trial);
+      const symbolOrder = gameUtil.symbols(this.state.trial);
       const showSymbols = _.map(symbolOrder, (symbol) => (
         _.isEqual(correctSymbol, symbol) ? 'BLANK' : symbol
       ));
@@ -262,7 +257,7 @@ class SymbolDigitCodingGame extends React.Component {
         <Matrix
           styles={this.matrixStyle()}
           tileScale={0.25}
-          tiles={this.state.selectionTiles}
+          tiles={this.state.thoughtTiles}
           scale={this.props.scale}
         />
 

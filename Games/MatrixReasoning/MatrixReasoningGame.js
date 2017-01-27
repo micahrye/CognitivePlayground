@@ -25,8 +25,7 @@ class MatrixReasoningGame extends React.Component {
     this.state = {
       selectionTiles: {},
       gameBoardTiles: {},
-      level: 1,
-      trial: 1,
+      trial: 0,
       dog: {
         frameIndex: [0],
       },
@@ -37,7 +36,7 @@ class MatrixReasoningGame extends React.Component {
   }
 
   componentWillMount () {
-    this.readyTrial(1, 1);
+    this.readyTrial(0);
     this.loadCharacter();
   }
 
@@ -77,12 +76,11 @@ class MatrixReasoningGame extends React.Component {
     return {top, left};
   }
 
-  readyTrial (level, trial) {
+  readyTrial (trial) {
     this.setState({
-      level,
       trial,
-      gameBoardTiles: gameTiles.gameBoardTilesForTrial(level, trial),
-      selectionTiles: gameTiles.selectionTilesForTrial(level, trial),
+      gameBoardTiles: gameTiles.gameBoardTilesForTrial(trial),
+      selectionTiles: gameTiles.selectionTilesForTrial(trial),
     });
   }
 
@@ -97,7 +95,7 @@ class MatrixReasoningGame extends React.Component {
         dog,
       }, () => {
         this.readTrialTimeout = setTimeout(() => {
-          this.readyTrial(this.state.level, this.state.trial + 1);
+          this.readyTrial(this.state.trial + 1);
         }, 2000);
     });
 
@@ -113,12 +111,11 @@ class MatrixReasoningGame extends React.Component {
   pressStub () {}
 
   selectionTilePress (tile, index) {
-    const level = this.state.level;
     const trial = this.state.trial;
-    if (tile.frameKey === gameTiles.correctSelection(level, trial)) {
+    if (tile.frameKey === gameTiles.correctSelection(trial)) {
       // redraw matrix with correct
       this.setState({
-        gameBoardTiles: gameTiles.gameBoardTilesWithSelectionResult(level, trial, tile.frameKey),
+        gameBoardTiles: gameTiles.gameBoardTilesWithSelectionResult(trial, tile.frameKey),
       });
       this.gameCharacterAction('CELEBRATE');
     } else {
@@ -178,7 +175,7 @@ class MatrixReasoningGame extends React.Component {
         <Matrix
           styles={{
             top: 40 * this.props.scale.screenHeight,
-            left: 600 * this.props.scale.screenWidth,
+            left: 550 * this.props.scale.screenWidth,
             position: 'absolute',
             width: 600 * this.props.scale.screenWidth,
             height: 600 * this.props.scale.screenHeight,

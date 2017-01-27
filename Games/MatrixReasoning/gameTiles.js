@@ -12,16 +12,16 @@ function createTilesArray (activeTiles, sprites, frameKeys) {
   }));
 }
 
-function correctSelection (level, trialNumber) {
+function correctSelection (trialNumber) {
   // check valid trialNumber
   const numTrials = trials.length;
-  const trialIndex = (!trialNumber || numTrials <= trialNumber-1) ? 0 : trialNumber-1;
+  const trialIndex = (!trialNumber || numTrials <= trialNumber) ? 0 : trialNumber;
   return trials[trialIndex].correctSelection;
 }
 
-function selectionTilesForTrial (level, trialNumber) {
+function selectionTilesForTrial (trialNumber) {
   const numTrials = trials.length;
-  const trialIndex = (!trialNumber || numTrials <= trialNumber-1) ? 0 : trialNumber-1;
+  const trialIndex = (!trialNumber || numTrials <= trialNumber) ? 0 : trialNumber;
   const activeTiles = trials[trialIndex].selectionTiles.activeTiles;
   const frameKeys = trials[trialIndex].selectionTiles.frameKeys;
 
@@ -29,9 +29,9 @@ function selectionTilesForTrial (level, trialNumber) {
   return createTilesArray(activeTiles, sprites, frameKeys);
 }
 
-function gameBoardTilesForTrial (level, trialNumber) {
+function gameBoardTilesForTrial (trialNumber) {
   const numTrials = trials.length;
-  const trialIndex = (!trialNumber || numTrials <= trialNumber-1) ? 0 : trialNumber-1;
+  const trialIndex = (!trialNumber || numTrials <= trialNumber) ? 0 : trialNumber;
   // console.warn(`numTrials = ${numTrials}`);
   // console.warn(`trialIndex = ${numTrials}`);
   const activeTiles = trials[trialIndex].gameboardTiles.activeTiles;
@@ -41,8 +41,8 @@ function gameBoardTilesForTrial (level, trialNumber) {
   return createTilesArray(activeTiles, sprites, frameKeys);
 }
 
-function gameBoardTilesWithSelectionResult (level, trialNumber, selectionFrame) {
-  const tiles = gameBoardTilesForTrial(level, trialNumber);
+function gameBoardTilesWithSelectionResult (trialNumber, selectionFrame) {
+  const tiles = gameBoardTilesForTrial(trialNumber);
   tiles.frameKeys = _.map(tiles, (tile) => {
     if (tile.frameKey === 'BLANK') {
         tile.frameKey = selectionFrame;
