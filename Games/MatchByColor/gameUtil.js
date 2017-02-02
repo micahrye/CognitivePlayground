@@ -33,7 +33,12 @@ function getCharacterObject (characterName) {
 
 function getValidCharacterNameForLevel (level) {
   let index;
-  const names = [blueMonster.name, redMonster.name, greenMonster.name, goat.name, dog.name];
+  const names = [blueMonster.name,
+                 redMonster.name,
+                 greenMonster.name,
+                 goat.name,
+                 dog.name,
+                ];
   switch (level) {
     case 1:
     case 2:
