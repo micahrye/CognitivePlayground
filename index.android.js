@@ -17,6 +17,7 @@ import TimerMixin from 'react-timer-mixin';
 import Main from "./main";
 import BubblesGame from './Games/Bubbles/BubblesGame';
 import BugZapGame from './Games/BugZap/BugZapGame';
+import BugZapGameRedesign from './Games/BugZap/BugZapRedesign';
 import MatchByColorGame from './Games/MatchByColor/MatchByColorGame';
 import MatrixReasoningGame from './Games/MatrixReasoning/MatrixReasoningGame';
 import SymbolDigitCodingGame from './Games/SymbolDigitCoding/SymbolDigitCodingGame';
@@ -59,7 +60,7 @@ class CognitivePlayground extends React.Component {
         />);
     } else if (route.id === 'BugZapGame') {
       return (
-        <BugZapGame
+        <BugZapGameRedesign
           navigator={navigator}
           route={route}
           scale={this.scale}
