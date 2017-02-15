@@ -189,9 +189,9 @@ class BugZapGame extends React.Component {
       },
       () => {
               if (this.showOtherBugSign) {
-                this.refs.signLeftRef.spriteTween();
+                this.refs.signLeftRef.tweenSprite();
               }
-              this.refs.signRightRef.spriteTween();
+              this.refs.signRightRef.tweenSprite();
             }
       );
   }
@@ -431,9 +431,9 @@ class BugZapGame extends React.Component {
         showBugLeft: false,
     }, () => {
         if (this.showOtherBugSign) {
-          this.refs.signLeftRef.spriteTween();
+          this.refs.signLeftRef.tweenSprite();
         }
-        this.refs.signRightRef.spriteTween();
+        this.refs.signRightRef.tweenSprite();
         this.retractingSign = true;
       });
   }
@@ -483,10 +483,10 @@ class BugZapGame extends React.Component {
     let delay = 700;
 
     if (this.whichBug === 'bugLeft') {
-      this.refs.bugLeftRef.spriteTween();
+      this.refs.bugLeftRef.tweenSprite();
     }
     else {
-      this.refs.bugRightRef.spriteTween();
+      this.refs.bugRightRef.tweenSprite();
     }
 
     clearInterval(this.eatInterval);
@@ -529,7 +529,7 @@ class BugZapGame extends React.Component {
         repeatable: false,
         loop: false,
       },
-    }, () => {this.refs.lightbulbRef.spriteTween();});
+    }, () => {this.refs.lightbulbRef.tweenSprite();});
   }
 
   lightbulbUp () {
@@ -542,7 +542,7 @@ class BugZapGame extends React.Component {
         repeatable: false,
         loop: false,
       },
-    }, () => {this.refs.lightbulbRef.spriteTween();});
+    }, () => {this.refs.lightbulbRef.tweenSprite();});
   }
 
   // turns lightbulb off and sets blackout

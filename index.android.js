@@ -8,7 +8,6 @@ import {
   AppRegistry,
   Navigator,
   Dimensions,
-  PixelRatio,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -24,9 +23,8 @@ import UnlockFoodGame from './Games/UnlockFood/UnlockFoodGame';
 
 const baseHeight = 800;
 const baseWidth = 1280;
-const screenWidth = Dimensions.get('window').width; // * PixelRatio.get();
-const screenHeight = Dimensions.get('window').height; // * PixelRatio.get();
-
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 class CognitivePlayground extends React.Component {
   constructor (props) {
     super(props);

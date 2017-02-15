@@ -82,7 +82,6 @@ class Matrix extends React.Component {
       </View>
     );
   }
-
 }
 
 Matrix.propTypes = {

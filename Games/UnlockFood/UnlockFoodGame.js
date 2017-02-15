@@ -332,7 +332,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   characterCelebrateAndEat () {
-    this.refs.foodRef.spriteTween();
+    this.refs.foodRef.tweenSprite();
     const frameIndex = birdSprite.animationIndex('CELEBRATE');
     this.setState({
       birdAnimationIndex: frameIndex,

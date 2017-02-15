@@ -29,49 +29,20 @@ class AnimatedSprite extends React.Component {
     };
 
     this.sprite = this.props.sprite;
-    // used for panResponder
-    this.spriteStyles =  {};
-    this.panResponder = {};
-    this.numFrames = this.sprite.frames.length-1;
     this.frameIndex = 0;
     this.defaultAnimationInterval = undefined;
-    this.animationKeyInterval = undefined;
-    this.imageSource = undefined;
     this.fps = 8;
     this.endValues = undefined;
+    // used for panResponder
+    this.spriteStyles = {};
+    this.panResponder = {};
   }
 
   componentWillMount () {
     if (this.props.draggable) {
-      // note that with PanResponder we setNativeProps for performance reasons,
-      // as stated by FB.
-      this.panResponder = PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant:(e, gestureState) => {
-          this.handlePanResponderGrant(e, gestureState);},
-        onPanResponderMove: (e, gestureState) => {
-          this.handlePanResponderMove(e, gestureState);},
-        onPanResponderRelease: (e, gestureState) => {
-          this.handlePanResponderEnd(e, gestureState);},
-        onPanResponderTerminate:
-          (e, gestureState) => {
-          this.handlePanResponderEnd(e, gestureState);},
-        });
+      this.initPanResponder();
     }
-    // spriteStyles used by PanResponder
-    this.previousTop = this.state.top._value;
-    this.previousLeft =  this.state.left._value;
-    this.spriteStyles = {
-      style: {
-        left: this._previousLeft,
-        top: this._previousTop,
-        width: this.state._width,
-        height: this.state._height,
-      },
-    };
 
-    // used by Tweens
     this.tweenablValues = {
       top: this.state.top,
       left: this.state.left,
@@ -86,15 +57,12 @@ class AnimatedSprite extends React.Component {
     if (this.spriteComponentRef) {
       this.spriteComponentRef.setNativeProps(this.spriteStyles);
     }
-    this.renderTime = Date.now();
-    if (this.props.tweenStart == 'fromMount' && this.props.tweenOptions != null) {
+    if (this.props.tweenStart === 'fromMount' && this.props.tweenOptions !== null) {
       this.startTween();
     }
-    // TODO: should be validation on fps so that it is a resonable range.
-    if (this.props.fps) {
-      this.fps = this.props.fps;
-    }
+    this.fps = this.props.fps || this.fps;
   }
+
   componentWillReceiveProps (nextProps) {
     if (this.props.animationFrameIndex !== nextProps.animationFrameIndex) {
       this.startAnimation();
@@ -106,9 +74,36 @@ class AnimatedSprite extends React.Component {
   }
 
   componentWillUnmount () {
-    // console.log('AnimatedSprite unmounting');
     clearInterval(this.defaultAnimationInterval);
-    clearInterval(this.animationKeyInterval);
+  }
+
+  initPanResponder () {
+    // note that with PanResponder we setNativeProps for performance reasons,
+    // as stated by FB.
+    this.panResponder = PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant:(e, gestureState) => {
+        this.handlePanResponderGrant(e, gestureState);},
+      onPanResponderMove: (e, gestureState) => {
+        this.handlePanResponderMove(e, gestureState);},
+      onPanResponderRelease: (e, gestureState) => {
+        this.handlePanResponderEnd(e, gestureState);},
+      onPanResponderTerminate:
+        (e, gestureState) => {
+        this.handlePanResponderEnd(e, gestureState);},
+    });
+    // spriteStyles used by PanResponder
+    this.previousTop = this.state.top._value;
+    this.previousLeft =  this.state.left._value;
+    this.spriteStyles = {
+      style: {
+        left: this._previousLeft,
+        top: this._previousTop,
+        width: this.state._width,
+        height: this.state._height,
+      },
+    };
   }
 
   updateNativeStyles () {
@@ -147,16 +142,12 @@ class AnimatedSprite extends React.Component {
   }
 
   startAnimation () {
-    if (this.props.fps) {
-      this.fps = this.props.fps;
-    }
-    this.numFrames = this.sprite.frames.length-1;
+    this.fps = this.props.fps || this.fps;
     this.frameIndex = -1;
     clearInterval(this.defaultAnimationInterval);
     this.defaultAnimationInterval = setInterval(()=>{
       this.frameIndex++;
-      const animationLength = this.props.animationFrameIndex.length-1;
-      if (this.frameIndex > animationLength) {
+      if (this.frameIndex > (this.props.animationFrameIndex.length - 1)) {
         this.frameIndex = this.frameIndex - 1;
         if (this.props.loopAnimation) {
             this.frameIndex = 0;
@@ -168,23 +159,24 @@ class AnimatedSprite extends React.Component {
           return;
         }
       }
-      const index = this.props.animationFrameIndex[this.frameIndex];
-      this.setState({ frameIndex: index });
+      this.setState({
+        frameIndex: this.props.animationFrameIndex[this.frameIndex]
+      });
     }, 1000 / this.fps);
   }
 
   // notify parent that tween has ended
-  tweenHasEnded (spriteUID) {
-    // console.warn(`tweenHasEnded HAPPY GO LUCKY ${spriteUID}`);
+  tweenCompleted (spriteUID) {
     if (this.props.onTweenFinish) {
       this.props.onTweenFinish(spriteUID);
     }
   }
 
-  spriteTween () {
-    if (this.props.tweenStart !== 'fromMethod') {
-      return 0;
-    }
+  // meant to be used from instance of AnimatedSprite. User would invoke
+  // this.refs.<refname>.tweenSprite. This allows for programatic contorl
+  // of starting tween
+  tweenSprite () {
+    if (this.props.tweenStart !== 'fromMethod') return 0;
     this.startTween();
   }
 
@@ -193,12 +185,12 @@ class AnimatedSprite extends React.Component {
     const tweenType = this.props.tweenOptions.tweenType;
     Tweens[tweenType].start(tweenOptions,
       this.tweenablValues,
-      () => this.tweenHasEnded(this.props.spriteUID),
+      () => this.tweenCompleted(this.props.spriteUID),
     );
   }
 
-  handlePress (evt) {
-    evt.preventDefault();
+  handlePress (e) {
+    e.preventDefault();
     if (this.props.onPress) {
       this.props.onPress(this.props.spriteUID);
     }
@@ -223,8 +215,8 @@ class AnimatedSprite extends React.Component {
     }
   }
 
-  handlePressOut (evt) {
-    evt.preventDefault();
+  handlePressOut (e) {
+    e.preventDefault();
     if (this.props.onPressOut) {
       this.props.onPressOut();
     }
@@ -277,7 +269,6 @@ class AnimatedSprite extends React.Component {
   }
 }
 
-// TODO: add in any props that should be required.
 AnimatedSprite.propTypes = {
   sprite: React.PropTypes.object.isRequired,
   coordinates: React.PropTypes.shape({
@@ -291,9 +282,7 @@ AnimatedSprite.propTypes = {
   rotate: React.PropTypes.arrayOf(React.PropTypes.object),
   scale: React.PropTypes.number,
   opacity: React.PropTypes.number,
-
   animationFrameIndex: React.PropTypes.array.isRequired,
-
   spriteUID: React.PropTypes.string,
   draggable: React.PropTypes.bool,
   onPress: React.PropTypes.func,
@@ -306,7 +295,6 @@ AnimatedSprite.propTypes = {
   // probably should validate tweenOptions, since Tweens.js uses them
   // and expects a certian shape.
   tweenOptions: React.PropTypes.object,
-  // note that stopTweenOnPressIn
   stopAutoTweenOnPressIn: React.PropTypes.bool,
   onTweenStopped: React.PropTypes.func,
   onTweenFinish: React.PropTypes.func,
@@ -324,6 +312,5 @@ AnimatedSprite.defaultProps = {
   fps: 10,
   visable: true,
 };
-
 
 export default AnimatedSprite;

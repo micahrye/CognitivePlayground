@@ -130,7 +130,7 @@ class SymbolDigitCodingGame extends React.Component {
       tweenOptions: this.makeFoodTweenObject(),
       },
     () => {
-      this.refs.food.spriteTween();
+      this.refs.food.tweenSprite();
       this.stateTimeout = setTimeout(() => {
         this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
       }, 500);

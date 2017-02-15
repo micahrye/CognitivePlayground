@@ -74,17 +74,6 @@ class MatchByColorGame extends React.Component {
     this.eatTimeout;
     this.switchCharacterTimeout;
     this.clearingScene = false;
-
-    // SCREEN_HEIGHT = SCREEN_HEIGHT * PIXEL_RATIO;
-    // SCREEN_WIDTH = SCREEN_WIDTH * PIXEL_RATIO;
-
-    // const scaleWidth =  1280 / SCREEN_WIDTH;
-    // const scaleHeight =  800 / SCREEN_HEIGHT;
-    // this.scale = {
-    //   screenWidth: scaleWidth,
-    //   screenHeight: scaleHeight,
-    //   image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
-    // };
   }
 
   componentWillMount () {
@@ -252,6 +241,7 @@ class MatchByColorGame extends React.Component {
         break;
     }
   }
+
   startTrialTimer () {
     clearTimeout(this.trialTimer);
     this.trialTimer = setTimeout(()=>{

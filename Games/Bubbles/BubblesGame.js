@@ -43,7 +43,7 @@ class BubblesGame extends React.Component {
       loadingScreen: true,
     };
     this.scale = this.props.scale;
-    this.characterUIDs = {};
+    this.spriteUIDs = {};
     this.setDefaultAnimationState;
     this.bubbleFountainInterval;
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
@@ -53,7 +53,7 @@ class BubblesGame extends React.Component {
 }
 
   componentWillMount () {
-    this.characterUIDs = {
+    this.spriteUIDs = {
       bubble: randomstring({ length: 7 }),
       monster: randomstring({ length: 7 }),
       lever: randomstring({ length: 7 }),
@@ -111,12 +111,12 @@ class BubblesGame extends React.Component {
     this.setState({
       monsterAnimationIndex: monsterCharacter.animationIndex('WALK'),
       tweenCharacter: true,
-    }, ()=> {this.refs.monsterRef.spriteTween();});
+    }, ()=> {this.refs.monsterRef.tweenSprite();});
   }
 
-  onTweenFinish (characterUID) {
+  onTweenFinish (spriteUID) {
     const remainingBubbles = this.state.bubbleArray.filter((item) => {
-      if (item.props.characterUID === characterUID) {
+      if (item.props.spriteUID === spriteUID) {
         return false;
       }
       return true;
@@ -220,7 +220,7 @@ class BubblesGame extends React.Component {
           animationFrameIndex={[0]}
           tweenOptions={backgroundBubbleTween}
           tweenStart={'fromMount'}
-          onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+          onTweenFinish={(spriteUID) => this.onTweenFinish(spriteUID)}
           loopAnimation={false}
           coordinates={{
             top: startTop * this.scale.screenHeight,
@@ -441,7 +441,7 @@ class BubblesGame extends React.Component {
       }}>
           <AnimatedSprite
             sprite={leverCharacter}
-            spriteUID={this.characterUIDs.lever}
+            spriteUID={this.spriteUIDs.lever}
             animationFrameIndex={this.state.leverAnimationIndex}
             loopAnimation={false}
             coordinates={this.leverLocation()}
@@ -476,7 +476,7 @@ class BubblesGame extends React.Component {
               loopAnimation={false}
               tweenOptions={this.targetBubble.tweenOptions}
               tweenStart={'fromMount'}
-              onTweenFinish={(characterUID) => this.targetBubbleTweenFinish(characterUID)}
+              onTweenFinish={(spriteUID) => this.targetBubbleTweenFinish(spriteUID)}
               coordinates={this.targetBubble.coordinates}
               size={this.targetBubble.size}
               stopAutoTweenOnPressIn={this.targetBubble.stopTweenOnPress}
@@ -492,7 +492,7 @@ class BubblesGame extends React.Component {
               animationFrameIndex={this.food.index}
               tweenOptions={this.food.tweenOptions}
               tweenStart={'fromMount'}
-              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              onTweenFinish={(spriteUID) => this.onFoodTweenFinish(spriteUID)}
               loopAnimation={false}
               coordinates={this.food.location}
               size={this.food.size}
@@ -502,11 +502,11 @@ class BubblesGame extends React.Component {
           <AnimatedSprite
             ref={'monsterRef'}
             sprite={monsterCharacter}
-            spriteUID={this.characterUIDs.monster}
+            spriteUID={this.spriteUIDs.monster}
             animationFrameIndex={this.state.monsterAnimationIndex}
             tweenStart={'fromMethod'}
             tweenOptions={this.monster.tweenOptions}
-            onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
+            onTweenFinish={(spriteUID)=> this.onCharacterTweenFinish(spriteUID)}
             loopAnimation={this.monster.loopAnimation}
             coordinates={this.monsterStartLocation()}
             size={{ width: Math.floor(300 * this.scale.image),
@@ -516,7 +516,7 @@ class BubblesGame extends React.Component {
 
           <AnimatedSprite
             sprite={fountainCharacter}
-            spriteUID={this.characterUIDs.fountain}
+            spriteUID={this.spriteUIDs.fountain}
             animationFrameIndex={[0]}
             loopAnimation={false}
             coordinates={this.fountainLocation()}
