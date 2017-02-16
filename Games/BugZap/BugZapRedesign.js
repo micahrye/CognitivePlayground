@@ -4,9 +4,9 @@ import {
   Image,
 } from 'react-native';
 
+// NOTES for myself to look back on as I continue to redo things
 // spotlight style goes in styles instead of hard coded in here
-// maybe AnimatedSprites can come from util instead of all at bottom here
-// use refs? if not get rid of
+// frog fps necessary?
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
@@ -29,12 +29,17 @@ const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 class BugZapGameRedesign extends React.Component {
   constructor (props) {
     super(props);
-    this.retractingSign = false,
+    this.retractingSign = false;
+    this.frogPositionX = 900 * this.props.scale.screenWidth;
+    this.activeFrogColor = blueFrogCharacter,
     this.state = {
       leverAnimationIndex: lever.animationIndex('IDLE'),
+      frogAnimationIndex: this.activeFrogColor.animationIndex("IDLE"),
       loadingScreen: true,
       signRightTweenOptions: null,
       showBugRight: false,
+      frogKey: Math.random(),
+      showFrog: false,
     };
   }
 
@@ -47,6 +52,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   componentWillUnmount () {
+    this.clearTimeout(this.leverInterval);
   }
 
   onLoadScreenFinish () {
@@ -58,11 +64,14 @@ class BugZapGameRedesign extends React.Component {
       leverAnimationIndex: lever.animationIndex('SWITCH_ON'),
     });
     if (!this.state.showBugRight) {
-      this.signDown();
+      this.leverInterval = setTimeout (() => { // make sure sign is retracted before going back down
+        this.signDown();
+      }, 500);
     }
   }
 
   leverPressOut () {
+    clearTimeout(this.leverInterval); // if finger up before timeout complete
     this.setState({
       leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
     });
@@ -72,38 +81,47 @@ class BugZapGameRedesign extends React.Component {
   }
 
   signDown () {
+    this.retractingSign = false;
+
     let signTweenOptions =
       gameUtil.getTweenOptions('signRight', 'on', this.props.scale.image,
-                                                  this.props.scale.screenHeight,
-                                                  this.props.scale.screenWidth);
+          this.props.scale.screenHeight,
+          this.props.scale.screenWidth, null);
     this.setState({
       signRightTweenOptions: signTweenOptions,
     }, () => { this.refs.signRightRef.spriteTween(); });
-    this.retractingSign = false;
   }
 
   retractSign () {
     this.retractingSign = true;
-    let signRightTweenOptions =
-      gameUtil.getTweenOptions('signRight', 'off', this.props.scale.image,
-                                                this.props.scale.screenHeight,
-                                                this.props.scale.screenWidth);
+    const startRight =   SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
+    let signRightTweenOptions = gameUtil.getTweenOptions('signRight', 'off',
+          this.props.scale.image, this.props.scale.screenHeight,
+          this.props.scale.screenWidth, startRight);
     this.setState({
         signRightTweenOptions: signRightTweenOptions,
     }, () => { this.refs.signRightRef.spriteTween(); });
   }
 
+  frogAppear () {
+    this.setState({showFrog: true});
+  }
+
   onTweenFinish (character) {
-    console.warn("tween finished");
     switch (character) {
       case 'signRight':
         if (!this.retractingSign) {
           this.setState({showBugRight: true});
+          this.frogAppear();
         }
         // else {
         //   this.resetTrialSettings();
         // }
     }
+  }
+
+  onAnimationFinish (character) {
+
   }
 
   // resetTrialSettings () {
@@ -130,6 +148,20 @@ class BugZapGameRedesign extends React.Component {
           onPressIn={() => this.leverPressIn()}
           onPressOut={() => this.leverPressOut()}
         />
+
+        {this.state.showFrog ?
+          <AnimatedSprite
+            key={this.state.frogKey}
+            spriteUID={'frog'}
+            sprite={this.activeFrogColor}
+            coordinates={{top: 300 * this.props.scale.screenHeight, left: this.frogPositionX}}
+            size={gameUtil.getSize('frog', this.props.scale.image)}
+            animationFrameIndex={this.state.frogAnimationIndex}
+            rotate={this.rotate}
+            fps={this.fps}
+            onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
+          />
+        : null}
 
         <AnimatedSprite
           ref={'signRightRef'}
