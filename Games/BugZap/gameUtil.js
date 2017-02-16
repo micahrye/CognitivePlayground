@@ -26,11 +26,12 @@ function getSize (characterName, scaleImage) {
     case 'bugRight':
       return {width: 120 * scaleImage,
         height: 120 * scaleImage};
+    case 'frog':
+      return {width: 342 * scaleImage, height: 432 * scaleImage};
   }
 }
 
-function getTweenOptions (characterName, tweenOn, scaleImage, scaleHeight, scaleWidth) {
-  const startRight = SCREEN_WIDTH/2 + (210 * scaleWidth);
+function getTweenOptions (characterName, tweenOn, scaleImage, scaleHeight, scaleWidth, startX) {
   const startLeft = SCREEN_WIDTH/2 - (360 * scaleWidth);
   switch (characterName) {
     case 'signRight' :
@@ -46,12 +47,21 @@ function getTweenOptions (characterName, tweenOn, scaleImage, scaleHeight, scale
       } else {
         return {
           tweenType: 'linear-move',
-          startXY: [startRight, -10 * scaleHeight],
-          endXY: [startRight, -300 * scaleImage],
+          startXY: [startX, -10 * scaleHeight],
+          endXY: [startX, -300 * scaleImage],
           duration: 1000,
           loop: false,
         };
       }
+    // case 'frog':
+    // console.warn('here');
+    //   return {
+    //     tweenType: "linear-move",
+    //     startXY: [startX, 300 * scaleWidth],
+    //     endXY: [startX, 300 * scaleWidth],
+    //     duration: 100,
+    //     loop: false,
+    //   };
   }
 }
 
