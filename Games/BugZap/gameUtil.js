@@ -21,6 +21,8 @@ function getSize (characterName, scaleImage) {
   switch (characterName) {
     case 'lever':
       return {width: 158 * scaleImage, height: 194 * scaleImage};
+    case 'splash':
+      return {width: 340 * scaleImage, height: 200 * scaleImage};
     case 'signRight':
       return {width: 140 * scaleImage, height: 230 * scaleImage};
     case 'bugRight':
@@ -31,11 +33,11 @@ function getSize (characterName, scaleImage) {
   }
 }
 
-function getTweenOptions (characterName, tweenOn, scaleImage, scaleHeight, scaleWidth, startX) {
+function getTweenOptions (characterName, whichTween, scaleImage, scaleHeight, scaleWidth, startX) {
   const startLeft = SCREEN_WIDTH/2 - (360 * scaleWidth);
   switch (characterName) {
     case 'signRight' :
-      if (tweenOn == 'on') {
+      if (whichTween == 'on') {
         return {
           tweenType: "bounce-drop",
           startY: -300 * scaleImage,
@@ -53,15 +55,24 @@ function getTweenOptions (characterName, tweenOn, scaleImage, scaleHeight, scale
           loop: false,
         };
       }
-    // case 'frog':
-    // console.warn('here');
-    //   return {
-    //     tweenType: "linear-move",
-    //     startXY: [startX, 300 * scaleWidth],
-    //     endXY: [startX, 300 * scaleWidth],
-    //     duration: 100,
-    //     loop: false,
-    //   };
+    case 'bug':
+      if (whichTween == 'right') {
+        return {
+          tweenType: "curve-fall",
+          startXY: [SCREEN_WIDTH/2 + (210 * scaleWidth), 95 * scaleHeight],
+          endXY: [SCREEN_WIDTH/2 + (210 * scaleWidth) + 60, 460 * scaleHeight],
+          duration: 1000,
+          loop: false,
+        };
+    } else {
+        return {
+          tweenType: "curve-fall",
+          startXY: [SCREEN_WIDTH/2 - (360 * scaleWidth), 95 * scaleHeight],
+          endXY: [SCREEN_WIDTH/2 - (360 * scaleWidth) - 60, 460 * scaleHeight],
+          duration: 1000,
+          loop: false,
+        };
+    }
   }
 }
 
