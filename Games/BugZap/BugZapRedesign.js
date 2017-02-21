@@ -1,12 +1,13 @@
 import React from 'react';
 import {
-  View,
   Image,
 } from 'react-native';
 
 // NOTES for myself to look back on as I continue to redo things
 // spotlight style goes in styles instead of hard coded in here
 // frog fps necessary?
+// frogKey necessary?
+// something other than trialOver
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
@@ -30,16 +31,21 @@ class BugZapGameRedesign extends React.Component {
   constructor (props) {
     super(props);
     this.retractingSign = false;
+    this.activeFrogColor = blueFrogCharacter;
     this.frogPositionX = 900 * this.props.scale.screenWidth;
-    this.activeFrogColor = blueFrogCharacter,
+    this.frogSide = 'right';
+    this.splashPosX = this.frogPositionX;
+    this.trialOver = false;
     this.state = {
-      leverAnimationIndex: lever.animationIndex('IDLE'),
-      frogAnimationIndex: this.activeFrogColor.animationIndex("IDLE"),
       loadingScreen: true,
+      frogKey: Math.random(),
+      leverAnimationIndex: lever.animationIndex('IDLE'),
+      frogAnimationIndex: this.activeFrogColor.animationIndex('IDLE'),
+      splashAnimationIndex: splashCharacter.animationIndex('RIPPLE'),
       signRightTweenOptions: null,
       showBugRight: false,
-      frogKey: Math.random(),
       showFrog: false,
+      showSplashCharacter: false,
     };
   }
 
@@ -53,6 +59,7 @@ class BugZapGameRedesign extends React.Component {
 
   componentWillUnmount () {
     this.clearTimeout(this.leverInterval);
+    this.clearTimeout(this.eatDelay);
   }
 
   onLoadScreenFinish () {
@@ -103,35 +110,70 @@ class BugZapGameRedesign extends React.Component {
     }, () => { this.refs.signRightRef.spriteTween(); });
   }
 
-  frogAppear () {
-    this.setState({showFrog: true});
+  onBugPress (whichBug) {
+    this.refs.bugRightRef.spriteTween();
+    if (whichBug == 'bugRight') {
+      if (this.frogSide == 'right') {
+        this.correctBugTapped();
+      } else {
+        this.wrongBugTapped();
+      }
+    } else {
+      if (this.frogSide == 'left') {
+        this.correctBugTapped();
+      } else {
+        this.wrongBugTapped();
+      }
+    }
+  }
+
+  correctBugTapped () {
+    let delay = 700;
+    this.eatDelay = setTimeout (() => {
+      this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('EAT')});
+    }, delay);
   }
 
   onTweenFinish (character) {
     switch (character) {
       case 'signRight':
         if (!this.retractingSign) {
-          this.setState({showBugRight: true});
-          this.frogAppear();
+          this.setState({showBugRight: true, showSplashCharacter: true});
         }
         // else {
         //   this.resetTrialSettings();
         // }
+        break;
+      case 'bugRight':
+        this.setState({showBugRight: false});
+        break;
+      case 'bugLeft':
+        break;
     }
   }
 
   onAnimationFinish (character) {
-
+    switch (character) {
+      case 'splash':
+        if (!this.trialOver) {
+          this.setState({showSplashCharacter: false, showFrog: true});
+        }
+        break;
+      case 'frog':
+        if (this.state.frogAnimationIndex != 0) { // if not idling
+          this.trialOver = true;
+          this.setState({showSplashCharacter: true,
+            splashAnimationIndex: splashCharacter.animationIndex('SPLASH'),
+            showFrog: false});
+        }
+        break;
+    }
   }
 
   // resetTrialSettings () {
   //   console.warn('here');
   //   this.setState({showBugRight: false});
   // }
-
-
-
-
 
   render () {
     return (
@@ -158,7 +200,18 @@ class BugZapGameRedesign extends React.Component {
             size={gameUtil.getSize('frog', this.props.scale.image)}
             animationFrameIndex={this.state.frogAnimationIndex}
             rotate={this.rotate}
-            fps={this.fps}
+            onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
+          />
+        : null}
+
+        {this.state.showSplashCharacter ?
+          <AnimatedSprite
+            spriteUID={'splash'}
+            sprite={splashCharacter}
+            coordinates={{top: 580 * this.props.scale.screenHeight,
+              left: this.splashPosX}}
+            size={gameUtil.getSize('splash', this.props.scale.image)}
+            animationFrameIndex={this.state.splashAnimationIndex}
             onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
           />
         : null}
@@ -186,7 +239,8 @@ class BugZapGameRedesign extends React.Component {
             size={gameUtil.getSize('bugRight', this.props.scale.screenHeight,
                           this.props.scale.screenWidth, this.props.scale.image)}
             sprite={bugCharacter}
-            tweenOptions={this.state.bugTweenOptions}
+            tweenOptions={gameUtil.getTweenOptions('bug', this.frogSide,
+              null, this.props.scale.screenHeight, this.props.scale.screenWidth, null)}
             tweenStart={'fromMethod'}
             onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
             onPress={(characterUID) => this.onBugPress(characterUID)}
