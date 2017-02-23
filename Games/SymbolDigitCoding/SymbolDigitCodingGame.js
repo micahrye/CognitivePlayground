@@ -59,6 +59,17 @@ class SymbolDigitCodingGame extends React.Component {
       symbolOrder: gameUtil.symbols(trial),
       thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
     });
+
+    this.loadSpriteAssets();
+  }
+
+  loadSpriteAssets () {
+    this.state.monsterAnimationIndex
+    const indicies = _.concat(
+      monsterSprite.animationIndex('ALL'),
+      monsterSprite.animationIndex('IDLE'),
+    );
+    this.setState({ monsterAnimationIndex: indicies });
   }
 
   componentDidMount () {
