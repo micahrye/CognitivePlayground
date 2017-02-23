@@ -140,6 +140,8 @@ class MatchByColorGame extends React.Component {
   }
 
   makeMoveTween (startXY=[40, 400], endXY=[600, 400], duration=1500) {
+    const coords = this.refs.characterRef.getCoordinates();
+    console.warn(`${JSON.stringify(coords)}`);
     // WILL NEED to pass character info to since size characters diff etc.
     return (
       {
@@ -153,6 +155,8 @@ class MatchByColorGame extends React.Component {
   }
 
   onCharacterTweenFinish (characterUID) {
+    const coords = this.refs.characterRef.getCoordinates();
+    console.warn(`FINISH ${JSON.stringify(coords)}`);
     switch (characterUID) {
       case this.characterUIDs.character:
         this.setState({
