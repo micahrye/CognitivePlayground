@@ -27,6 +27,8 @@ import gameTiles from './gameTiles';
 
 import styles from "./styles";
 
+const Sound = require('react-native-sound');
+
 const SCREEN_WIDTH = require ('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require ('Dimensions').get('window').height;
 
@@ -63,6 +65,7 @@ class UnlockFoodGame extends React.Component {
     this.btnTimeout;
     this.blinkTimeout;
     this.blinkTimeoutArray = [];
+    this.ambient;
   }
 
   componentWillMount () {
@@ -110,9 +113,28 @@ class UnlockFoodGame extends React.Component {
         id: "Main",
       });
     }, GAME_TIME_OUT);
+    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
+      this.ambient.setSpeed(1);
+      this.ambient.setNumberOfLoops(-1);
+      this.ambient.play((success) => {
+        if (success) {
+          console.warn('successfully finished playing');
+        } else {
+          console.warn('playback failed due to audio decoding errors');
+        }
+      });
+      this.ambient.setVolume(1);
+    });
   }
 
   componentWillUnmount () {
+    this.ambient.stop();
+    this.ambient.release();
     clearInterval(this.eatInterval);
     clearTimeout(this.timeoutGameOver);
     clearTimeout(this.celebrateTimeout);

@@ -21,6 +21,8 @@ import flySprite from '../../sprites/bug/bugCharacter';
 import fruitSprite from '../../sprites/apple/appleCharacter';
 import grassSprite from '../../sprites/grass/grassCharacter';
 
+const Sound = require('react-native-sound');
+
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 const TOP_OFFSET = 20;
@@ -49,7 +51,7 @@ class BubblesGame extends React.Component {
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
-
+    this.ambient;
 }
 
   componentWillMount () {
@@ -81,14 +83,37 @@ class BubblesGame extends React.Component {
       });
       // game over when 15 seconds go by without bubble being popped
     }, GAME_TIME_OUT);
+    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
+      this.ambient.setSpeed(1);
+      this.ambient.setNumberOfLoops(-1);
+      this.ambient.play((success) => {
+        if (success) {
+          console.warn('successfully finished playing');
+        } else {
+          console.warn('playback failed due to audio decoding errors');
+        }
+      });
+      this.ambient.setVolume(1);
+    });
   }
 
   componentWillUnmount () {
+    this.releaseAudio();
     clearInterval(this.eatInterval);
     clearInterval(this.bubbleFountainInterval);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
     clearTimeout(this.celebrateTimeout);
+  }
+
+  releaseAudio () {
+    this.ambient.stop();
+    this.ambient.release();
   }
 
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {

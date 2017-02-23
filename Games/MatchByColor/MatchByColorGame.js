@@ -21,6 +21,8 @@ import gameUtil from './gameUtil';
 // styles
 import styles from './styles';
 
+const Sound = require('react-native-sound');
+
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 // const PIXEL_RATIO = 1 / PixelRatio.get();
@@ -74,6 +76,7 @@ class MatchByColorGame extends React.Component {
     this.eatTimeout;
     this.switchCharacterTimeout;
     this.clearingScene = false;
+    this.ambient;
   }
 
   componentWillMount () {
@@ -97,9 +100,28 @@ class MatchByColorGame extends React.Component {
     // console.log('WIDTH = ', SCREEN_WIDTH);
     // console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
     // console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
+    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
+      this.ambient.setSpeed(1);
+      this.ambient.setNumberOfLoops(-1);
+      this.ambient.play((success) => {
+        if (success) {
+          console.warn('successfully finished playing');
+        } else {
+          console.warn('playback failed due to audio decoding errors');
+        }
+      });
+      this.ambient.setVolume(1);
+    });
   }
 
   componentWillUnmount () {
+    this.ambient.stop();
+    this.ambient.release();
     clearTimeout(this.showFoodTimeout);
     clearTimeout(this.signTimeout);
     clearTimeout(this.trialTimer);

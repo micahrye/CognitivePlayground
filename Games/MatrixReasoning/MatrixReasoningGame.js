@@ -14,6 +14,8 @@ import LoadScreen from '../../components/LoadScreen';
 import dogSprite from '../../sprites/dog/dogCharacter';
 import gameTiles from './gameTiles';
 
+const Sound = require('react-native-sound');
+
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
@@ -33,6 +35,7 @@ class MatrixReasoningGame extends React.Component {
     };
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
+    this.ambient;
   }
 
   componentWillMount () {
@@ -40,9 +43,29 @@ class MatrixReasoningGame extends React.Component {
     this.loadCharacter();
   }
 
-  componentDidMount () {}
+  componentDidMount () {
+    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
+      this.ambient.setSpeed(1);
+      this.ambient.setNumberOfLoops(-1);
+      this.ambient.play((success) => {
+        if (success) {
+          console.warn('successfully finished playing');
+        } else {
+          console.warn('playback failed due to audio decoding errors');
+        }
+      });
+      this.ambient.setVolume(1);
+    });
+  }
 
   componentWillUnmount () {
+    this.ambient.stop();
+    this.ambient.release();
     clearInterval(this.matrixShifterInterval);
     clearTimeout(this.readTrialTimeout);
   }
