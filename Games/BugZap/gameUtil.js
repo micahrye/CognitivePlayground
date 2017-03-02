@@ -11,9 +11,15 @@ function getCoordinates (characterName, scaleHeight, scaleWidth, scaleImage) {
     case 'signRight':
       return {top: -300 * scaleImage,
               left: SCREEN_WIDTH/2 + (210 * scaleWidth)};
+    case 'signLeft':
+      return {top: -300 * scaleImage,
+              left: SCREEN_WIDTH/2 - (360 * scaleWidth)};
     case 'bugRight':
       return {top: 75 * scaleHeight,
               left: SCREEN_WIDTH/2 + (220 * scaleWidth)};
+    case 'bugLeft':
+      return {top: 75 * scaleHeight,
+              left: SCREEN_WIDTH/2 - (350 * scaleWidth)};
   }
 }
 
@@ -23,9 +29,9 @@ function getSize (characterName, scaleImage) {
       return {width: 158 * scaleImage, height: 194 * scaleImage};
     case 'splash':
       return {width: 340 * scaleImage, height: 200 * scaleImage};
-    case 'signRight':
+    case 'sign':
       return {width: 140 * scaleImage, height: 230 * scaleImage};
-    case 'bugRight':
+    case 'bug':
       return {width: 120 * scaleImage,
         height: 120 * scaleImage};
     case 'frog':
@@ -34,9 +40,8 @@ function getSize (characterName, scaleImage) {
 }
 
 function getTweenOptions (characterName, whichTween, scaleImage, scaleHeight, scaleWidth, startX) {
-  const startLeft = SCREEN_WIDTH/2 - (360 * scaleWidth);
   switch (characterName) {
-    case 'signRight' :
+    case 'sign' :
       if (whichTween == 'on') {
         return {
           tweenType: "bounce-drop",
@@ -51,7 +56,7 @@ function getTweenOptions (characterName, whichTween, scaleImage, scaleHeight, sc
           tweenType: 'linear-move',
           startXY: [startX, -10 * scaleHeight],
           endXY: [startX, -300 * scaleImage],
-          duration: 1000,
+          duration: 600,
           loop: false,
         };
       }
