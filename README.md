@@ -13,6 +13,8 @@ As of 11-06-2016:
 * react-native: 0.36.1
 * Genymotion: 2.8.0
   * Android VM: API 23, screen res 2560x1600
+* VirtualBox
+  * 5.0.26 r108824
 
 ### Install and running
 From the project directory:
