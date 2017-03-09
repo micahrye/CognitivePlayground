@@ -33,7 +33,7 @@ function gameBoardTilesForTrial (trialNumber) {
   const numTrials = trials.length;
   const trialIndex = (!trialNumber || numTrials <= trialNumber) ? 0 : trialNumber;
   // console.warn(`numTrials = ${numTrials}`);
-  // console.warn(`trialIndex = ${numTrials}`);
+  // console.warn(`trialIndex = ${trialIndex}`);
   const activeTiles = trials[trialIndex].gameboardTiles.activeTiles;
   const frameKeys = trials[trialIndex].gameboardTiles.frameKeys;
 
