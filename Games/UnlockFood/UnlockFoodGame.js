@@ -11,6 +11,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import Matrix from '../../components/Matrix';
 import LoadScreen from '../../components/LoadScreen';
 
 import leverSprite from '../../sprites/lever/leverCharacter';
@@ -22,7 +23,6 @@ import ledSprite from "../../sprites/led/ledCharacter";
 import buttonSprite from "../../sprites/button/buttonCharacter";
 import arrowSprite from "../../sprites/arrow/arrowCharacter";
 
-import Matrix from '../../components/Matrix';
 import gameTiles from './gameTiles';
 
 import styles from "./styles";
@@ -51,6 +51,7 @@ class UnlockFoodGame extends React.Component {
       tiles: {},
       trial: 0,
       loadingScreen: true,
+      leds: {},
     };
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -399,6 +400,16 @@ class UnlockFoodGame extends React.Component {
     this.setState({loadingScreen: false});
   }
 
+  matrixStyle () {
+    return {
+      width: 200,
+      height: 100,
+      top: 100 * this.props.scale.screenHeight,
+      left: 100 * this.props.scale.screenWidth,
+      position: 'absolute',
+    };
+  }
+
   render () {
     const fruitVisable = this.state.showFood ? true : false;
     return (
@@ -498,11 +509,27 @@ class UnlockFoodGame extends React.Component {
               />
             : null}
 
+            <Matrix
+              styles={{
+                  top: 100 * this.props.scale.screenHeight,
+                  left: 100 * this.props.scale.screenWidth,
+                  position: 'absolute',
+                  width: 400 * this.props.scale.screenWidth,
+                  height: 130 * this.props.scale.screenHeight,
+                  borderWidth: 1,
+                  borderColor: '#d6d7da',
+                }}
+              tileScale={1}
+              tiles={gameTiles.ledController()}
+              scale={this.props.scale}
+            />
+
           </Image>
         </View>
     );
   }
 }
+
 UnlockFoodGame.propTypes = {
   route: React.PropTypes.object,
   navigator: React.PropTypes.object,

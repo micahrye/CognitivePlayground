@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Image,
   View,
+  AppState,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -53,6 +54,7 @@ class MatchByColorGame extends React.Component {
       foodDisplayed: false,
       level: LEVEL01,
       loadingScreen: true,
+      appState: AppState.currentState,
     };
     this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
@@ -117,9 +119,11 @@ class MatchByColorGame extends React.Component {
       });
       this.ambient.setVolume(1);
     });
+    AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
+    // console.warn("WILL UNMOUNT");
     this.ambient.stop();
     this.ambient.release();
     clearTimeout(this.showFoodTimeout);
@@ -130,6 +134,16 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.switchCharacterTimeout);
   }
 
+  _handleAppStateChange = (appState) => {
+    console.warn(`APP STATE = ${appState}`);
+    if (appState === 'inactive' || appState === 'background') {
+      this.ambient.stop();
+      this.ambient.release();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
+
+  }
+
   /**
    * used to load character image frames off screen so that image
    * frames are in memory.
@@ -137,13 +151,15 @@ class MatchByColorGame extends React.Component {
   loadCharacter (characterName) {
     this.level = this.currentLevel(this.numTrialsForCurrentLevel);
     if (this.level === DONE) {
+      // TODO: should probably have sometype of finish screen/animation etc.
       this.homeButtonPressed();
       return;
     }
+
     this.characterUIDs.character = randomstring({ length: 7 });
     this.activeCharacter = gameUtil.getCharacterObject(characterName);
-
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
+
     this.setState({
       character: this.activeCharacter,
       characterAnimationIndex: this.activeCharacter.animationIndex('ALL'),
@@ -176,8 +192,9 @@ class MatchByColorGame extends React.Component {
   }
 
   onCharacterTweenFinish (characterUID) {
-    const coords = this.refs.characterRef.getCoordinates();
-    console.warn(`FINISH ${JSON.stringify(coords)}`);
+    console.log(`!! onCharTweenFin, characterUID=${characterUID}`);
+    //const coords = this.refs.characterRef.getCoordinates();
+    //console.log(`FINISH ${JSON.stringify(coords)}`);
     switch (characterUID) {
       case this.characterUIDs.character:
         this.setState({
@@ -268,10 +285,10 @@ class MatchByColorGame extends React.Component {
   }
 
   startTrialTimer () {
-    clearTimeout(this.trialTimer);
-    this.trialTimer = setTimeout(()=>{
-      this.clearScene();
-    }, TRIAL_TIMEOUT);
+    // clearTimeout(this.trialTimer);
+    // this.trialTimer = setTimeout(()=>{
+    //   this.clearScene();
+    // }, TRIAL_TIMEOUT);
   }
 
   leverPress () {
@@ -330,8 +347,6 @@ class MatchByColorGame extends React.Component {
       // then interval to make food appear on sign.
       clearTimeout(this.showFoodTimeout);
       this.showFoodTimeout = setTimeout(() => {
-        // const coords = this.foodSignDisplayLocations();
-        // this.showFoods(coords, true, true);
         this.displayFoods();
         this.foodActive = true;
         this.startTrialTimer();
@@ -394,40 +409,6 @@ class MatchByColorGame extends React.Component {
     this.middleFood.key = randomstring({length: 7});
     this.rightFood.key = randomstring({length: 7});
     this.setState({foodDisplayed: false});
-  }
-
-  showFoods (coords, displayFood, setState = true) {
-    // can be case that this.setState is beeing called and setting
-    // food key and location is suffecient. In other cases want to explicitly
-    // call this.setState.
-    const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
-    const foodPref = gameUtil.favoriteFood(this.activeCharacter.name);
-    const targetFoodIndex = _.findIndex(foods, (food) => food.name === foodPref);
-    const numFoods = this.level === 3 ? 3 : 2;
-    let order = _.shuffle([0, 1, 2]);
-    if (this.level < 3) {
-      const index = _([0, 1, 2]).difference([targetFoodIndex]).shuffle().value().pop();
-      order = _.shuffle([index, targetFoodIndex]);
-    } else {
-      order = _.shuffle([0, 1, 2]);
-    }
-    this.targetFoodPosition = _.findIndex(order, (val) => val === targetFoodIndex);
-    this.leftFood.character = foods[order[0]];
-    this.middleFood.character = foods[order[1]];
-
-    this.leftFood.key = randomstring({length: 7});
-    this.middleFood.key = randomstring({length: 7});
-    // only set those foods that will show.
-    this.leftFood.coords = {top: coords.top, left: coords.leftLeft};
-    this.middleFood.coords = {top: coords.top, left: coords.middleLeft};
-    if (numFoods === 3) {
-      this.rightFood.coords = {top: coords.top, left: coords.rightLeft};
-      this.rightFood.character = foods[order[2]];
-      this.rightFood.key = randomstring({length: 7});
-    }
-    if (setState) {
-      this.setState({foodDisplayed: displayFood});
-    }
   }
 
   foodDropToCharacter (food, foodStartAt, dropTimeDuration) {
@@ -517,6 +498,7 @@ class MatchByColorGame extends React.Component {
   }
 
   clearScene () {
+    console.log('!! clearScene()');
     this.clearingScene = true;
     clearTimeout(this.trialTimer);
     this.initializeMoveUpTweensForSigns();
@@ -525,6 +507,7 @@ class MatchByColorGame extends React.Component {
     const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const startFrom = [characterAt.left, characterAt.top];
     const exitTo = [SCREEN_WIDTH, characterAt.top];
+    // exit the stage
     this.activeCharacter.tweenOptions = this.makeMoveTween(
       startFrom,
       exitTo,
@@ -544,7 +527,9 @@ class MatchByColorGame extends React.Component {
         clearTimeout(this.switchCharacterTimeout);
         this.switchCharacterTimeout = setTimeout(() => {
           this.clearingScene = false;
+          console.log(`!! getValidCharacterNameForLevel`);
           const name = gameUtil.getValidCharacterNameForLevel(this.level);
+          console.log(`!! next loadCharacter`);
           this.loadCharacter(name);
         }, timeToExit);
       });
@@ -627,6 +612,7 @@ class MatchByColorGame extends React.Component {
   }
 
   render () {
+    console.log(`!! render this.state.character = ${this.state.character.name}`)
     return (
       <View style={styles.container}>
         <Image source={require('../../media/backgrounds/Game_2_Background_1280.png')}

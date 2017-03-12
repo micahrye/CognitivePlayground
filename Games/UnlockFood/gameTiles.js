@@ -29,7 +29,16 @@ function gameBoardTilesForTrial (trialNumber) {
 }
 
 
+function ledController () {
+  const activeTiles = [true, true, true, false, false, false, false, false, false];
+  const frameKeys = ["IDLE", "IDLE", "IDLE", "", "", "", "", "", ""];
+  const sprites = _.fill(Array(activeTiles.length), buttonSprite);
+  return createTilesArray(activeTiles, sprites, frameKeys);
+}
+
+
 export default {
   gameBoardTilesForTrial,
   tileBlinkSequence,
+  ledController,
 };
