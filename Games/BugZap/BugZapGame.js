@@ -24,6 +24,8 @@ import lever from "../../sprites/verticalLever/verticalLeverCharacter";
 
 import styles from "./BugZapStyles";
 
+const Sound = require('react-native-sound');
+
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
@@ -83,6 +85,7 @@ class BugZapGame extends React.Component {
       showSpotlight: false,
       loadingScreen: true,
     };
+    this.ambient;
   }
 
   componentWillMount () {
@@ -116,7 +119,29 @@ class BugZapGame extends React.Component {
     this.readyForInput = true;
   }
 
+  componentDidMount () {
+    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.ambient.setSpeed(1);
+      this.ambient.setNumberOfLoops(-1);
+      this.ambient.play((success) => {
+        if (success) {
+          console.warn('successfully finished playing');
+        } else {
+          console.warn('playback failed due to audio decoding errors');
+        }
+      });
+      this.ambient.setVolume(1);
+    });
+  }
+
   componentWillUnmount () {
+    this.ambient.stop();
+    this.ambient.release();
+
     clearTimeout(this.characterDissapear);
     clearInterval(this.eatInterval);
     clearInterval(this.disgustInterval);

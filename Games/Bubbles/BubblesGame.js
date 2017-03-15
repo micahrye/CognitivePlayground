@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Image,
+  AppState,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -20,6 +21,8 @@ import canCharacter from '../../sprites/can/canCharacter';
 import flySprite from '../../sprites/bug/bugCharacter';
 import fruitSprite from '../../sprites/apple/appleCharacter';
 import grassSprite from '../../sprites/grass/grassCharacter';
+
+const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -50,6 +53,13 @@ class BubblesGame extends React.Component {
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
 
+    this.ambientSound;
+    this.popSound;
+    this.popPlaying = false;
+    this.leverSound;
+    this.leverPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
 }
 
   componentWillMount () {
@@ -81,14 +91,76 @@ class BubblesGame extends React.Component {
       });
       // game over when 15 seconds go by without bubble being popped
     }, GAME_TIME_OUT);
+    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.ambientSound.setSpeed(1);
+      this.ambientSound.setNumberOfLoops(-1);
+      this.ambientSound.play();
+      this.ambientSound.setVolume(1);
+    });
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
+    this.releaseAudio();
     clearInterval(this.eatInterval);
     clearInterval(this.bubbleFountainInterval);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
     clearTimeout(this.celebrateTimeout);
+  }
+
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.leverSound = new Sound('lever_switch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.leverSound.setSpeed(1);
+      this.leverSound.setNumberOfLoops(0);
+      this.leverSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+  }
+
+  releaseAudio () {
+    this.ambientSound.stop();
+    this.ambientSound.release();
+    this.popSound.stop();
+    this.popSound.release();
+    this.leverSound.stop();
+    this.leverSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+  }
+
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseAudio();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
@@ -317,6 +389,10 @@ class BubblesGame extends React.Component {
         monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
       }, () => {
         this.celebrateTimeout = setTimeout(() => {
+          if (!this.celebratePlaying) {
+            this.celebratePlaying = true;
+            this.celebrateSound.play(() => {this.celebratePlaying = false;});
+          }
           this.setState({
             monsterAnimationIndex: monsterCharacter.animationIndex('CELEBRATE'),
           });
@@ -346,7 +422,10 @@ class BubblesGame extends React.Component {
     // The related component
     this.targetBubble.visable = false;
     this.setState({targetBubbleActive: true});
-    // time to play pop sound
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     this.foodFall(stopValueX, stopValueY);
   }
 
@@ -356,6 +435,10 @@ class BubblesGame extends React.Component {
   }
 
   leverPressIn () {
+    if (!this.leverPlaying) {
+      this.leverPlaying = true;
+      this.leverSound.play(() => {this.leverPlaying = false;});
+    }
     this.setState({
       leverAnimationIndex: leverCharacter.animationIndex('SWITCH_ON'),
     });

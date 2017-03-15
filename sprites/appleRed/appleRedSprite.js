@@ -1,11 +1,11 @@
 "use strict";
 
-const appleCharacter = {
-  name:"apple",
+const appleRedSprite = {
+  name:"appleRed",
   size: {width: 135, height: 146},
   animationTypes: ['IDLE', 'ALL'],
   frames: [
-    require("./apple.png"),
+    require("./apple_red.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
@@ -17,4 +17,4 @@ const appleCharacter = {
   },
 };
 
-export default appleCharacter;
+export default appleRedSprite;

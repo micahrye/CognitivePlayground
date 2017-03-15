@@ -13,6 +13,7 @@ As of 11-06-2016:
 * react-native: 0.36.1
 * Genymotion: 2.8.0
   * Android VM: API 23, screen res 2560x1600
+* VirtualBox version [5.0.26](http://download.virtualbox.org/virtualbox/5.0.26/VirtualBox-5.0.26-108824-OSX.dmg) for Mac OSX.
 
 ### Install and running
 From the project directory:

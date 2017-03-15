@@ -5,8 +5,12 @@ import redMonster from '../../sprites/redMonster/redMonsterCharacter';
 import greenMonster from '../../sprites/greenMonster/greenMonsterCharacter';
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
+import bird from '../../sprites/bird/birdCharacter';
 // foods
 import appleCharacter from "../../sprites/apple/appleCharacter";
+import appleBlueSprite from "../../sprites/appleBlue/appleBlueSprite";
+import appleGreenSprite from "../../sprites/appleGreen/appleGreenSprite";
+import appleRedSprite from "../../sprites/appleRed/appleRedSprite";
 import grassCharacter from "../../sprites/grass/grassCharacter";
 import canCharacter from "../../sprites/can/canCharacter";
 
@@ -28,53 +32,65 @@ function getCharacterObject (characterName) {
     case 'dog':
       dog.rotate = [{rotateY:'180deg'}];
       return dog;
+    case 'bird':
+      bird.rotate = [{rotateY:'0deg'}];
+      return bird;
+    default:
+      console.error('Unknown character requested');
   }
 }
 
 function getValidCharacterNameForLevel (level) {
-  let index;
-  const names = [blueMonster.name, redMonster.name, greenMonster.name, goat.name, dog.name];
+  const names = [
+    blueMonster.name,
+    redMonster.name,
+    greenMonster.name,
+    goat.name,
+    dog.name,
+    bird.name,
+  ];
   switch (level) {
     case 1:
     case 2:
     case 3:
-      index = _.random(0, names.length-1);
-      return names[index];
+      return names[Math.floor(Math.random() * 6)];
   }
 }
 
 function getFoodsToDisplay (characterName) {
+  // NOTE: if character red/green/blue
   // return array of foods to show.
+  //TODO: should have target food and random other foods.
   switch (characterName) {
     case 'blueMonster':
-      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+      return _.shuffle([appleBlueSprite, grassCharacter, canCharacter]);
     case 'redMonster':
-      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+      return _.shuffle([appleRedSprite, grassCharacter, canCharacter]);
     case 'greenMonster':
-      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+      return _.shuffle([appleGreenSprite, grassCharacter, canCharacter]);
     case 'goat':
       return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
     case 'dog':
+      return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
+    case 'bird':
       return _.shuffle([appleCharacter, grassCharacter, canCharacter]);
   }
 }
 
 function favoriteFood (characterName) {
-  let food = "";
   switch (characterName) {
     case 'blueMonster':
-        food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
-        return food.name;
+        return appleBlueSprite.name;
     case 'redMonster':
-        food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
-        return food.name;
+        return appleRedSprite.name;
     case 'greenMonster':
-        food = _.shuffle([appleCharacter, grassCharacter, canCharacter])[0];
-        return food.name;
+        return appleGreenSprite.name;
     case 'goat':
       return canCharacter.name;
     case 'dog':
       return grassCharacter.name;
+    case 'bird':
+      return appleCharacter.name;
   }
 }
 
@@ -93,6 +109,8 @@ function characterMouthLocation (characterComponent) {
       return [(height * 0.35), (width * 0.65)];
     case 'dog':
       return [(height * 0.2), (width * 0.5)];
+    case 'bird':
+      return [(height * 0.2), (width * 0.5)];
   }
 }
 
@@ -108,6 +126,8 @@ function startEatingPriorToFoodDropEnd (characterName) {
     case 'goat':
       return 350;
     case 'dog':
+      return 300;
+    case 'bird':
       return 300;
   }
 }
