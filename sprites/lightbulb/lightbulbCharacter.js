@@ -3,7 +3,7 @@
 const lightbulbCharacter = {
   name:"lightbulb",
   size: {width: 170, height: 100},
-  animationTypes: ['ON', 'OFF'],
+  animationTypes: ['ON', 'OFF', 'ALL'],
   frames:[
     require("./lightbulb_on.png"),
     require("./lightbulb_off.png"),
@@ -14,6 +14,8 @@ const lightbulbCharacter = {
         return [0];
       case 'OFF':
         return [1];
+      case 'ALL':
+        return [0, 1, 0];
     }
   },
 };

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   View,
   Image,
+  AppState,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -44,7 +45,12 @@ class SymbolDigitCodingGame extends React.Component {
       coords: {},
       size: {},
     };
-    this.ambient;
+
+    this.ambientSound;
+    this.popSound;
+    this.popPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
   }
 
   componentWillMount () {
@@ -73,29 +79,62 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   componentDidMount () {
-    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
         return;
       }
-      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
-      this.ambient.setSpeed(1);
-      this.ambient.setNumberOfLoops(-1);
-      this.ambient.play((success) => {
-        if (success) {
-          console.warn('successfully finished playing');
-        } else {
-          console.warn('playback failed due to audio decoding errors');
-        }
-      });
-      this.ambient.setVolume(1);
+      this.ambientSound.setSpeed(1);
+      this.ambientSound.setNumberOfLoops(-1);
+      this.ambientSound.play();
+      this.ambientSound.setVolume(1);
     });
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
-    this.ambient.stop();
-    this.ambient.release();
+    this.ambientSound.stop();
+    this.ambientSound.release();
     clearTimeout(this.stateTimeout);
+  }
+
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+  }
+
+  releaseSounds () {
+    this.ambientSound.stop();
+    this.ambientSound.release();
+    this.popSound.stop();
+    this.popSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+  }
+
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseSounds();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   monsterMouthLocation () {
@@ -166,6 +205,10 @@ class SymbolDigitCodingGame extends React.Component {
     () => {
       this.refs.food.tweenSprite();
       this.stateTimeout = setTimeout(() => {
+        if (!this.celebratePlaying) {
+          this.celebratePlaying = true;
+          this.celebrateSound.play(() => {this.celebratePlaying = false;});
+        }
         this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
       }, 500);
     });
@@ -183,6 +226,10 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   signPressed (signInfo) {
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     const correctSymbol = gameUtil.correctSymbol(this.state.trial);
     if (_.isEqual(correctSymbol, signInfo.symbol)) {
       const symbolOrder = gameUtil.symbols(this.state.trial);

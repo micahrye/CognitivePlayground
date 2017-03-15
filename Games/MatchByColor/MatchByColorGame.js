@@ -54,7 +54,6 @@ class MatchByColorGame extends React.Component {
       foodDisplayed: false,
       level: LEVEL01,
       loadingScreen: true,
-      appState: AppState.currentState,
     };
     this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
@@ -78,7 +77,14 @@ class MatchByColorGame extends React.Component {
     this.eatTimeout;
     this.switchCharacterTimeout;
     this.clearingScene = false;
-    this.ambient;
+
+    this.ambientSound;
+    this.signSound;
+    this.signSoundPlaying = false;
+    this.popSound;
+    this.popPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
   }
 
   componentWillMount () {
@@ -98,34 +104,24 @@ class MatchByColorGame extends React.Component {
   }
 
   componentDidMount () {
-    // console.log('HEIGH = ', SCREEN_HEIGHT);
-    // console.log('WIDTH = ', SCREEN_WIDTH);
-    // console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
-    // console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
-    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
         return;
       }
-      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
-      this.ambient.setSpeed(1);
-      this.ambient.setNumberOfLoops(-1);
-      this.ambient.play((success) => {
-        if (success) {
-          console.warn('successfully finished playing');
-        } else {
-          console.warn('playback failed due to audio decoding errors');
-        }
-      });
-      this.ambient.setVolume(1);
+      this.ambientSound.setSpeed(1);
+      this.ambientSound.setNumberOfLoops(-1);
+      this.ambientSound.play();
+      this.ambientSound.setVolume(1);
     });
+    this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
     // console.warn("WILL UNMOUNT");
-    this.ambient.stop();
-    this.ambient.release();
+    this.ambientSound.stop();
+    this.ambientSound.release();
     clearTimeout(this.showFoodTimeout);
     clearTimeout(this.signTimeout);
     clearTimeout(this.trialTimer);
@@ -134,14 +130,64 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.switchCharacterTimeout);
   }
 
+  initSounds () {
+    this.signSound = new Sound('cards_drop.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.signSound.setSpeed(1);
+      this.signSound.setNumberOfLoops(0);
+      this.signSound.setVolume(1);
+    });
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.leverSound = new Sound('lever_switch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.leverSound.setSpeed(1);
+      this.leverSound.setNumberOfLoops(0);
+      this.leverSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+  }
+
+  releaseSounds () {
+    this.ambientSound.stop();
+    this.ambientSound.release();
+    this.popSound.stop();
+    this.popSound.release();
+    this.leverSound.stop();
+    this.leverSound.release();
+    this.signSound.stop();
+    this.signSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+  }
+
   _handleAppStateChange = (appState) => {
-    console.warn(`APP STATE = ${appState}`);
+    // release all sound objects
     if (appState === 'inactive' || appState === 'background') {
-      this.ambient.stop();
-      this.ambient.release();
+      this.releaseSounds();
       AppState.removeEventListener('change', this._handleAppStateChange);
     }
-
   }
 
   /**
@@ -238,6 +284,11 @@ class MatchByColorGame extends React.Component {
   }
 
   signDropTween () {
+    if (!this.signSoundPlaying) {
+      this.signSoundPlaying = true;
+      this.signSound.play(() => {this.signSoundPlaying = false;});
+    }
+
     return {
       tweenType: "bounce-drop",
       startY: -300,
@@ -323,6 +374,10 @@ class MatchByColorGame extends React.Component {
     if (this.state.loadingCharacter
       || this.state.signsVisable || this.clearingScene) {
       return;
+    }
+    if (!this.leverPlaying) {
+      this.leverPlaying = true;
+      this.leverSound.play(() => {this.leverPlaying = false;});
     }
     this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
 
@@ -439,6 +494,10 @@ class MatchByColorGame extends React.Component {
         characterAnimationIndex: joyfulEatingIndex,
         characterAnimationLoop: false,
       }, () => {
+        if (!this.celebratePlaying) {
+          this.celebratePlaying = true;
+          this.celebrateSound.play(() => {this.celebratePlaying = false;});
+        }
         this.eatTimeout = setTimeout(() => {
           this.clearScene();
         }, 500);
@@ -466,6 +525,10 @@ class MatchByColorGame extends React.Component {
   }
 
   foodPressed (foodId) {
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     if (this.state.dropFood || !this.foodActive || this.clearingScene) {
       return;
     }

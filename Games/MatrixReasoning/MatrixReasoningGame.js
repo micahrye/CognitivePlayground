@@ -1,5 +1,9 @@
 import React from 'react';
-import {View, Image} from 'react-native';
+import {
+  View,
+  Image,
+  AppState,
+} from 'react-native';
 
 import _ from 'lodash';
 import reactMixin from 'react-mixin';
@@ -35,7 +39,11 @@ class MatrixReasoningGame extends React.Component {
     };
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
-    this.ambient;
+    this.ambientSound;
+    this.popSound;
+    this.popPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
   }
 
   componentWillMount () {
@@ -44,30 +52,65 @@ class MatrixReasoningGame extends React.Component {
   }
 
   componentDidMount () {
-    this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
         return;
       }
-      // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
-      this.ambient.setSpeed(1);
-      this.ambient.setNumberOfLoops(-1);
-      this.ambient.play((success) => {
-        if (success) {
-          console.warn('successfully finished playing');
-        } else {
-          console.warn('playback failed due to audio decoding errors');
-        }
-      });
-      this.ambient.setVolume(1);
+      this.ambientSound.setSpeed(1);
+      this.ambientSound.setNumberOfLoops(-1);
+      this.ambientSound.play();
+      this.ambientSound.setVolume(1);
     });
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
-    this.ambient.stop();
-    this.ambient.release();
+    this.ambientSound.stop();
+    this.ambientSound.release();
     clearInterval(this.matrixShifterInterval);
     clearTimeout(this.readTrialTimeout);
+  }
+
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+  }
+
+  releaseSounds () {
+    this.ambientSound.stop();
+    this.ambientSound.release();
+    this.popSound.stop();
+    this.popSound.release();
+    this.signSound.stop();
+    this.signSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+  }
+
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseSounds();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   loadCharacter () {
@@ -108,6 +151,10 @@ class MatrixReasoningGame extends React.Component {
   }
 
   gameCharacterAction (action) {
+    if (!this.celebratePlaying && (action === 'CELEBRATE')) {
+      this.celebratePlaying = true;
+      this.celebrateSound.play(() => {this.celebratePlaying = false;});
+    }
     let dog = _.cloneDeep(this.state.dog);
     dog.frameIndex = _.concat(
       dogSprite.animationIndex(action),
@@ -134,6 +181,10 @@ class MatrixReasoningGame extends React.Component {
   pressStub () {}
 
   selectionTilePress (tile, index) {
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     const trial = this.state.trial;
     if (tile.frameKey === gameTiles.correctSelection(trial)) {
       // redraw matrix with correct

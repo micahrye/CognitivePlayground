@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import randomstring from 'random-string';
 import buttonSprite from "../../sprites/button/buttonCharacter";
+import ledSprite from "../../sprites/led/ledCharacter";
+
 
 import trials from './trials';
 
@@ -15,7 +17,7 @@ function createTilesArray (activeTiles, sprites, frameKeys) {
 
 function tileBlinkSequence (trialNumber) {
   const trial = !trials[trialNumber] ? trials[0] : trials[trialNumber];
-  const seq = trial.tileBlinkSequence
+  const seq = trial.tileBlinkSequence;
   return seq;
 }
 
@@ -28,12 +30,19 @@ function gameBoardTilesForTrial (trialNumber) {
   return createTilesArray(activeTiles, sprites, frameKeys);
 }
 
+//
+function ledController (ledsOn, numLeds) {
+  let ledTiles = _.fill(Array(9), false);
+  _.forEach(_.fill(Array(numLeds)), (val, index) => {
+    ledTiles[index] = true;
+  });
+  let frameKeys = _.fill(Array(9), "OFF");
+  _.forEach(ledsOn, (onIndx) => {
+    frameKeys[onIndx] = "ON";
+  });
 
-function ledController () {
-  const activeTiles = [true, true, true, false, false, false, false, false, false];
-  const frameKeys = ["IDLE", "IDLE", "IDLE", "", "", "", "", "", ""];
-  const sprites = _.fill(Array(activeTiles.length), buttonSprite);
-  return createTilesArray(activeTiles, sprites, frameKeys);
+  const sprites = _.fill(Array(ledTiles.length), ledSprite);
+  return createTilesArray(ledTiles, sprites, frameKeys);
 }
 
 
