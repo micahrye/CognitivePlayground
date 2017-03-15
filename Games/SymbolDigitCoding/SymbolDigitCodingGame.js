@@ -51,6 +51,8 @@ class SymbolDigitCodingGame extends React.Component {
     this.popPlaying = false;
     this.celebrateSound;
     this.celebratePlaying = false;
+    this.disgustSound;
+    this.disgustSound = false;
   }
 
   componentWillMount () {
@@ -94,8 +96,7 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   componentWillUnmount () {
-    this.ambientSound.stop();
-    this.ambientSound.release();
+    this.releaseSounds();
     clearTimeout(this.stateTimeout);
   }
 
@@ -118,6 +119,15 @@ class SymbolDigitCodingGame extends React.Component {
       this.celebrateSound.setNumberOfLoops(0);
       this.celebrateSound.setVolume(1);
     });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
   }
 
   releaseSounds () {
@@ -127,6 +137,8 @@ class SymbolDigitCodingGame extends React.Component {
     this.popSound.release();
     this.celebrateSound.stop();
     this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
   }
 
   _handleAppStateChange = (appState) => {
@@ -246,6 +258,10 @@ class SymbolDigitCodingGame extends React.Component {
 
       });
     } else {
+      if (!this.disgustPlaying) {
+        this.disgustPlaying = true;
+        this.disgustSound.play(() => {this.disgustPlaying = false;});
+      }
       this.setState({
         monsterAnimationIndex: monsterSprite.animationIndex('DISGUST'),
         resetTrial: true,

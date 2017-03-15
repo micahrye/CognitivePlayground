@@ -83,6 +83,8 @@ class UnlockFoodGame extends React.Component {
     this.middleTonePlaying = false;
     this.bottomSound;
     this.bottomPlaying = false;
+    this.disgustSound;
+    this.disgustPlaying = false;
   }
 
   componentWillMount () {
@@ -203,6 +205,15 @@ class UnlockFoodGame extends React.Component {
       this.bottomToneSound.setNumberOfLoops(0);
       this.bottomToneSound.setVolume(1);
     });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
   }
 
   releaseSounds () {
@@ -218,6 +229,8 @@ class UnlockFoodGame extends React.Component {
     this.middleToneSound.release();
     this.bottomToneSound.stop();
     this.bottomToneSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
   }
 
   _handleAppStateChange = (appState) => {
@@ -439,6 +452,10 @@ class UnlockFoodGame extends React.Component {
   }
 
   characterDisapointed () {
+    if (!this.disgustPlaying) {
+      this.disgustPlaying = true;
+      this.disgustSound.play(() => {this.disgustPlaying = false;});
+    }
     const frameIndex = _.concat(
       birdSprite.animationIndex('DISGUST'),
       birdSprite.animationIndex('DISGUST'),

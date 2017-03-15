@@ -53,7 +53,7 @@ function getValidCharacterNameForLevel (level) {
     case 1:
     case 2:
     case 3:
-      return names[_.random(0, names.length-1)];
+      return names[Math.floor(Math.random() * 6)];
   }
 }
 

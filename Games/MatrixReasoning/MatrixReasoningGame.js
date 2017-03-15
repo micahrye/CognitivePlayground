@@ -44,6 +44,8 @@ class MatrixReasoningGame extends React.Component {
     this.popPlaying = false;
     this.celebrateSound;
     this.celebratePlaying = false;
+    this.disgustSound;
+    this.disgustPlaying = false;
   }
 
   componentWillMount () {
@@ -67,8 +69,7 @@ class MatrixReasoningGame extends React.Component {
   }
 
   componentWillUnmount () {
-    this.ambientSound.stop();
-    this.ambientSound.release();
+    this.releaseSounds();
     clearInterval(this.matrixShifterInterval);
     clearTimeout(this.readTrialTimeout);
   }
@@ -92,6 +93,15 @@ class MatrixReasoningGame extends React.Component {
       this.celebrateSound.setNumberOfLoops(0);
       this.celebrateSound.setVolume(1);
     });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
   }
 
   releaseSounds () {
@@ -99,10 +109,10 @@ class MatrixReasoningGame extends React.Component {
     this.ambientSound.release();
     this.popSound.stop();
     this.popSound.release();
-    this.signSound.stop();
-    this.signSound.release();
     this.celebrateSound.stop();
     this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
   }
 
   _handleAppStateChange = (appState) => {
@@ -154,6 +164,10 @@ class MatrixReasoningGame extends React.Component {
     if (!this.celebratePlaying && (action === 'CELEBRATE')) {
       this.celebratePlaying = true;
       this.celebrateSound.play(() => {this.celebratePlaying = false;});
+    }
+    if (!this.disgustPlaying && (action === 'DISGUST')) {
+      this.disgustPlaying = true;
+      this.disgustSound.play(() => {this.disgustPlaying = false;});
     }
     let dog = _.cloneDeep(this.state.dog);
     dog.frameIndex = _.concat(

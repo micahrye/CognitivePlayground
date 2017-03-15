@@ -85,6 +85,8 @@ class MatchByColorGame extends React.Component {
     this.popPlaying = false;
     this.celebrateSound;
     this.celebratePlaying = false;
+    this.disgustSound;
+    this.disgustPlaying = false;
   }
 
   componentWillMount () {
@@ -120,8 +122,7 @@ class MatchByColorGame extends React.Component {
 
   componentWillUnmount () {
     // console.warn("WILL UNMOUNT");
-    this.ambientSound.stop();
-    this.ambientSound.release();
+    this.releaseSounds();
     clearTimeout(this.showFoodTimeout);
     clearTimeout(this.signTimeout);
     clearTimeout(this.trialTimer);
@@ -167,6 +168,15 @@ class MatchByColorGame extends React.Component {
       this.celebrateSound.setNumberOfLoops(0);
       this.celebrateSound.setVolume(1);
     });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(1);
+    });
   }
 
   releaseSounds () {
@@ -180,6 +190,8 @@ class MatchByColorGame extends React.Component {
     this.signSound.release();
     this.celebrateSound.stop();
     this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
   }
 
   _handleAppStateChange = (appState) => {
@@ -512,6 +524,10 @@ class MatchByColorGame extends React.Component {
       this.activeCharacter.animationIndex('DISGUST'),
       this.activeCharacter.animationIndex('DISGUST')
     );
+    if (!this.disgustPlaying) {
+      this.disgustPlaying = true;
+      this.disgustSound.play(() => {this.disgustPlaying = false;});
+    }
     this.setState({
       dropFood: false,
       characterAnimationIndex: unhappy,
@@ -566,7 +582,7 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.trialTimer);
     this.initializeMoveUpTweensForSigns();
 
-    const timeToExit = 2000;
+    const timeToExit = 1800;
     const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const startFrom = [characterAt.left, characterAt.top];
     const exitTo = [SCREEN_WIDTH, characterAt.top];
@@ -574,7 +590,8 @@ class MatchByColorGame extends React.Component {
     this.activeCharacter.tweenOptions = this.makeMoveTween(
       startFrom,
       exitTo,
-      timeToExit);
+      timeToExit
+    );
 
     clearTimeout(this.signTimeout);
     this.signTimeout = setTimeout(() => {
@@ -596,7 +613,7 @@ class MatchByColorGame extends React.Component {
           this.loadCharacter(name);
         }, timeToExit);
       });
-    }, 1500);
+    }, 1000);
   }
 
   canonicalScale (canonicalSize, size, scale) {
