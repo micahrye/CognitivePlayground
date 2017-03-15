@@ -71,7 +71,6 @@ class UnlockFoodGame extends React.Component {
     this.btnTimeout;
     this.blinkTimeout;
     this.blinkTimeoutArray = [];
-
     this.ambientSound;
     this.leverSound;
     this.leverPlaying = false;
