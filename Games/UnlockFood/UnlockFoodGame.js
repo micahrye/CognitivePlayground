@@ -315,6 +315,7 @@ class UnlockFoodGame extends React.Component {
       this.leverPlaying = true;
       this.leverSound.play(() => {this.leverPlaying = false;});
     }
+
     const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
     this.blink(blinkSeq);
     this.setState({
@@ -581,7 +582,7 @@ class UnlockFoodGame extends React.Component {
               loopAnimation={false}
               coordinates={this.leverLocation()}
               size={this.leverSize()}
-              rotate={[{rotateY:'180deg'}]}
+              rotate={[{rotateY:'0deg'}]}
               onPressIn={() => this.leverPressIn()}
               onPressOut={() => this.leverPressOut()}
             />
