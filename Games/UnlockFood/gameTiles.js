@@ -45,7 +45,6 @@ function ledController (ledsOn, numLeds) {
   return createTilesArray(ledTiles, sprites, frameKeys);
 }
 
-
 export default {
   gameBoardTilesForTrial,
   tileBlinkSequence,

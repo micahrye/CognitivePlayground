@@ -650,7 +650,12 @@ class UnlockFoodGame extends React.Component {
 
             <Matrix
               styles={{
+<<<<<<< HEAD
                   ...(this.tileBoardLocation()),
+=======
+                  top: 350 * this.props.scale.image,
+                  left: 730 * this.props.scale.image,
+>>>>>>> matrix location for screen sizes.
                   position: 'absolute',
                   width: 400 * this.props.scale.image,
                   height: 400 * this.props.scale.image,
