@@ -71,6 +71,7 @@ class UnlockFoodGame extends React.Component {
     this.btnTimeout;
     this.blinkTimeout;
     this.blinkTimeoutArray = [];
+
     this.ambientSound;
     this.leverSound;
     this.leverPlaying = false;
@@ -405,7 +406,15 @@ class UnlockFoodGame extends React.Component {
     const locationMachine = this.machineLocation();
     const leftOffset = 40 * this.scale.screenWidth;
     const left = locationMachine.left + leftOffset;
-    const top = locationMachine.top - this.ledSize().height + 5; // - this.ledSize().height + topOffset;
+    const top = locationMachine.top - this.ledSize().height + 5;
+    return {top, left};
+  }
+
+  tileBoardLocation () {
+    const locationMachine = this.machineLocation();
+    const leftOffset = 60 * this.scale.screenWidth;
+    const left = locationMachine.left + leftOffset;
+    const top = locationMachine.top + 140 * this.props.scale.screenHeight;
     return {top, left};
   }
 
@@ -509,8 +518,6 @@ class UnlockFoodGame extends React.Component {
     }
   }
 
-
-
   gameBoardTilePress (tile, index) {
     this.playTilePressSound(index);
     const tiles = _.cloneDeep(this.state.tiles);
@@ -532,10 +539,6 @@ class UnlockFoodGame extends React.Component {
       return seqNum === blinkSeq[index];
     });
     if (correct) {
-      // if correct press but not done.
-      // light up an LED.
-      //leds: gameTiles.ledController([0, 2], 3),
-      console.log(`!!**!! this.numPresses = ${this.numPresses}`);
       this.ledsOn.push(this.numPresses);
       this.numPresses += 1
       this.setState({leds: gameTiles.ledController(this.ledsOn, 3)});
@@ -553,15 +556,15 @@ class UnlockFoodGame extends React.Component {
     this.setState({loadingScreen: false});
   }
 
-  matrixStyle () {
-    return {
-      width: 200,
-      height: 100,
-      top: 100 * this.props.scale.screenHeight,
-      left: 100 * this.props.scale.screenWidth,
-      position: 'absolute',
-    };
-  }
+  // matrixStyle () {
+  //   return {
+  //     width: 200,
+  //     height: 100,
+  //     top: 100 * this.props.scale.screenHeight,
+  //     left: 100 * this.props.scale.screenWidth,
+  //     position: 'absolute',
+  //   };
+  // }
 
   render () {
     const fruitVisable = this.state.showFood ? true : false;
@@ -627,7 +630,7 @@ class UnlockFoodGame extends React.Component {
               tiles={this.state.leds}
               scale={this.props.scale}
             />
-          
+
             <AnimatedSprite
               sprite={foodMachineSprite}
               spriteUID={this.characterUIDs.machine}
@@ -647,17 +650,17 @@ class UnlockFoodGame extends React.Component {
 
             <Matrix
               styles={{
-                  top: 350 * this.props.scale.screenHeight,
-                  left: 660 * this.props.scale.screenWidth,
+                  ...(this.tileBoardLocation()),
                   position: 'absolute',
-                  width: 400 * this.props.scale.screenWidth,
-                  height: 400 * this.props.scale.screenHeight,
+                  width: 400 * this.props.scale.image,
+                  height: 400 * this.props.scale.image,
                 }}
               tileScale={1}
               tiles={this.state.tiles}
               scale={this.props.scale}
               onPress={(tile, index) => this.gameBoardTilePress(tile, index)}
             />
+
             <HomeButton
               route={this.props.route}
               navigator={this.props.navigator}
