@@ -627,16 +627,7 @@ class UnlockFoodGame extends React.Component {
               tiles={this.state.leds}
               scale={this.props.scale}
             />
-          {/*
-            <AnimatedSprite
-              sprite={ledSprite}
-              spriteUID={this.characterUIDs.led}
-              animationFrameIndex={this.state.ledAnimationIndex}
-              loopAnimation={false}
-              coordinates={this.ledLocation()}
-              size={this.ledSize()}
-            />
-          */}
+          
             <AnimatedSprite
               sprite={foodMachineSprite}
               spriteUID={this.characterUIDs.machine}
