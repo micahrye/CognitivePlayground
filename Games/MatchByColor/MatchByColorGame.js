@@ -175,7 +175,7 @@ class MatchByColorGame extends React.Component {
       }
       this.disgustSound.setSpeed(1);
       this.disgustSound.setNumberOfLoops(0);
-      this.disgustSound.setVolume(1);
+      this.disgustSound.setVolume(0.9);
     });
   }
 
@@ -227,7 +227,7 @@ class MatchByColorGame extends React.Component {
       clearTimeout(this.setDefaultAnimationState);
       this.setDefaultAnimationState = setTimeout(() => {
         this.setState({
-          leverAnimationIndex: this.leverSprite.animationIndex('WIGGLE'),
+          leverAnimationIndex: this.leverSprite.animationIndex('WIGGLE_LEFT'),
           characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
           loadingCharacter: false,
         });
@@ -404,7 +404,7 @@ class MatchByColorGame extends React.Component {
     this.initializeSignsDropTween();
 
     this.setState({
-      leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_ON'),
+      leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF_LEFT'),
       characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
       signsVisable: true,
       characterAnimationLoop: true,
@@ -596,7 +596,7 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.signTimeout);
     this.signTimeout = setTimeout(() => {
       this.setState({
-        leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF'),
+        leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_ON_LEFT'),
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         characterAnimationLoop: true,

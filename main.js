@@ -139,9 +139,9 @@ class Main extends React.Component {
       case 'BUBBLE':
         this.goToGame('BubblesGame');
         break;
-      // case 'BUG':
-      //   this.goToGame('BugZapGame');
-      //   break;
+      case 'BUG':
+        this.goToGame('BugZapGame');
+        break;
       case 'MATCH':
         this.goToGame('MatchByColorGame');
         break;
