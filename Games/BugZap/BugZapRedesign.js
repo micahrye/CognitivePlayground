@@ -236,7 +236,6 @@ class BugZapGameRedesign extends React.Component {
     }
     // if finger up before timeout complete
     clearTimeout(this.leverInterval);
-
     this.setState({
       leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
     });
@@ -332,7 +331,10 @@ class BugZapGameRedesign extends React.Component {
   }
 
   wrongBugTapped () {
-    // TODO: add disgust sound
+    if (!this.disgustPlaying) {
+      this.disgustPlaying = true;
+      this.disgustSound.play(() => {this.disgustPlaying = false;});
+    }
     this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('DISGUST')});
   }
 
@@ -543,7 +545,6 @@ class BugZapGameRedesign extends React.Component {
               height={SCREEN_HEIGHT}
             />
           : null}
-
       </Image>
     );
   }

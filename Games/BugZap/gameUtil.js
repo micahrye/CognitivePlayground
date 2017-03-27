@@ -1,7 +1,6 @@
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-
 function getCoordinates (characterName, scaleHeight, scaleWidth, scaleImage) {
   switch (characterName) {
     case 'lever':
