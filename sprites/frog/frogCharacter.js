@@ -1,5 +1,5 @@
 const frogCharacter = {
-  name:"frogCharacter",
+  name:"greenFrog",
   size: {width: 228, height: 288},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
   frames: [

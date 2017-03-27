@@ -2,7 +2,6 @@ const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
 
-
 function getCoordinates (characterName, scaleHeight, scaleWidth, scaleImage) {
   switch (characterName) {
     case 'lever':
@@ -32,10 +31,9 @@ function getSize (characterName, scaleImage) {
     case 'sign':
       return {width: 140 * scaleImage, height: 230 * scaleImage};
     case 'bug':
-      return {width: 120 * scaleImage,
-        height: 120 * scaleImage};
+      return {width: 120 * scaleImage, height: 120 * scaleImage};
     case 'frog':
-      return {width: 342 * scaleImage, height: 432 * scaleImage};
+      return {width: 228 * 1.5 * scaleImage, height: 150 * 1.5 * scaleImage};
   }
 }
 
@@ -81,9 +79,33 @@ function getTweenOptions (characterName, whichTween, scaleImage, scaleHeight, sc
   }
 }
 
+function getBugTweenOptions (bugSide, frogSide, frogCoords, frogSize, scaleWidth, scaleHeight) {
+  // funkyness since frog can be diag to bug
+  const size = frogSide === 'right' ? {width: 20, height: frogSize.height*0.8} : {width: frogSize.width-20, height: frogSize.height*0.8};
+  switch (bugSide) {
+    case 'right':
+      return {
+        tweenType: "curve-fall",
+        startXY: [SCREEN_WIDTH/2 + (210 * scaleWidth), 95 * scaleHeight],
+        endXY: [frogCoords.left + size.width, frogCoords.top + size.height],
+        duration: 1000,
+        loop: false,
+      };
+
+    case 'left':
+      return {
+        tweenType: "curve-fall",
+        startXY: [SCREEN_WIDTH/2 - (360 * scaleWidth), 95 * scaleHeight],
+        endXY: [frogCoords.left + size.width, frogCoords.top + size.height],
+        duration: 1000,
+        loop: false,
+      };
+  }
+}
 
 export default {
   getCoordinates,
   getSize,
   getTweenOptions,
+  getBugTweenOptions,
 };

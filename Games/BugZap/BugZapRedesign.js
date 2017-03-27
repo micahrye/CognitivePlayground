@@ -15,8 +15,8 @@ import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import LoadScreen from '../../components/LoadScreen';
 
-import greenFrogCharacter from '../../sprites/frog/frogCharacter';
-import blueFrogCharacter from '../../sprites/blueFrog/blueFrogCharacter';
+import greenFrogCharacter from '../../sprites/swimingGreenFrog/greenFrogSprite';
+import blueFrogCharacter from '../../sprites/swimingBlueFrog/blueFrogSprite';
 import bugCharacter from '../../sprites/bug/bugCharacter';
 import signCharacter from "../../sprites/sign/signCharacter";
 import splashCharacter from "../../sprites/splash/splashCharacter";
@@ -30,6 +30,8 @@ const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+const BLUE_BUG = 1;
+const GREEN_BUG = 0;
 
 class BugZapGameRedesign extends React.Component {
   constructor (props) {
@@ -69,10 +71,18 @@ class BugZapGameRedesign extends React.Component {
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustPlaying = false;
+    this.leftBugColorIndex = GREEN_BUG;
+    this.rightBugColorIndex = BLUE_BUG;
   }
 
   componentWillMount () {
-
+    this.setState(
+      {frogAnimationIndex: this.activeFrogColor.animationIndex('ALL')}
+      , () => {
+        setTimeout(() => {
+          this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('IDLE')})
+        }, 1000);
+      });
   }
 
   componentDidMount () {
@@ -98,6 +108,8 @@ class BugZapGameRedesign extends React.Component {
   }
 
   initSounds () {
+    // TODO: make initializing sounds its own file so we have an interface like
+    // this.signSound = initSound('cards_drop.mp3')
     this.signSound = new Sound('cards_drop.mp3', Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
@@ -173,46 +185,57 @@ class BugZapGameRedesign extends React.Component {
   }
 
   setCharacterDirection () {
-    // BUG: currently only chooses one direction. 
+    // BUG: currently only chooses one direction.
     let whichFrog = Math.random();
     console.log(`whichFrog = ${whichFrog}`);
     if (whichFrog >= 0.5) {
-      this.activeFrogColor = greenFrogCharacter;
+      //
+      this.activeFrogColor = blueFrogCharacter;
       this.frogPosX = 10 * this.props.scale.screenWidth;
       this.frogSide = 'left';
       this.splashPosX = this.frogPosX;
       this.rotate = [{rotateY: '180deg'}];
+    } else {
+      this.activeFrogColor = greenFrogCharacter;
+      this.showOtherSign = false;
+      this.frogPosX = 900 * this.props.scale.screenWidth;
+      this.frogSide = 'right';
+      this.splashPosX = this.frogPosX;
+      this.rotate = [{rotateY: '0deg'}];
     }
+
   }
 
   leverPressIn () {
+    if (!this.leverPressable) return;
+    if (!this.leverSoundPlaying) {
+      this.leverSoundPlaying = true;
+      this.leverSound.play(() => {this.leverSoundPlaying = false;});
+    }
     if (this.trialNumber > 1) {
       this.setCharacterDirection();
       this.showOtherSign = true;
     }
-    if (!this.leverPlaying) {
-      this.leverPlaying = true;
-      this.leverSound.play(() => {this.leverPlaying = false;});
-    }
-    if (this.leverPressable) {
-      this.setState({
-        leverAnimationIndex: lever.animationIndex('SWITCH_ON'),
-      });
-      if (!this.state.showBugRight) {
-        this.leverInterval = setTimeout (() => { // make sure sign is fully retracted before going back down
-          this.signDown();
-        }, 600); // amount of time it takes sign to retract
-      }
+
+    this.setState({
+      leverAnimationIndex: lever.animationIndex('SWITCH_ON'),
+    });
+    if (!this.state.showBugRight) {
+      this.leverInterval = setTimeout (() => {
+        // make sure sign is fully retracted before going back down
+        this.signDown();
+      }, 600); // amount of time it takes sign to retract
     }
   }
 
   leverPressOut () {
-    if (!this.state.showBugRight && !this.retractingSign) { // only show sign retracting if it had started to go down
+    // only show sign retracting if it had started to go down
+    if (!this.state.showBugRight && !this.retractingSign) {
       this.retractSign();
       this.leverPressable = false;
     }
-
-    clearTimeout(this.leverInterval); // if finger up before timeout complete
+    // if finger up before timeout complete
+    clearTimeout(this.leverInterval);
 
     this.setState({
       leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
@@ -260,36 +283,56 @@ class BugZapGameRedesign extends React.Component {
              });
   }
 
-  onBugPress (whichBug) {
-    if (whichBug == 'bugRight') {
-      if (this.frogSide == 'right') {
-        this.correctBugTapped(this.frogSide);
+  onBugPress (pressedBug) {
+    if (pressedBug === 'bugRight') {
+      if (this.activeFrogColor.name.includes('green')) {
+        if (this.rightBugColorIndex === GREEN_BUG) {
+          this.correctBugTapped('right', this.frogSide);
+          return;
+        }
       } else {
-        this.wrongBugTapped();
-      }
-    } else {
-      if (this.frogSide == 'left') {
-        this.correctBugTapped(this.frogSide);
-      } else {
-        this.wrongBugTapped();
+        if (this.rightBugColorIndex === BLUE_BUG) {
+          this.correctBugTapped('right', this.frogSide);
+          return;
+        }
       }
     }
+    if (pressedBug === 'bugLeft') {
+      if (this.activeFrogColor.name.includes('green')) {
+        if (this.leftBugColorIndex === GREEN_BUG) {
+          this.correctBugTapped('left', this.frogSide);
+          return;
+        }
+      } else {
+        if (this.leftBugColorIndex === BLUE_BUG) {
+          this.correctBugTapped('left', this.frogSide);
+          return;
+        }
+      }
+    }
+    this.wrongBugTapped();
   }
 
-  correctBugTapped (bugSide) {
+  correctBugTapped (bugSide, frogSide) {
+    // TODO: add celebration sound
     if (bugSide == 'left') {
       this.refs.bugLeftRef.startTween();
     }
     else {
       this.refs.bugRightRef.startTween();
     }
-    let delay = 700;
+    let delay = 600;
     this.eatDelay = setTimeout (() => {
+      if (!this.celebratePlaying) {
+        this.celebratePlaying = true;
+        this.celebrateSound.play(() => {this.celebratePlaying = false;});
+      }
       this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('EAT')});
     }, delay);
   }
 
   wrongBugTapped () {
+    // TODO: add disgust sound
     this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('DISGUST')});
   }
 
@@ -329,9 +372,12 @@ class BugZapGameRedesign extends React.Component {
       case 'frog':
         if (this.state.frogAnimationIndex != 0) { // if not idling
           this.trialOver = true;
-          this.setState({showSplashCharacter: true,
-            splashAnimationIndex: splashCharacter.animationIndex('SPLASH'),
-            showFrog: false});
+          this.setState(
+            {
+              showSplashCharacter: true,
+              splashAnimationIndex: splashCharacter.animationIndex('SPLASH'),
+              showFrog: false,
+            });
           this.resetTrialSettings();
         }
         break;
@@ -339,8 +385,6 @@ class BugZapGameRedesign extends React.Component {
   }
 
   resetTrialSettings () {
-    // this.clearTimeout(this.leverInterval);
-    // this.clearTimeout(this.eatDelay);
     this.clearScene = setTimeout(() => {
       this.setState({
         showBugRight: false,
@@ -351,6 +395,37 @@ class BugZapGameRedesign extends React.Component {
       this.leverPressable = true;
       this.trialNumber = this.trialNumber + 1;
     }, 1000);
+  }
+
+  getBugCoordinates (whichBug) {
+    if (whichBug == 'right') {
+      return gameUtil.getCoordinates(
+        'bugRight',
+        this.props.scale.screenHeight,
+        this.props.scale.screenWidth,
+        this.props.scale.image
+      );
+    } else if (whichBug == 'left') {
+      return gameUtil.getCoordinates(
+        'bugLeft',
+        this.props.scale.screenHeight,
+        this.props.scale.screenWidth,
+        this.props.scale.image
+      );
+    }
+  }
+
+  getBugTween (bugSide) {
+    const frogCoords = {top: 300 * this.props.scale.screenHeight, left: this.frogPosX};
+    const frogSize = gameUtil.getSize('frog', this.props.scale.image);
+    return gameUtil.getBugTweenOptions(
+      bugSide,
+      this.frogSide,
+      frogCoords,
+      frogSize,
+      this.props.scale.screenHeight,
+      this.props.scale.screenWidth
+    )
   }
 
   render () {
@@ -385,7 +460,7 @@ class BugZapGameRedesign extends React.Component {
           <AnimatedSprite
             spriteUID={'frog'}
             sprite={this.activeFrogColor}
-            coordinates={{top: 300 * this.props.scale.screenHeight, left: this.frogPosX}}
+            coordinates={{top: 500 * this.props.scale.screenHeight, left: this.frogPosX}}
             size={gameUtil.getSize('frog', this.props.scale.image)}
             animationFrameIndex={this.state.frogAnimationIndex}
             rotate={this.rotate}
@@ -410,17 +485,15 @@ class BugZapGameRedesign extends React.Component {
           <AnimatedSprite
             ref={'bugRightRef'}
             spriteUID={'bugRight'}
-            coordinates={gameUtil.getCoordinates('bugRight', this.props.scale.screenHeight,
-                          this.props.scale.screenWidth, this.props.scale.image)}
+            coordinates={this.getBugCoordinates('right')}
             size={gameUtil.getSize('bug', this.props.scale.screenHeight,
                           this.props.scale.screenWidth, this.props.scale.image)}
             sprite={bugCharacter}
-            tweenOptions={gameUtil.getTweenOptions('bug', this.frogSide,
-              null, this.props.scale.screenHeight, this.props.scale.screenWidth, null)}
+            tweenOptions={this.getBugTween('right')}
             tweenStart={'fromMethod'}
             onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
             onPress={(characterUID) => this.onBugPress(characterUID)}
-            animationFrameIndex={[1]}
+            animationFrameIndex={[this.rightBugColorIndex]}
           />
         : null}
 
@@ -443,15 +516,13 @@ class BugZapGameRedesign extends React.Component {
                 sprite={bugCharacter}
                 ref={'bugLeftRef'}
                 spriteUID={'bugLeft'}
-                coordinates={gameUtil.getCoordinates('bugLeft', this.props.scale.screenHeight,
-                              this.props.scale.screenWidth, this.props.scale.image)}
+                coordinates={this.getBugCoordinates('left')}
                 size={gameUtil.getSize('bug', this.props.scale.image)}
-                tweenOptions={gameUtil.getTweenOptions('bug', this.frogSide,
-                  null, this.props.scale.screenHeight, this.props.scale.screenWidth, null)}
+                tweenOptions={this.getBugTween('left')}
                 tweenStart={'fromMethod'}
                 onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
                 onPress={(characterUID) => this.onBugPress(characterUID)}
-                animationFrameIndex={[0]}
+                animationFrameIndex={[this.leftBugColorIndex]}
               /> : null}
           </View>: null}
 
