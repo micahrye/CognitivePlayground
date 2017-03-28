@@ -1,5 +1,21 @@
+import greenFrogCharacter from '../../sprites/swimingGreenFrog/greenFrogSprite';
+import blueFrogCharacter from '../../sprites/swimingBlueFrog/blueFrogSprite';
+
+import trials from './trials';
+
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+
+function getFrogSprite (color) {
+  switch (color) {
+    case 'green':
+      return greenFrogCharacter;
+    case 'blue':
+      return blueFrogCharacter;
+    default:
+      console.error('Frog sprite does not exist.');
+  }
+}
 
 function getCoordinates (characterName, scaleHeight, scaleWidth, scaleImage) {
   switch (characterName) {
@@ -102,9 +118,28 @@ function getBugTweenOptions (bugSide, frogSide, frogCoords, frogSize, scaleWidth
   }
 }
 
+function valuesForTrial (trialNumber = 0) {
+  const numTrials = trials.length-1;
+  const trialIndx = trialNumber > numTrials ? Math.floor(Math.random() * numTrials) : trialNumber;
+  const trialData = trials[trialIndx];
+  // Add sprite to trialData given frogColor value.
+  switch (trialData.frogColor) {
+    case 'green':
+      trialData.sprite = greenFrogCharacter;
+      return trialData;
+    case 'blue':
+      trialData.sprite = blueFrogCharacter;
+      return trialData;
+    default:
+      console.error('Frog sprite does not exist.');
+  }
+}
+
 export default {
   getCoordinates,
   getSize,
   getTweenOptions,
   getBugTweenOptions,
+  getFrogSprite,
+  valuesForTrial,
 };
