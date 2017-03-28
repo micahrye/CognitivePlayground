@@ -10,6 +10,7 @@ import {
 // frog fps necessary?
 // something other than trialOver?
 // time constraint on some levels? other level other than spotlight?
+import _ from 'lodash';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
@@ -54,12 +55,16 @@ class BugZapGameRedesign extends React.Component {
       loadingScreen: true,
       leverAnimationIndex: lever.animationIndex('IDLE'),
       frogAnimationIndex: this.activeFrogColor.animationIndex('IDLE'),
+      greenFrogAnimationIndex: [],
+      blueFrogAnimationIndex: [],
       splashAnimationIndex: splashCharacter.animationIndex('RIPPLE'),
       signRightTweenOptions: null,
       signLeftTweenOptions: null,
       showBugRight: false,
       showBugLeft: false,
       showFrog: false,
+      showBlueFrog: false,
+      showGreenFrog: false,
       showSplashCharacter: false,
     };
 
@@ -77,13 +82,25 @@ class BugZapGameRedesign extends React.Component {
   }
 
   componentWillMount () {
+    // hacky way to make sure that all images of sprites are loaded. Using
+    // components that are never displayed, but we load the images into memory
+    // to aviod image flicker.
     this.setState(
-      {frogAnimationIndex: this.activeFrogColor.animationIndex('ALL')}
-      , () => {
-        setTimeout(() => {
-          this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('IDLE')})
-        }, 1000);
-      });
+      {
+        showGreenFrog: true,
+        showBlueFrog: true,
+        blueFrogAnimationIndex: this.activeFrogColor.animationIndex('ALL'),
+        greenFrogAnimationIndex: this.activeFrogColor.animationIndex('ALL'),
+      }
+    , () => {
+      setTimeout(() => {
+        this.setState(
+          {
+            showGreenFrog: false,
+            showBlueFrog: false,
+          });
+      }, 1000)
+    });
   }
 
   componentDidMount () {
@@ -189,6 +206,7 @@ class BugZapGameRedesign extends React.Component {
     // BUG: currently only chooses one direction.
     const trialValues = gameUtil.valuesForTrial(this.trialNumber);
     this.activeFrogColor = trialValues.sprite;
+
     this.frogSide = trialValues.frogSide;
     if (this.frogSide === 'left') {
       this.frogPosX = 10 * this.props.scale.screenWidth;
@@ -200,6 +218,15 @@ class BugZapGameRedesign extends React.Component {
     // bug
     this.rightBugColorIndex = trialValues.rightBug === 'green' ? GREEN_BUG : BLUE_BUG;
     this.leftBugColorIndex = trialValues.leftBug === 'green' ? GREEN_BUG : BLUE_BUG ;
+
+    // TODO: remove this, probably better to just set two frog sprites in render
+    // and null one out.
+    this.setState({frogAnimationIndex: this.activeFrogColor.animationIndex('ALL')},
+    () => {
+      setTimeout(() => {
+        this.state.frogAnimationIndex = this.activeFrogColor.animationIndex('IDLE');
+      }, 1000);
+    });
   }
 
   leverPressIn () {
@@ -369,6 +396,9 @@ class BugZapGameRedesign extends React.Component {
         this.setState({showSplashCharacter: false});
         break;
       case 'frog':
+        if (_.isEqual(this.state.frogAnimationIndex, this.activeFrogColor.animationIndex('ALL'))) {
+          return;
+        }
         if (this.state.frogAnimationIndex != 0) { // if not idling
           this.trialOver = true;
           this.setState(
@@ -462,6 +492,29 @@ class BugZapGameRedesign extends React.Component {
             coordinates={{top: 500 * this.props.scale.screenHeight, left: this.frogPosX}}
             size={gameUtil.getSize('frog', this.props.scale.image)}
             animationFrameIndex={this.state.frogAnimationIndex}
+            rotate={this.rotate}
+            onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
+          />
+        : null}
+
+        {this.state.showBlueFrog ?
+          <AnimatedSprite
+            spriteUID={'blueFrog'}
+            sprite={blueFrogCharacter}
+            coordinates={{top: 500 * this.props.scale.screenHeight, left: this.frogPosX}}
+            size={gameUtil.getSize('frog', this.props.scale.image)}
+            animationFrameIndex={this.state.blueFrogAnimationIndex}
+            rotate={this.rotate}
+            onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
+          />
+        : null}
+        {this.state.showGreenFrog ?
+          <AnimatedSprite
+            spriteUID={'greenFrog'}
+            sprite={greenFrogCharacter}
+            coordinates={{top: 500 * this.props.scale.screenHeight, left: this.frogPosX}}
+            size={gameUtil.getSize('frog', this.props.scale.image)}
+            animationFrameIndex={this.state.greenFrogAnimationIndex}
             rotate={this.rotate}
             onAnimationFinish={(characterUID) => this.onAnimationFinish(characterUID)}
           />
