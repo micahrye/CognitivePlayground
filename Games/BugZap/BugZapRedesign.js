@@ -38,7 +38,8 @@ class BugZapGameRedesign extends React.Component {
     super(props);
     // BUG: state is dependent on activeFrogColor, if order changed then we
     // throw an exception.
-    this.trialNumber = 1;
+    // zero indexing for trialNumber
+    this.trialNumber = 0;
     this.activeFrogColor = blueFrogCharacter;
     this.showOtherSign = false;
     this.frogPosX = 900 * this.props.scale.screenWidth;
@@ -186,24 +187,19 @@ class BugZapGameRedesign extends React.Component {
 
   setCharacterDirection () {
     // BUG: currently only chooses one direction.
-    let whichFrog = Math.random();
-    console.log(`whichFrog = ${whichFrog}`);
-    if (whichFrog >= 0.5) {
-      //
-      this.activeFrogColor = blueFrogCharacter;
+    const trialValues = gameUtil.valuesForTrial(this.trialNumber);
+    this.activeFrogColor = trialValues.sprite;
+    this.frogSide = trialValues.frogSide;
+    if (this.frogSide === 'left') {
       this.frogPosX = 10 * this.props.scale.screenWidth;
-      this.frogSide = 'left';
-      this.splashPosX = this.frogPosX;
-      this.rotate = [{rotateY: '180deg'}];
     } else {
-      this.activeFrogColor = greenFrogCharacter;
-      this.showOtherSign = false;
       this.frogPosX = 900 * this.props.scale.screenWidth;
-      this.frogSide = 'right';
-      this.splashPosX = this.frogPosX;
-      this.rotate = [{rotateY: '0deg'}];
     }
-
+    this.splashPosX = this.frogPosX;
+    this.rotate = [{rotateY: trialValues.rotation}];
+    // bug
+    this.rightBugColorIndex = trialValues.rightBug === 'green' ? GREEN_BUG : BLUE_BUG;
+    this.leftBugColorIndex = trialValues.leftBug === 'green' ? GREEN_BUG : BLUE_BUG ;
   }
 
   leverPressIn () {
@@ -212,8 +208,9 @@ class BugZapGameRedesign extends React.Component {
       this.leverSoundPlaying = true;
       this.leverSound.play(() => {this.leverSoundPlaying = false;});
     }
+
+    this.setCharacterDirection(this.trialNumber);
     if (this.trialNumber > 1) {
-      this.setCharacterDirection();
       this.showOtherSign = true;
     }
 
