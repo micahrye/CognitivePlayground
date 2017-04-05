@@ -20,8 +20,13 @@ class Matrix extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-
     };
+    if (props.size) {
+      this.size = props.size;
+    } else {
+      this.size = {rows: 3, columns: 3};
+    }
+
   }
 
   componentWillMount () {}
@@ -33,11 +38,13 @@ class Matrix extends React.Component {
   }
 
   cardStartLocation (position, sprite, scale) {
+    const columns = this.size.columns;
+    const rows = this.size.rows;
     const baseTop = 0;
     const baseLeft = 0;
-    const size = this.spriteSize(sprite, scale);
-    const top = baseTop + Math.floor(position/3) * size.height;
-    const left = baseLeft + position%3 * size.width;
+    const spriteSize = this.spriteSize(sprite, scale);
+    const top = baseTop + Math.floor(position/rows) * spriteSize.height;
+    const left = baseLeft + position%columns * spriteSize.width;
     return {top, left};
   }
 
@@ -86,6 +93,7 @@ class Matrix extends React.Component {
 
 Matrix.propTypes = {
   scale: React.PropTypes.object.isRequired,
+  size: React.PropTypes.object,
   tiles: React.PropTypes.array,
   styles: React.PropTypes.object,
   tileScale: React.PropTypes.number,
@@ -97,11 +105,3 @@ Matrix.propTypes = {
 reactMixin.onClass(Matrix, TimerMixin);
 
 export default Matrix;
-
-// cardSprite: React.PropTypes.shape({
-//   name: React.PropTypes.string,
-//   size: React.PropTypes.object,
-//   animationTypes: React.PropTypes.array,
-//   all: React.PropTypes.array,
-//   animationIndex: React.PropTypes.func,
-// }).isRequired,

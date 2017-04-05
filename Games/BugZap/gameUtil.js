@@ -28,6 +28,9 @@ function getCoordinates (characterName, scaleHeight, scaleWidth, scaleImage) {
     case 'signLeft':
       return {top: -300 * scaleImage,
               left: SCREEN_WIDTH/2 - (360 * scaleWidth)};
+    case 'lightbulb':
+      return {top: -300 * scaleImage,
+              left: SCREEN_WIDTH/2 - (75 * scaleWidth)};
     case 'bugRight':
       return {top: 75 * scaleHeight,
               left: SCREEN_WIDTH/2 + (220 * scaleWidth)};
@@ -45,6 +48,8 @@ function getSize (characterName, scaleImage) {
       return {width: 340 * scaleImage, height: 200 * scaleImage};
     case 'sign':
       return {width: 140 * scaleImage, height: 230 * scaleImage};
+    case 'lightbulb':
+      return {width: 150 * scaleImage, height: 300 * scaleImage};
     case 'bug':
       return {width: 120 * scaleImage, height: 120 * scaleImage};
     case 'frog':
@@ -53,7 +58,11 @@ function getSize (characterName, scaleImage) {
 }
 
 function getTweenOptions (characterName, whichTween, scaleImage, scaleHeight, scaleWidth, startX) {
-  switch (characterName) {
+  let character = characterName;
+  if (characterName === 'lightbulb') {
+    character = 'sign';
+  }
+  switch (character) {
     case 'sign' :
       if (whichTween == 'on') {
         return {
