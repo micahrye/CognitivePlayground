@@ -56,7 +56,7 @@ class UnlockFoodGame extends React.Component {
     };
     this.ledsOn = [];
     this.numPresses = 0; // NOTE: temperary
-    this.arrowIndex = [0];
+    this.arrowIndex = [1];
 
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -297,25 +297,6 @@ class UnlockFoodGame extends React.Component {
     });
   }
 
-  blink (blinkSeq) {
-    this.remainingTilesInSeq = blinkSeq.length;
-    _.forEach(blinkSeq, (blinkIndex, index) => {
-      const blinkTimeout = setTimeout(()=> {
-        const tiles = _.cloneDeep(this.state.tiles);
-        _.forEach(tiles, tile => tile.frameKey = 'IDLE');
-        this.playTilePressSound(blinkIndex);
-        tiles[blinkIndex].frameKey = 'BLINK_0';
-        this.setState({ tiles }, () => {
-          this.remainingTilesInSeq = this.remainingTilesInSeq - 1;
-          if (this.remainingTilesInSeq === 0) {
-            this.waitForUserSeq = true;
-          }
-        });
-      }, (400 + 600 * index));
-      this.blinkTimeoutArray.push(blinkTimeout);
-    });
-  }
-
   leverPressIn () {
     if (this.waitForUserSeq) return;
 
@@ -325,17 +306,45 @@ class UnlockFoodGame extends React.Component {
     }
 
     const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
-    this.blink(blinkSeq);
     this.setState({
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
+    });
+    this.leverOn = true;
+    this.blink(blinkSeq);
+  }
+
+  blink (blinkSeq) {
+    this.remainingTilesInSeq = blinkSeq.length;
+
+    _.forEach(blinkSeq, (blinkIndex, index) => {
+      const blinkTimeout = setTimeout(()=> {
+        const tiles = _.cloneDeep(this.state.tiles);
+
+        _.forEach(tiles, tile => tile.frameKey = 'IDLE');
+        this.playTilePressSound(blinkIndex);
+        tiles[blinkIndex].frameKey = 'BLINK_0';
+        if (this.leverOn) {
+          this.setState({ tiles }, () => {
+            this.remainingTilesInSeq = this.remainingTilesInSeq - 1;
+            if (this.remainingTilesInSeq === 0) {
+              this.waitForUserSeq = true;
+              this.activeGameboard = true;
+            }
+          });
+        }
+      }, (400 + 600 * index));
+      this.blinkTimeoutArray.push(blinkTimeout);
     });
 
   }
 
   leverPressOut () {
-    if (this.waitForUserSeq) return;
+    this.leverOn = false;
+    // NOTE: do not like this solution but have issue with async state change.
+    // it is possilbe for
     this.pressSequence = [];
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
+
     const tiles = gameTiles.gameBoardTilesForTrial(this.state.trial);
     // if we have not completed the sequence we reset switch to off.
     let animationIndex;
@@ -538,6 +547,8 @@ class UnlockFoodGame extends React.Component {
   }
 
   gameBoardTilePress (tile, index) {
+    if (!this.activeGameboard) return;
+
     this.playTilePressSound(index);
     const tiles = _.cloneDeep(this.state.tiles);
     tiles[index].frameKey = 'PRESSED';
@@ -553,14 +564,14 @@ class UnlockFoodGame extends React.Component {
         }, 80);
     });
     this.pressSequence.push(index);
-    const pressSeq = _.clone(this.pressSequence);
+    // const pressSeq = _.clone(this.pressSequence);
     const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
-    if (this.reverseOrder) {
-      // mutates array
-      _.reverse(pressSeq);
-      _.reverse(blinkSeq);
-    }
-    const correct = _.every(pressSeq, (seqNum, index) => {
+    // if (this.reverseOrder) {
+    //   // mutates array
+    //   _.reverse(pressSeq);
+    //   _.reverse(blinkSeq);
+    // }
+    const correct = _.every(this.pressSequence, (seqNum, index) => {
       return seqNum === blinkSeq[index];
     });
     if (correct) {
@@ -573,10 +584,12 @@ class UnlockFoodGame extends React.Component {
     if (correct && (this.pressSequence.length === blinkSeq.length)) {
       // FLASH LIGHTS THEN ALL OFF
       this.waitForUserSeq = false;
+      this.activeGameboard = false;
       this.characterCelebrateAndEat();
     } else if (!correct) {
       // HERE WE WOULD WANT TO BLINK ALL LIGHTS OFF
       this.waitForUserSeq = false;
+      this.activeGameboard = false;
       this.characterDisapointed();
     }
   }
