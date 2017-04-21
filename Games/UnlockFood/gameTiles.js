@@ -17,7 +17,7 @@ function createTilesArray (activeTiles, sprites, frameKeys) {
 
 function tileBlinkSequence (trialNumber) {
   const trial = !trials[trialNumber] ? trials[0] : trials[trialNumber];
-  const seq = trial.tileBlinkSequence;
+  const seq = _.cloneDeep(trial.tileBlinkSequence);
   return seq;
 }
 

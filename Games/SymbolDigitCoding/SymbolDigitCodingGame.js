@@ -46,7 +46,6 @@ class SymbolDigitCodingGame extends React.Component {
       size: {},
     };
 
-    this.ambientSound;
     this.popSound;
     this.popPlaying = false;
     this.celebrateSound;
@@ -81,16 +80,6 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   componentDidMount () {
-    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.warn('failed to load the sound', error);
-        return;
-      }
-      this.ambientSound.setSpeed(1);
-      this.ambientSound.setNumberOfLoops(-1);
-      this.ambientSound.play();
-      this.ambientSound.setVolume(1);
-    });
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
@@ -131,8 +120,6 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   releaseSounds () {
-    this.ambientSound.stop();
-    this.ambientSound.release();
     this.popSound.stop();
     this.popSound.release();
     this.celebrateSound.stop();
