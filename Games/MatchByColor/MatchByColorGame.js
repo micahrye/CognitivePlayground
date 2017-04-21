@@ -78,7 +78,6 @@ class MatchByColorGame extends React.Component {
     this.switchCharacterTimeout;
     this.clearingScene = false;
 
-    this.ambientSound;
     this.signSound;
     this.signSoundPlaying = false;
     this.popSound;
@@ -106,16 +105,6 @@ class MatchByColorGame extends React.Component {
   }
 
   componentDidMount () {
-    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.warn('failed to load the sound', error);
-        return;
-      }
-      this.ambientSound.setSpeed(1);
-      this.ambientSound.setNumberOfLoops(-1);
-      this.ambientSound.play();
-      this.ambientSound.setVolume(1);
-    });
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
@@ -180,8 +169,6 @@ class MatchByColorGame extends React.Component {
   }
 
   releaseSounds () {
-    this.ambientSound.stop();
-    this.ambientSound.release();
     this.popSound.stop();
     this.popSound.release();
     this.leverSound.stop();

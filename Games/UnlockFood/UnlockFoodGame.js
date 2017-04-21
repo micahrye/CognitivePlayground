@@ -23,18 +23,29 @@ import beltSprite from "../../sprites/conveyorBelt/beltCharacter";
 import ledSprite from "../../sprites/led/ledCharacter";
 import buttonSprite from "../../sprites/button/buttonCharacter";
 import arrowSprite from "../../sprites/arrow/arrowCharacter";
+import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
 
 import gameTiles from './gameTiles';
 import styles from "./styles";
+import gameUtil from './gameUtil';
+
 
 const Sound = require('react-native-sound');
 const SCREEN_WIDTH = require ('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require ('Dimensions').get('window').height;
 
 const GAME_TIME_OUT = 5115000;
-// when new level at trial number
-const LEVEL02 = 7
-const LEVEL03 = 9
+// each level starts at the assigned trial number
+const LEVEL_1A = 0;
+const LEVEL_1B = 0;
+
+const LEVEL_2A = 4;
+const LEVEL_2B = 7;
+const LEVEL_3 = 10;
+const LEVEL_4 = 13;
+
+const LEVEL02 = 16;
+const LEVEL03 = 19;
 
 class UnlockFoodGame extends React.Component {
   constructor (props) {
@@ -52,11 +63,16 @@ class UnlockFoodGame extends React.Component {
       tiles: {},
       trial: 0,
       loadingScreen: true,
+      blackout: false,
+      lightbulbTweenOptions: null,
+      lightbulbImgIndex: 0,
+      lightbulbDisplayed: false,
+      arrowIndex: 1,
       leds: gameTiles.ledController([], 3),
     };
     this.ledsOn = [];
+    this.numLeds = 3;
     this.numPresses = 0; // NOTE: temperary
-    this.arrowIndex = [0];
 
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -66,13 +82,13 @@ class UnlockFoodGame extends React.Component {
       tweenOptions: {},
       coords: {top: 0, left: 0},
     };
-
+    this.reverseOrder = false;
+    this.remainingTilesInSeq  = 0;
+    this.waitForUserSeq = false;
     this.pressSequence = [];
     this.btnTimeout;
     this.blinkTimeout;
     this.blinkTimeoutArray = [];
-
-    this.ambientSound;
     this.leverSound;
     this.leverPlaying = false;
     this.celebrateSound;
@@ -110,7 +126,7 @@ class UnlockFoodGame extends React.Component {
       beltAnimationIndex: beltSprite.animationIndex('ALL'),
     });
 
-    this.nextTrial(0);
+    this.nextTrial(this.state.trial);
 
     this.foodSprite.coords = this.foodStartLocation();
     const beltCoords = this.conveyorBeltLocation();
@@ -132,16 +148,6 @@ class UnlockFoodGame extends React.Component {
         id: "Main",
       });
     }, GAME_TIME_OUT);
-    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.warn('failed to load the sound', error);
-        return;
-      }
-      this.ambientSound.setSpeed(1);
-      this.ambientSound.setNumberOfLoops(-1);
-      this.ambientSound.play();
-      this.ambientSound.setVolume(1);
-    });
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
@@ -217,8 +223,6 @@ class UnlockFoodGame extends React.Component {
   }
 
   releaseSounds () {
-    this.ambientSound.stop();
-    this.ambientSound.release();
     this.leverSound.stop();
     this.leverSound.release();
     this.celebrateSound.stop();
@@ -236,15 +240,26 @@ class UnlockFoodGame extends React.Component {
   _handleAppStateChange = (appState) => {
     // release all sound objects
     if (appState === 'inactive' || appState === 'background') {
-      this.ambientSound.stop();
-      this.ambientSound.release();
       AppState.removeEventListener('change', this._handleAppStateChange);
     }
   }
 
   nextTrial (trial) {
+    console.log("TRIAL = ", trial);
+    this.reverseOrder = false;
+    let arrowIndex = 1;
+    if ( ((trial >= LEVEL_2A) && (trial < LEVEL_3)) || trial >= LEVEL_4) {
+      /// 4 7 13
+      console.log("REVERSE THINGS")
+      this.reverseOrder = true;
+      arrowIndex = 0;
+    }
+    if (trial >= LEVEL_3 ) {
+      this.showLightbulb();
+    }
     this.setState({
       trial,
+      arrowIndex,
       tiles: gameTiles.gameBoardTilesForTrial(trial),
     });
   }
@@ -295,42 +310,75 @@ class UnlockFoodGame extends React.Component {
     });
   }
 
-  blink (blinkSeq) {
-    _.forEach(blinkSeq, (blinkIndex, index) => {
-      const blinkTimeout = setTimeout(()=> {
-        const tiles = _.cloneDeep(this.state.tiles);
-        _.forEach(tiles, tile => tile.frameKey = 'IDLE');
-        console.log(`PLAY FOR INDEX ${blinkIndex}`);
-        this.playTilePressSound(blinkIndex);
-        tiles[blinkIndex].frameKey = 'BLINK_0';
-        this.setState({ tiles });
-      }, (400 + 600 * index));
-      // blinkTimeoutArray so we can remove them later.
-      this.blinkTimeoutArray.push(blinkTimeout);
-    });
-  }
-
   leverPressIn () {
+    if (this.waitForUserSeq) return;
+
     if (!this.leverPlaying) {
       this.leverPlaying = true;
       this.leverSound.play(() => {this.leverPlaying = false;});
     }
 
+    if (this.state.trial >= LEVEL_3) {
+      this.setState({
+        blackout: true,
+        lightbulbImgIndex: 1,
+      });
+    }
+
     const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
-    this.blink(blinkSeq);
     this.setState({
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_ON'),
+    });
+    this.leverOn = true;
+    this.blink(blinkSeq);
+  }
+
+  blink (blinkSeq) {
+    this.remainingTilesInSeq = blinkSeq.length;
+
+    _.forEach(blinkSeq, (blinkIndex, index) => {
+      const blinkTimeout = setTimeout(()=> {
+        const tiles = _.cloneDeep(this.state.tiles);
+
+        _.forEach(tiles, tile => tile.frameKey = 'IDLE');
+        this.playTilePressSound(blinkIndex);
+        tiles[blinkIndex].frameKey = 'BLINK_0';
+        if (this.leverOn) {
+          this.setState({ tiles }, () => {
+            this.remainingTilesInSeq = this.remainingTilesInSeq - 1;
+            if (this.remainingTilesInSeq === 0) {
+              this.waitForUserSeq = true;
+              this.activeGameboard = true;
+            }
+          });
+        }
+      }, (400 + 600 * index));
+      this.blinkTimeoutArray.push(blinkTimeout);
     });
 
   }
 
   leverPressOut () {
+    this.leverOn = false;
+    // NOTE: do not like this solution but have issue with async state change.
+    // it is possilbe for
     this.pressSequence = [];
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
+
     const tiles = gameTiles.gameBoardTilesForTrial(this.state.trial);
+    // if we have not completed the sequence we reset switch to off.
+    let animationIndex;
+    if (this.remainingTilesInSeq > 0) {
+      animationIndex = leverSprite.animationIndex('SWITCH_OFF');
+      this.waitForUserSeq = false;
+    } else {
+      animationIndex = leverSprite.animationIndex('SWITCH_ON');
+    }
     this.setState({
       tiles,
-      leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
+      blackout: false,
+      lightbulbImgIndex: 0,
+      leverAnimationIndex: animationIndex,
     });
   }
 
@@ -474,7 +522,8 @@ class UnlockFoodGame extends React.Component {
     this.setState({
       birdAnimationIndex: frameIndex,
       showFood: false,
-      leds: gameTiles.ledController([], 3),
+      leds: gameTiles.ledController([], this.numLeds),
+      leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
     });
   }
 
@@ -494,7 +543,8 @@ class UnlockFoodGame extends React.Component {
         this.ledsOn = []; this.numPresses = 0;
         this.setState({
           birdAnimationIndex: birdSprite.animationIndex('EAT'),
-          leds: gameTiles.ledController([], 3),
+          leds: gameTiles.ledController([], this.numLeds),
+          leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
         });
       }, 1200 );
     });
@@ -519,6 +569,8 @@ class UnlockFoodGame extends React.Component {
   }
 
   gameBoardTilePress (tile, index) {
+    if (!this.activeGameboard) return;
+
     this.playTilePressSound(index);
     const tiles = _.cloneDeep(this.state.tiles);
     tiles[index].frameKey = 'PRESSED';
@@ -534,20 +586,40 @@ class UnlockFoodGame extends React.Component {
         }, 80);
     });
     this.pressSequence.push(index);
+    const pressSeq = _.cloneDeep(this.pressSequence);
     const blinkSeq = gameTiles.tileBlinkSequence(this.state.trial);
-    const correct = _.every(this.pressSequence, (seqNum, index) => {
+    if (this.reverseOrder) {
+      // reverse mutates array
+      _.reverse(blinkSeq);
+    }
+    const correct = _.every(pressSeq, (seqNum, index) => {
       return seqNum === blinkSeq[index];
     });
     if (correct) {
-      this.ledsOn.push(this.numPresses);
-      this.numPresses += 1
-      this.setState({leds: gameTiles.ledController(this.ledsOn, 3)});
+      if (this.reverseOrder) {
+        const lengthSeq = this.numLeds - 1;
+        this.ledsOn.push(lengthSeq - this.numPresses);
+      } else {
+        this.ledsOn.push(this.numPresses);
+      }
+      this.numPresses += 1;
+      const ledsOn = _.cloneDeep(this.ledsOn);
+      if (this.reverseOrder) {
+        _.reverse(ledsOn);
+      }
+      this.setState({
+        leds: gameTiles.ledController(ledsOn, this.numLeds),
+      });
     }
-    if (correct && (this.pressSequence.length === blinkSeq.length)) {
+    if (correct && (pressSeq.length === blinkSeq.length)) {
       // FLASH LIGHTS THEN ALL OFF
+      this.waitForUserSeq = false;
+      this.activeGameboard = false;
       this.characterCelebrateAndEat();
     } else if (!correct) {
       // HERE WE WOULD WANT TO BLINK ALL LIGHTS OFF
+      this.waitForUserSeq = false;
+      this.activeGameboard = false;
       this.characterDisapointed();
     }
   }
@@ -556,15 +628,21 @@ class UnlockFoodGame extends React.Component {
     this.setState({loadingScreen: false});
   }
 
-  // matrixStyle () {
-  //   return {
-  //     width: 200,
-  //     height: 100,
-  //     top: 100 * this.props.scale.screenHeight,
-  //     left: 100 * this.props.scale.screenWidth,
-  //     position: 'absolute',
-  //   };
-  // }
+  showLightbulb () {
+    if (this.state.lightbulbDisplayed) return;
+
+    const tweenOpts = gameUtil.getTweenOptions('lightbulb', 'on', this.props.scale.image,
+        this.props.scale.screenHeight,
+        this.props.scale.screenWidth, null);
+    this.setState({
+      lightbulbTweenOptions: tweenOpts,
+      lightbulbImgIndex: 0,
+      lightbulbDisplayed: true,
+    }, () => {
+      this.refs.lightbulbRef.startTween();
+    });
+    console.log("SHOW LIGHT BUBL. tweenOpts = ", tweenOpts);
+  }
 
   render () {
     const fruitVisable = this.state.showFood ? true : false;
@@ -577,17 +655,7 @@ class UnlockFoodGame extends React.Component {
             width: SCREEN_WIDTH,
             height: SCREEN_HEIGHT,
           }}>
-            <AnimatedSprite
-              sprite={leverSprite}
-              spriteUID={this.characterUIDs.lever}
-              animationFrameIndex={this.state.leverAnimationIndex}
-              loopAnimation={false}
-              coordinates={this.leverLocation()}
-              size={this.leverSize()}
-              rotate={[{rotateY:'0deg'}]}
-              onPressIn={() => this.leverPressIn()}
-              onPressOut={() => this.leverPressOut()}
-            />
+
             <AnimatedSprite
               visable={fruitVisable}
               sprite={foodSprite}
@@ -642,7 +710,7 @@ class UnlockFoodGame extends React.Component {
             <AnimatedSprite
               sprite={arrowSprite}
               spriteUID={"happy_arrow:)"}
-              animationFrameIndex={this.arrowIndex}
+              animationFrameIndex={[this.state.arrowIndex]}
               loopAnimation={false}
               coordinates={this.directionArrowLocation()}
               size={{width: 110 * this.scale.image, height: 110 *  this.scale.image}}
@@ -661,6 +729,34 @@ class UnlockFoodGame extends React.Component {
               onPress={(tile, index) => this.gameBoardTilePress(tile, index)}
             />
 
+            {this.state.blackout ?
+              <View style={styles.blackout} />
+            : null}
+
+            <AnimatedSprite
+              ref={'lightbulbRef'}
+              sprite={lightbulbCharacter}
+              spriteUID={'lightbulbRef'}
+              coordinates={gameUtil.getCoordinates('lightbulb', this.props.scale.screenHeight,
+                            this.props.scale.screenWidth, this.props.scale.image)}
+              size={gameUtil.getSize('lightbulb', this.props.scale.image)}
+              tweenOptions={this.state.lightbulbTweenOptions}
+              tweenStart={'fromMethod'}
+              animationFrameIndex={[this.state.lightbulbImgIndex]}
+            />
+
+            <AnimatedSprite
+              sprite={leverSprite}
+              spriteUID={this.characterUIDs.lever}
+              animationFrameIndex={this.state.leverAnimationIndex}
+              loopAnimation={false}
+              coordinates={this.leverLocation()}
+              size={this.leverSize()}
+              rotate={[{rotateY:'0deg'}]}
+              onPressIn={() => this.leverPressIn()}
+              onPressOut={() => this.leverPressOut()}
+            />
+
             <HomeButton
               route={this.props.route}
               navigator={this.props.navigator}
@@ -670,6 +766,7 @@ class UnlockFoodGame extends React.Component {
                 height: 150 * this.scale.image,
                 top:0, left: 0, position: 'absolute' }}
             />
+
             {this.state.loadingScreen ?
               <LoadScreen
                 onTweenFinish={() => this.onLoadScreenFinish()}

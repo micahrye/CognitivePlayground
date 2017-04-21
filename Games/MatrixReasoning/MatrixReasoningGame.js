@@ -23,7 +23,7 @@ const Sound = require('react-native-sound');
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEFT_EDGE = 150;
+const LEFT_EDGE = 950;
 
 class MatrixReasoningGame extends React.Component {
   constructor (props) {
@@ -39,7 +39,6 @@ class MatrixReasoningGame extends React.Component {
     };
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
-    this.ambientSound;
     this.popSound;
     this.popPlaying = false;
     this.celebrateSound;
@@ -54,16 +53,6 @@ class MatrixReasoningGame extends React.Component {
   }
 
   componentDidMount () {
-    this.ambientSound = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
-      if (error) {
-        console.warn('failed to load the sound', error);
-        return;
-      }
-      this.ambientSound.setSpeed(1);
-      this.ambientSound.setNumberOfLoops(-1);
-      this.ambientSound.play();
-      this.ambientSound.setVolume(1);
-    });
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
@@ -105,8 +94,6 @@ class MatrixReasoningGame extends React.Component {
   }
 
   releaseSounds () {
-    this.ambientSound.stop();
-    this.ambientSound.release();
     this.popSound.stop();
     this.popSound.release();
     this.celebrateSound.stop();
@@ -238,7 +225,7 @@ class MatrixReasoningGame extends React.Component {
           coordinates={this.dogStartLocation()}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
           size={this.dogSize()}
-          rotate={[{rotateY:'180deg'}]}
+          rotate={[{rotateY:'0deg'}]}
           onPress={() => this.pressStub()}
           onPressIn={() => this.pressStub()}
           onPressOut={() => this.pressStub()}
@@ -247,7 +234,7 @@ class MatrixReasoningGame extends React.Component {
         <Matrix
           styles={{
             top: 40 * this.props.scale.screenHeight,
-            left: 200 * this.props.scale.screenWidth,
+            left: 900 * this.props.scale.screenWidth,
             position: 'absolute',
             width: 600 * this.props.scale.screenWidth,
             height: 600 * this.props.scale.screenHeight,
@@ -263,7 +250,7 @@ class MatrixReasoningGame extends React.Component {
         <Matrix
           styles={{
             top: 40 * this.props.scale.screenHeight,
-            left: 550 * this.props.scale.screenWidth,
+            left: 300 * this.props.scale.screenWidth,
             position: 'absolute',
             width: 600 * this.props.scale.screenWidth,
             height: 600 * this.props.scale.screenHeight,

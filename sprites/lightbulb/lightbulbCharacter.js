@@ -2,7 +2,7 @@
 
 const lightbulbCharacter = {
   name:"lightbulb",
-  size: {width: 170, height: 100},
+  size: {width: 150, height: 300},
   animationTypes: ['ON', 'OFF', 'ALL'],
   frames:[
     require("./lightbulb_on.png"),
