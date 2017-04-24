@@ -89,6 +89,7 @@ class BugZapGameRedesign extends React.Component {
     this.disgustPlaying = false;
     this.leftBugColorIndex = GREEN_BUG;
     this.rightBugColorIndex = BLUE_BUG;
+    this.blackoutTimeout;
   }
 
   componentWillMount () {
@@ -233,7 +234,6 @@ class BugZapGameRedesign extends React.Component {
       this.leverSoundPlaying = true;
       this.leverSound.play(() => {this.leverSoundPlaying = false;});
     }
-    // IF TRIAL NUMBER LIGHT DOWN
 
     this.setCharacterDirection(this.trialNumber);
     if (this.trialNumber > END_PRIMING) {
@@ -251,7 +251,10 @@ class BugZapGameRedesign extends React.Component {
 
   leverPressOut () {
     // only show sign retracting if it had started to go down
-    if (!this.state.showBugRight && !this.retractingSign && !this.state.showBee) {
+    if (!this.state.showBugRight
+        && !this.retractingSign
+        && !this.state.showBee
+        || this.state.blackout) {
       this.retractSign();
       this.leverPressable = false;
     }
@@ -261,6 +264,7 @@ class BugZapGameRedesign extends React.Component {
       leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
       blackout: false,
     });
+    
   }
 
   signDown () {
@@ -290,6 +294,7 @@ class BugZapGameRedesign extends React.Component {
 
   retractSign () {
     this.retractingSign = true;
+    clearTimeout(this.blackoutTimeout);
     const startXRight =   SCREEN_WIDTH/2 + (210 * this.props.scale.screenWidth);
     const startXLeft = SCREEN_WIDTH/2 - (360 * this.props.scale.screenWidth);
     const lightbulbStartX = SCREEN_WIDTH/2 - (75 * this.props.scale.screenWidth);
@@ -303,6 +308,10 @@ class BugZapGameRedesign extends React.Component {
           this.props.scale.image, this.props.scale.screenHeight,
           this.props.scale.screenWidth, lightbulbStartX);
     this.setState({
+        showBugRight: false,
+        showBugLeft: false,
+        showFrog: false,
+        showSplashCharacter: false,
         signRightTweenOptions: signRightTweenOptions,
         signLeftTweenOptions: signLeftTweenOptions,
         lightbulbTweenOptions: lightTweenOptions,
@@ -416,7 +425,8 @@ class BugZapGameRedesign extends React.Component {
   onAnimationFinish (character) {
     switch (character) {
       case 'splash':
-        if (!this.trialOver) {
+        if (!this.trialOver && !this.retractingSign && !this.state.blackout) {
+          console.log("SHOWING FROG FROM animationFinish")
           this.setState({showFrog: true});
         }
         this.setState({showSplashCharacter: false});
@@ -475,6 +485,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   blackoutTrial () {
+    clearTimeout(this.blackoutTimeout);
     console.log("BLACKOUT CALLED");
     this.setState({
       lightbulbImgIndex: 1,
@@ -484,8 +495,10 @@ class BugZapGameRedesign extends React.Component {
     setTimeout(() => {
       this.showBackgroundCircle();
     }, 500);
-    setTimeout(() => {
+    this.blackoutTimeout = setTimeout(() => {
+      console.log("SHOW FROM from blackout timeout");
       this.setState({
+        showFrog: true,
         blackout: false,
         lightbulbImgIndex: 0,
       });

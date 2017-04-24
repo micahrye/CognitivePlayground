@@ -44,9 +44,6 @@ const LEVEL_2B = 7;
 const LEVEL_3 = 10;
 const LEVEL_4 = 13;
 
-const LEVEL02 = 16;
-const LEVEL03 = 19;
-
 class UnlockFoodGame extends React.Component {
   constructor (props) {
     super(props);
