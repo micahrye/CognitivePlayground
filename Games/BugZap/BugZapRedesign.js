@@ -45,7 +45,7 @@ class BugZapGameRedesign extends React.Component {
     // BUG: state is dependent on activeFrogColor, if order changed then we
     // throw an exception.
     // zero indexing for trialNumber
-    this.trialNumber = 15;
+    this.trialNumber = 0;
     this.activeFrogColor = blueFrogCharacter;
     this.showOtherSign = false;
     this.frogPosX = 900 * this.props.scale.screenWidth;
