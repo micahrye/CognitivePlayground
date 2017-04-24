@@ -1,6 +1,6 @@
 const beeSprite = {
   name: "bee",
-  size: {width: 100, height: 100},
+  size: {width: 140, height: 140},
   animationTypes: ['IDLE', 'ALL'],
   frames:[
     require ("./bee_idle.png"),

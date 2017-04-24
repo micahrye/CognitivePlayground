@@ -45,7 +45,7 @@ class BugZapGameRedesign extends React.Component {
     // BUG: state is dependent on activeFrogColor, if order changed then we
     // throw an exception.
     // zero indexing for trialNumber
-    this.trialNumber = 0;
+    this.trialNumber = 15;
     this.activeFrogColor = blueFrogCharacter;
     this.showOtherSign = false;
     this.frogPosX = 900 * this.props.scale.screenWidth;
@@ -358,6 +358,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   correctBugTapped (bugSide) {
+    clearTimeout(this.displayBeeTimeout);
     if (bugSide == 'left') {
       this.refs.bugLeftRef.startTween();
     }
@@ -393,9 +394,10 @@ class BugZapGameRedesign extends React.Component {
           this.leverPressable = false;
           // we are in active game state.
           if (this.trialNumber >= END_BLACKOUT) {
-            setTimeout(() => {
+            clearTimeout(this.displayBeeTimeout);
+            this.displayBeeTimeout = setTimeout(() => {
               this.displayBee();
-            }, 1000);
+            }, 1500);
           }
         }
         else {
@@ -678,7 +680,10 @@ class BugZapGameRedesign extends React.Component {
               spriteUID={'bee'}
               onPress={(characterUID) => this.onBugPress(characterUID)}
               coordinates={this.beeLocation(this.frogSide)}
-              size={beeSprite.size}
+              size={{
+                width: beeSprite.size.width * this.props.scale.image,
+                height: beeSprite.size.height * this.props.scale.image
+              }}
               scale={1.4 * this.props.scale.image}
               animationFrameIndex={[0]}
             />
