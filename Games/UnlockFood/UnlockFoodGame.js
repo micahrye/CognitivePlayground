@@ -342,10 +342,17 @@ class UnlockFoodGame extends React.Component {
         tiles[blinkIndex].frameKey = 'BLINK_0';
         if (this.leverOn) {
           this.setState({ tiles }, () => {
+            tiles[blinkIndex].frameKey = 'IDLE';
             this.remainingTilesInSeq = this.remainingTilesInSeq - 1;
             if (this.remainingTilesInSeq === 0) {
               this.waitForUserSeq = true;
               this.activeGameboard = true;
+              setTimeout(() => {
+                this.setState({
+                  blackout: false,
+                  lightbulbImgIndex: 0,
+                });
+              }, 500);
             }
           });
         }
