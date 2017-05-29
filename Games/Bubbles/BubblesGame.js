@@ -1,19 +1,8 @@
-/*
-Copyright (c) 2017 Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT. 
-*/
 import React from 'react';
 import {
   Image,
-  TouchableOpacity,
-  Dimensions,
+  AppState,
+  AsyncStorage,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -22,6 +11,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from "../../components/AnimatedSprite/AnimatedSprite";
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
@@ -32,6 +22,8 @@ import canCharacter from '../../sprites/can/canCharacter';
 import flySprite from '../../sprites/bug/bugCharacter';
 import fruitSprite from '../../sprites/apple/appleCharacter';
 import grassSprite from '../../sprites/grass/grassCharacter';
+
+const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -52,24 +44,37 @@ class BubblesGame extends React.Component {
       monsterAnimationIndex: [0],
       loadContent: false,
       showFood: false,
+      loadingScreen: true,
+      showLaunchBtn: true,
     };
     this.scale = this.props.scale;
-    this.characterUIDs = {};
+    this.spriteUIDs = {};
     this.setDefaultAnimationState;
     this.bubbleFountainInterval;
     this.targetBubble = {active: false, uid: '', name: '', stopTweenOnPress: true};
     this.food = {active: false, uid: '', name: ''};
     this.monster = {tweenOptions: {}};
 
+    this.popSound;
+    this.popPlaying = false;
+    this.leverSound;
+    this.leverPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
 }
 
   componentWillMount () {
-    this.characterUIDs = {
+    this.spriteUIDs = {
       bubble: randomstring({ length: 7 }),
       monster: randomstring({ length: 7 }),
       lever: randomstring({ length: 7 }),
       fountain: randomstring({ length: 7 }),
     };
+    AsyncStorage.getItem('@User:pref', (err, result) => {
+      console.log(`GETTING = ${JSON.stringify(result)}`);
+      const prefs = JSON.parse(result);
+      this.setState({ showLaunchBtn: prefs.developMode });
+    });
     this.setState({
       bubbleAnimationIndex: bubbleCharacter.animationIndex('ALL'),
       monsterAnimationIndex: monsterCharacter.animationIndex('ALL'),
@@ -92,14 +97,64 @@ class BubblesGame extends React.Component {
       });
       // game over when 15 seconds go by without bubble being popped
     }, GAME_TIME_OUT);
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
+    this.releaseAudio();
     clearInterval(this.eatInterval);
     clearInterval(this.bubbleFountainInterval);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.timeoutGameOver);
     clearTimeout(this.celebrateTimeout);
+  }
+
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.leverSound = new Sound('lever_switch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.leverSound.setSpeed(1);
+      this.leverSound.setNumberOfLoops(0);
+      this.leverSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+  }
+
+  releaseAudio () {
+    this.popSound.stop();
+    this.popSound.release();
+    this.leverSound.stop();
+    this.leverSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+  }
+
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseAudio();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   makeMoveTween (startXY=[-300, 500], endXY=[600, 400], duration=1500) {
@@ -122,12 +177,12 @@ class BubblesGame extends React.Component {
     this.setState({
       monsterAnimationIndex: monsterCharacter.animationIndex('WALK'),
       tweenCharacter: true,
-    }, ()=> {this.refs.monsterRef.startTween();});
+    }, ()=> {this.refs.monsterRef.tweenSprite();});
   }
 
-  onTweenFinish (characterUID) {
+  onTweenFinish (spriteUID) {
     const remainingBubbles = this.state.bubbleArray.filter((item) => {
-      if (item.props.characterUID === characterUID) {
+      if (item.props.spriteUID === spriteUID) {
         return false;
       }
       return true;
@@ -213,7 +268,7 @@ class BubblesGame extends React.Component {
           this.targetBubble.name = 'grass';
           break;
       }
-      this.targetBubble.opacity = 1;
+      this.targetBubble.visable = true;
       this.targetBubble.uid = uid;
       this.targetBubble.tweenOptions = backgroundBubbleTween;
       this.targetBubble.coordinates = {
@@ -225,13 +280,13 @@ class BubblesGame extends React.Component {
     } else if (bubbles.length < MAX_NUMBER_BUBBLES) {
       bubbles.push(
         <AnimatedSprite
-          character={bubbleCharacter}
+          sprite={bubbleCharacter}
           key={randomstring({ length: 7 })}
-          characterUID={uid}
+          spriteUID={uid}
           animationFrameIndex={[0]}
           tweenOptions={backgroundBubbleTween}
-          tweenStart={'auto'}
-          onTweenFinish={(characterUID) => this.onTweenFinish(characterUID)}
+          tweenStart={'fromMount'}
+          onTweenFinish={(spriteUID) => this.onTweenFinish(spriteUID)}
           loopAnimation={false}
           coordinates={{
             top: startTop * this.scale.screenHeight,
@@ -322,12 +377,16 @@ class BubblesGame extends React.Component {
     this.food = this.getFoodSprite(this.targetBubble.name, startX, startY);
     this.setState({showFood: true});
 
-    clearInterval(this.eatInterval)
+    clearInterval (this.eatInterval);
     this.eatInterval = setInterval(() => {
       this.setState({
         monsterAnimationIndex: monsterCharacter.animationIndex('EAT'),
       }, () => {
         this.celebrateTimeout = setTimeout(() => {
+          if (!this.celebratePlaying) {
+            this.celebratePlaying = true;
+            this.celebrateSound.play(() => {this.celebratePlaying = false;});
+          }
           this.setState({
             monsterAnimationIndex: monsterCharacter.animationIndex('CELEBRATE'),
           });
@@ -346,8 +405,8 @@ class BubblesGame extends React.Component {
   popBubble (stopValues) {
     // NOTE: b/c of bug and use of opacity it is possible to pop the
     // transparent bubbble, since this should not happen we check if
-    // targetBubble.opacity == 0 and ignore.
-    if (!this.targetBubble.opacity) {
+    // targetBubble.visable == 0 and ignore.
+    if (!this.targetBubble.visable) {
       return;
     }
     const stopValueX = stopValues[0];
@@ -355,18 +414,25 @@ class BubblesGame extends React.Component {
     // TODO: opacity part of hack to what may be a
     // RN bug associated with premiture stopping of Tween and removing
     // The related component
-    this.targetBubble.opacity = 0;
+    this.targetBubble.visable = false;
     this.setState({targetBubbleActive: true});
-    // time to play pop sound
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     this.foodFall(stopValueX, stopValueY);
   }
 
   targetBubbleTweenFinish () {
-    this.targetBubble.opacity = 1;
+    this.targetBubble.visable = true;
     this.setState({targetBubbleActive: false});
   }
 
   leverPressIn () {
+    if (!this.leverPlaying) {
+      this.leverPlaying = true;
+      this.leverSound.play(() => {this.leverPlaying = false;});
+    }
     this.setState({
       leverAnimationIndex: leverCharacter.animationIndex('SWITCH_ON'),
     });
@@ -408,7 +474,6 @@ class BubblesGame extends React.Component {
   leverLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
-    const leverSize = this.leverSize();
     const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
     const top = SCREEN_HEIGHT - foutainSize.height * 1.1;
 
@@ -438,6 +503,10 @@ class BubblesGame extends React.Component {
     return {top, left};
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     return (
       <Image
@@ -448,8 +517,8 @@ class BubblesGame extends React.Component {
           height: SCREEN_HEIGHT,
       }}>
           <AnimatedSprite
-            character={leverCharacter}
-            characterUID={this.characterUIDs.lever}
+            sprite={leverCharacter}
+            spriteUID={this.spriteUIDs.lever}
             animationFrameIndex={this.state.leverAnimationIndex}
             loopAnimation={false}
             coordinates={this.leverLocation()}
@@ -462,8 +531,8 @@ class BubblesGame extends React.Component {
 
           {this.state.loadContent ?
             <AnimatedSprite
-              character={bubbleCharacter}
-              characterUID={randomstring({length: 7})}
+              sprite={bubbleCharacter}
+              spriteUID={randomstring({length: 7})}
               animationFrameIndex={this.state.bubbleAnimationIndex}
               loopAnimation={false}
               coordinates={{top: 400 * this.scale.screenHeight,
@@ -477,14 +546,14 @@ class BubblesGame extends React.Component {
 
           {this.state.targetBubbleActive ?
             <AnimatedSprite
-              style={{opacity: this.targetBubble.opacity}}
-              character={bubbleCharacter}
-              characterUID={this.targetBubble.uid}
+              visable={this.targetBubble.visable}
+              sprite={bubbleCharacter}
+              spriteUID={this.targetBubble.uid}
               animationFrameIndex={this.targetBubble.frameIndex}
               loopAnimation={false}
               tweenOptions={this.targetBubble.tweenOptions}
-              tweenStart={'auto'}
-              onTweenFinish={(characterUID) => this.targetBubbleTweenFinish(characterUID)}
+              tweenStart={'fromMount'}
+              onTweenFinish={(spriteUID) => this.targetBubbleTweenFinish(spriteUID)}
               coordinates={this.targetBubble.coordinates}
               size={this.targetBubble.size}
               stopAutoTweenOnPressIn={this.targetBubble.stopTweenOnPress}
@@ -494,13 +563,13 @@ class BubblesGame extends React.Component {
 
           {this.state.showFood ?
             <AnimatedSprite
-              character={this.food.character}
-              characterUID={this.food.uid}
+              sprite={this.food.character}
+              spriteUID={this.food.uid}
               key={this.food.uid}
               animationFrameIndex={this.food.index}
               tweenOptions={this.food.tweenOptions}
-              tweenStart='auto'
-              onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+              tweenStart={'fromMount'}
+              onTweenFinish={(spriteUID) => this.onFoodTweenFinish(spriteUID)}
               loopAnimation={false}
               coordinates={this.food.location}
               size={this.food.size}
@@ -509,12 +578,12 @@ class BubblesGame extends React.Component {
 
           <AnimatedSprite
             ref={'monsterRef'}
-            character={monsterCharacter}
-            characterUID={this.characterUIDs.monster}
+            sprite={monsterCharacter}
+            spriteUID={this.spriteUIDs.monster}
             animationFrameIndex={this.state.monsterAnimationIndex}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             tweenOptions={this.monster.tweenOptions}
-            onTweenFinish={(characterUID)=> this.onCharacterTweenFinish(characterUID)}
+            onTweenFinish={(spriteUID)=> this.onCharacterTweenFinish(spriteUID)}
             loopAnimation={this.monster.loopAnimation}
             coordinates={this.monsterStartLocation()}
             size={{ width: Math.floor(300 * this.scale.image),
@@ -523,24 +592,32 @@ class BubblesGame extends React.Component {
           />
 
           <AnimatedSprite
-            character={fountainCharacter}
-            characterUID={this.characterUIDs.fountain}
+            sprite={fountainCharacter}
+            spriteUID={this.spriteUIDs.fountain}
             animationFrameIndex={[0]}
             loopAnimation={false}
             coordinates={this.fountainLocation()}
             size={{ width: fountainCharacter.size.width * this.scale.image,
               height: fountainCharacter.size.height * this.scale.image}}
           />
-
-        <HomeButton
-          route={this.props.route}
-          navigator={this.props.navigator}
-          routeId={{ id: 'Main' }}
-          styles={{
-            width: 150 * this.scale.image,
-            height: 150 * this.scale.image,
-            top:0, left: 0, position: 'absolute' }}
-        />
+        {this.state.showLaunchBtn ?
+          <HomeButton
+            route={this.props.route}
+            navigator={this.props.navigator}
+            routeId={{ id: 'Main' }}
+            styles={{
+              width: 150 * this.scale.image,
+              height: 150 * this.scale.image,
+              top:0, left: 0, position: 'absolute' }}
+          />
+        : null}
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </Image>
     );
   }

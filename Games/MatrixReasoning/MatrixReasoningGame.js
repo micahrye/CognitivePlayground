@@ -1,16 +1,9 @@
-/*
-Copyright (c) 2017 Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT. 
-*/
 import React from 'react';
-import {View, Image} from 'react-native';
+import {
+  View,
+  Image,
+  AppState,
+} from 'react-native';
 
 import _ from 'lodash';
 import reactMixin from 'react-mixin';
@@ -20,15 +13,17 @@ import styles from './styles';
 
 import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
-import dogSprite from '../../sprites/dog/dogCharacter';
 import Matrix from '../../components/Matrix';
-
+import LoadScreen from '../../components/LoadScreen';
+import dogSprite from '../../sprites/dog/dogCharacter';
 import gameTiles from './gameTiles';
+
+const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const LEFT_EDGE = 150;
+const LEFT_EDGE = 950;
 
 class MatrixReasoningGame extends React.Component {
   constructor (props) {
@@ -36,20 +31,83 @@ class MatrixReasoningGame extends React.Component {
     this.state = {
       selectionTiles: {},
       gameBoardTiles: {},
-      level: 1,
-      trial: 1,
+      trial: 0,
       dog: {
         frameIndex: [0],
       },
-
+      loadingScreen: true,
     };
-    // gameBoardTiles = {
-    //   sprite,
-    //   frames,
-    //   active,
-    // }
     this.gameCharacters = ['dog', 'hookedCard'];
     this.characterUIDs = this.makeCharacterUIDs(this.gameCharacters);
+    this.popSound;
+    this.popPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
+    this.disgustSound;
+    this.disgustPlaying = false;
+  }
+
+  componentWillMount () {
+    this.readyTrial(0);
+    this.loadCharacter();
+  }
+
+  componentDidMount () {
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
+  }
+
+  componentWillUnmount () {
+    this.releaseSounds();
+    clearInterval(this.matrixShifterInterval);
+    clearTimeout(this.readTrialTimeout);
+  }
+
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
+  }
+
+  releaseSounds () {
+    this.popSound.stop();
+    this.popSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
+  }
+
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseSounds();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   loadCharacter () {
@@ -60,13 +118,6 @@ class MatrixReasoningGame extends React.Component {
     );
     this.setState({ dog });
   }
-
-  componentWillMount () {
-    this.readyTrial(1, 1);
-    this.loadCharacter();
-  }
-
-  componentDidMount () {}
 
   makeCharacterUIDs () {
     return _.zipObject(this.gameCharacters,
@@ -88,16 +139,23 @@ class MatrixReasoningGame extends React.Component {
     return {top, left};
   }
 
-  readyTrial (level, trial) {
+  readyTrial (trial) {
     this.setState({
-      level,
       trial,
-      gameBoardTiles: gameTiles.gameBoardTilesForTrial(level, trial),
-      selectionTiles: gameTiles.selectionTilesForTrial(level, trial),
+      gameBoardTiles: gameTiles.gameBoardTilesForTrial(trial),
+      selectionTiles: gameTiles.selectionTilesForTrial(trial),
     });
   }
 
   gameCharacterAction (action) {
+    if (!this.celebratePlaying && (action === 'CELEBRATE')) {
+      this.celebratePlaying = true;
+      this.celebrateSound.play(() => {this.celebratePlaying = false;});
+    }
+    if (!this.disgustPlaying && (action === 'DISGUST')) {
+      this.disgustPlaying = true;
+      this.disgustSound.play(() => {this.disgustPlaying = false;});
+    }
     let dog = _.cloneDeep(this.state.dog);
     dog.frameIndex = _.concat(
       dogSprite.animationIndex(action),
@@ -108,7 +166,7 @@ class MatrixReasoningGame extends React.Component {
         dog,
       }, () => {
         this.readTrialTimeout = setTimeout(() => {
-          this.readyTrial(this.state.level, this.state.trial + 1);
+          this.readyTrial(this.state.trial + 1);
         }, 2000);
     });
 
@@ -124,36 +182,29 @@ class MatrixReasoningGame extends React.Component {
   pressStub () {}
 
   selectionTilePress (tile, index) {
-    console.log(`index = ${index}, frameKey = ${tile.frameKey}`);
-    const level = this.state.level;
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     const trial = this.state.trial;
-    if (tile.frameKey === gameTiles.correctSelection(level, trial)) {
-      console.log('WINNER WINNER');
+    if (tile.frameKey === gameTiles.correctSelection(trial)) {
       // redraw matrix with correct
       this.setState({
-        gameBoardTiles: gameTiles.gameBoardTilesWithSelectionResult(level, trial, tile.frameKey),
+        gameBoardTiles: gameTiles.gameBoardTilesWithSelectionResult(trial, tile.frameKey),
       });
       this.gameCharacterAction('CELEBRATE');
     } else {
-      console.log('NO NO NO');
       this.gameCharacterAction('DISGUST');
     }
   }
-  selectionTilePressIn (tile, index) {
-    console.log('selectionTilePressIn');
-  }
-  selectionTilePressOut (tile, index) {
-    console.log('selectionTilePressOut');
+
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
   }
 
-  gameBoardTilePress (tile, index) {
-    console.log(`tileInfo = ${index}`);
-  }
-
-  componentWillUnmount () {
-    clearInterval(this.matrixShifterInterval);
-    clearTimeout(this.readTrialTimeout);
-  }
+  selectionTilePressIn (tile, index) {}
+  selectionTilePressOut (tile, index) {}
+  gameBoardTilePress (tile, index) {}
 
   render () {
     return (
@@ -165,18 +216,16 @@ class MatrixReasoningGame extends React.Component {
         }}
         />
         <AnimatedSprite
-          character={dogSprite}
-          characterUID={this.characterUIDs.dog}
+          sprite={dogSprite}
+          spriteUID={this.characterUIDs.dog}
           animationFrameIndex={this.state.dog.frameIndex}
-
           loopAnimation={false}
           tweenOptions={{}}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.dogStartLocation()}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
-
           size={this.dogSize()}
-          rotate={[{rotateY:'180deg'}]}
+          rotate={[{rotateY:'0deg'}]}
           onPress={() => this.pressStub()}
           onPressIn={() => this.pressStub()}
           onPressOut={() => this.pressStub()}
@@ -185,7 +234,7 @@ class MatrixReasoningGame extends React.Component {
         <Matrix
           styles={{
             top: 40 * this.props.scale.screenHeight,
-            left: 200 * this.props.scale.screenWidth,
+            left: 900 * this.props.scale.screenWidth,
             position: 'absolute',
             width: 600 * this.props.scale.screenWidth,
             height: 600 * this.props.scale.screenHeight,
@@ -201,7 +250,7 @@ class MatrixReasoningGame extends React.Component {
         <Matrix
           styles={{
             top: 40 * this.props.scale.screenHeight,
-            left: 600 * this.props.scale.screenWidth,
+            left: 300 * this.props.scale.screenWidth,
             position: 'absolute',
             width: 600 * this.props.scale.screenWidth,
             height: 600 * this.props.scale.screenHeight,
@@ -223,6 +272,14 @@ class MatrixReasoningGame extends React.Component {
             position: 'absolute',
           }}
         />
+
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </View>
     );
   }

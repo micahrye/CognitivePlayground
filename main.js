@@ -1,19 +1,10 @@
-/*
-Copyright (c) 2017 Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT. 
-*/
 
 import React from 'react';
 import {
   View,
   Image,
+  Button,
+  StyleSheet,
   Dimensions,
 } from 'react-native';
 
@@ -21,7 +12,6 @@ import _ from 'lodash';
 
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
-import randomstring from 'random-string';
 
 import AnimatedSprite from "./components/AnimatedSprite/AnimatedSprite";
 import gameIcon from "./media/gameIcon/gameIcon";
@@ -166,6 +156,9 @@ class Main extends React.Component {
       case 'SYMBOL':
         this.goToGame('SymbolDigitCodingGame');
         break;
+      case 'PREFS':
+        this.goToGame('Prefs');
+        break;
       default:
         // console.warn('touched me');
         break;
@@ -179,11 +172,11 @@ class Main extends React.Component {
       return (
         <AnimatedSprite
           ref={ref}
-          character={gameIcon}
+          sprite={gameIcon}
           key={index}
           animationFrameIndex={icon.frameIndex}
           tweenOptions = {this.makeZoomTween(0.1, 1, 1000)}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           loopAnimation={false}
           size={this.startSize()}
           scale={0.1}
@@ -205,11 +198,27 @@ class Main extends React.Component {
             height: screenHeight,
           }}
         />
+        <View style={styles.button} >
+          <Button          
+            onPress={() => this.launchGame('PREFS')}
+            title="Session Prefs"
+          />
+        </View>
         {icons}
       </View>
     );
   }
 }
+
+const styles = StyleSheet.create({
+  button: {
+    position: 'absolute',
+    width: 120,
+    height: 30,
+    top: 20,
+    left: 20,
+  },
+});
 
 Main.propTypes = {
   route: React.PropTypes.object,

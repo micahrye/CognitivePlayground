@@ -1,18 +1,8 @@
-/*
-Copyright (c) 2017 Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT. 
-*/
 import React from 'react';
 import {
   View,
   Image,
+  AppState,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -23,12 +13,15 @@ import randomstring from 'random-string';
 import styles from './styles';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 import monsterSprite from '../../sprites/monster/monsterCharacter';
 import Matrix from '../../components/Matrix';
 
 import symbolTable from '../../sprites/symbolTable/symbolTableCharacter';
 import Signs from './Signs';
 import gameUtil from './gameUtil';
+
+const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -37,12 +30,12 @@ class SymbolDigitCodingGame extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-      level: 1,
-      trial: 1,
+      trial: 0,
       symbolOrder: [],
       showFood: false,
       monsterAnimationIndex: [0],
-      selectionTiles: {},
+      thoughtTiles: {},
+      loadingScreen: true,
     };
     this.monsterScale = 1.5;
     this.tableScale = 1.3;
@@ -52,30 +45,95 @@ class SymbolDigitCodingGame extends React.Component {
       coords: {},
       size: {},
     };
+
+    this.popSound;
+    this.popPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
+    this.disgustSound;
+    this.disgustSound = false;
   }
 
   componentWillMount () {
-    const level = 1;
-    const trial = 1;
+    const trial = 0;
 
-    this.food.sprite = gameUtil.foodSprite(level, trial);
+    this.food.sprite = gameUtil.foodSprite(trial);
     this.food.coords = this.foodStartLocation(1);
     this.food.size = this.spriteSize(this.food.sprite, 1);
-    const tiles = gameUtil.selectionTilesForTrial(1,1);
-    debugger;
     this.setState({
-      level,
       trial,
       tweenOptions: this.makeFoodTweenObject(),
-      symbolOrder: gameUtil.symbols(level, trial),
-      selectionTiles: gameUtil.selectionTilesForTrial(level, trial),
+      symbolOrder: gameUtil.symbols(trial),
+      thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
+    });
+
+    this.loadSpriteAssets();
+  }
+
+  loadSpriteAssets () {
+    this.state.monsterAnimationIndex
+    const indicies = _.concat(
+      monsterSprite.animationIndex('ALL'),
+      monsterSprite.animationIndex('IDLE'),
+    );
+    this.setState({ monsterAnimationIndex: indicies });
+  }
+
+  componentDidMount () {
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
+  }
+
+  componentWillUnmount () {
+    this.releaseSounds();
+    clearTimeout(this.stateTimeout);
+  }
+
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
     });
   }
 
-  componentDidMount () {}
+  releaseSounds () {
+    this.popSound.stop();
+    this.popSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
+  }
 
-  componentWillUnmount () {
-    clearTimeout(this.stateTimeout);
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseSounds();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   monsterMouthLocation () {
@@ -101,7 +159,6 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   foodStartLocation (position) {
-    console.log(`food position = ${position}`);
     const scaleWidth = this.props.scale.screenWidth;
     const top = 100 * this.props.scale.screenHeight;
     const baseLeft = 320;
@@ -145,30 +202,36 @@ class SymbolDigitCodingGame extends React.Component {
       tweenOptions: this.makeFoodTweenObject(),
       },
     () => {
-      this.refs.food.startTween();
+      this.refs.food.tweenSprite();
       this.stateTimeout = setTimeout(() => {
+        if (!this.celebratePlaying) {
+          this.celebratePlaying = true;
+          this.celebrateSound.play(() => {this.celebratePlaying = false;});
+        }
         this.setState({ monsterAnimationIndex: monsterSprite.animationIndex('EAT') });
       }, 500);
     });
   }
 
   nextTrial () {
-    const level = this.state.level;
     const trial = this.state.trial + 1;
-    const symbolOrder = gameUtil.symbols(level, trial);
-    this.food.sprite = gameUtil.foodSprite(level, trial);
+    const symbolOrder = gameUtil.symbols(trial);
+    this.food.sprite = gameUtil.foodSprite(trial);
     this.setState({
-      level,
       trial,
       symbolOrder: symbolOrder,
-      selectionTiles: gameUtil.selectionTilesForTrial(level, trial),
+      thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
     });
   }
 
   signPressed (signInfo) {
-    const correctSymbol = gameUtil.correctSymbol(this.state.level, this.state.trial);
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
+    const correctSymbol = gameUtil.correctSymbol(this.state.trial);
     if (_.isEqual(correctSymbol, signInfo.symbol)) {
-      const symbolOrder = gameUtil.symbols(this.state.level, this.state.trial);
+      const symbolOrder = gameUtil.symbols(this.state.trial);
       const showSymbols = _.map(symbolOrder, (symbol) => (
         _.isEqual(correctSymbol, symbol) ? 'BLANK' : symbol
       ));
@@ -182,13 +245,17 @@ class SymbolDigitCodingGame extends React.Component {
 
       });
     } else {
+      if (!this.disgustPlaying) {
+        this.disgustPlaying = true;
+        this.disgustSound.play(() => {this.disgustPlaying = false;});
+      }
       this.setState({
         monsterAnimationIndex: monsterSprite.animationIndex('DISGUST'),
         resetTrial: true,
       }, () => {
         this.stateTimeout = setTimeout(() => {
           this.nextTrial();
-        }, 500 * this.props.scale.screenHeight)
+        }, 500 * this.props.scale.screenHeight);
       });
     }
   }
@@ -227,6 +294,10 @@ class SymbolDigitCodingGame extends React.Component {
     };
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
     return (
       <View style={styles.container}>
@@ -251,14 +322,14 @@ class SymbolDigitCodingGame extends React.Component {
 
         {this.state.showFood ?
           <AnimatedSprite
-            character={this.food.sprite}
+            sprite={this.food.sprite}
             ref={'food'}
             animationFrameIndex={[0]}
             coordinates={this.food.coords}
             size={this.food.size}
             draggable={false}
             tweenOptions={this.state.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onTweenFinish={() => this.onFoodTweenFinish()}
           />
         : null}
@@ -270,29 +341,29 @@ class SymbolDigitCodingGame extends React.Component {
         <Matrix
           styles={this.matrixStyle()}
           tileScale={0.25}
-          tiles={this.state.selectionTiles}
+          tiles={this.state.thoughtTiles}
           scale={this.props.scale}
         />
 
         <AnimatedSprite
-          character={monsterSprite}
-          characterUID={'sasdkfja'}
+          sprite={monsterSprite}
+          spriteUID={'sasdkfja'}
           animationFrameIndex={this.state.monsterAnimationIndex}
           loopAnimation={false}
           tweenOptions={{}}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.monsterStartLocation()}
           size={this.spriteSize(monsterSprite, this.monsterScale)}
           rotate={[{rotateY:'180deg'}]}
         />
 
         <AnimatedSprite
-          character={symbolTable}
-          characterUID={randomstring({ length: 7})}
+          sprite={symbolTable}
+          spriteUID={randomstring({ length: 7})}
           animationFrameIndex={[0]}
           loopAnimation={false}
           tweenOptions={{}}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.tableLocation()}
           size={this.spriteSize(symbolTable, this.tableScale)}
           rotate={[{rotateY:'0deg'}]}
@@ -307,6 +378,14 @@ class SymbolDigitCodingGame extends React.Component {
             height: 150 * this.props.scale.image,
             top:0, left: 0, position: 'absolute' }}
         />
+
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </View>
     );
   }

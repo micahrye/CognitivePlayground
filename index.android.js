@@ -1,14 +1,3 @@
-/*
-Copyright (c) 2017 Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT. 
-*/
 /**
 * Sample React Native App
 * https://github.com/facebook/react-native
@@ -17,28 +6,29 @@ Except as contained in this notice, the name of the Curious Learning : A Global 
 import React from 'react';
 import {
   AppRegistry,
-  Navigator,
   Dimensions,
-  PixelRatio,
 } from 'react-native';
 
+import {Navigator} from 'react-native-deprecated-custom-components';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 
 import Main from "./main";
+import Prefs from './prefs';
 import BubblesGame from './Games/Bubbles/BubblesGame';
-import BugZapGame from './Games/BugZap/BugZapGame';
+import BugZapGameRedesign from './Games/BugZap/BugZapRedesign';
 import MatchByColorGame from './Games/MatchByColor/MatchByColorGame';
 import MatrixReasoningGame from './Games/MatrixReasoning/MatrixReasoningGame';
 import SymbolDigitCodingGame from './Games/SymbolDigitCoding/SymbolDigitCodingGame';
 import UnlockFoodGame from './Games/UnlockFood/UnlockFoodGame';
 
+const Sound = require('react-native-sound');
+
 const baseHeight = 800;
 const baseWidth = 1280;
-const screenWidth = Dimensions.get('window').width; // * PixelRatio.get();
-const screenHeight = Dimensions.get('window').height; // * PixelRatio.get();
-
-class CognitivePlayground extends React.Component {
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+class CogPlay extends React.Component {
   constructor (props) {
     super(props);
     const scaleWidth =  screenWidth / baseWidth ;
@@ -48,13 +38,44 @@ class CognitivePlayground extends React.Component {
       screenHeight: scaleHeight,
       image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
     };
+    this.ambient;
   }
 
   componentDidMount () {
+    // Note that file location is always relative to android/app/src/main/res/raw
+    // this.ambient = new Sound('ambient_swamp.mp3', Sound.MAIN_BUNDLE, (error) => {
+    //   if (error) {
+    //     console.warn('failed to load the sound', error);
+    //     return;
+    //   }
+    //   // console.warn('duration in seconds: ' + this.ambient.getDuration() + 'number of channels: ' + this.ambient.getNumberOfChannels());
+    //   this.ambient.setSpeed(1);
+    //   this.ambient.setNumberOfLoops(-1);
+    //   this.ambient.play((success) => {
+    //     if (success) {
+    //       console.warn('successfully finished playing');
+    //     } else {
+    //       console.warn('playback failed due to audio decoding errors');
+    //     }
+    //   });
+    //   this.ambient.setVolume(1);
+    // });
+  }
 
+  componentWillUnmount () {
+    console.error('unmount index.android')
+  }
+
+  endAudio () {
+    // this.ambient.stop();
+    // this.ambient.release();
   }
 
   renderScene (route, navigator) {
+    if (route.id !== 'Main') {
+      this.endAudio();
+    }
+
     if (route.id === 'Main') {
       return <Main
         navigator={navigator}
@@ -70,7 +91,7 @@ class CognitivePlayground extends React.Component {
         />);
     } else if (route.id === 'BugZapGame') {
       return (
-        <BugZapGame
+        <BugZapGameRedesign
           navigator={navigator}
           route={route}
           scale={this.scale}
@@ -102,6 +123,12 @@ class CognitivePlayground extends React.Component {
         route={route}
         scale={this.scale}
       />);
+    } else if (route.id === 'Prefs') {
+      return (<Prefs
+        navigator={navigator}
+        route={route}
+        scale={this.scale}
+      />);
     }
   }
 
@@ -117,6 +144,6 @@ class CognitivePlayground extends React.Component {
   }
 }
 
-reactMixin.onClass(CognitivePlayground, TimerMixin);
+reactMixin.onClass(CogPlay, TimerMixin);
 
-AppRegistry.registerComponent('CognitivePlayground', () => CognitivePlayground);
+AppRegistry.registerComponent('CogPlay', () => CogPlay);

@@ -1,19 +1,8 @@
-/*
-Copyright (c) 2017 Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-Except as contained in this notice, the name of the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the Curious Learning : A Global Literacy Project, Inc., The Regents of the University of California, & MIT. 
-*/
 import React from 'react';
 import {
   Image,
   View,
-  PixelRatio,
+  AppState,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -24,6 +13,7 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
+import LoadScreen from '../../components/LoadScreen';
 // props
 import leverSprite from '../../sprites/lever/leverCharacter';
 import signSprite from '../../sprites/sign/signCharacter';
@@ -31,6 +21,8 @@ import signSprite from '../../sprites/sign/signCharacter';
 import gameUtil from './gameUtil';
 // styles
 import styles from './styles';
+
+const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
@@ -61,6 +53,7 @@ class MatchByColorGame extends React.Component {
       signsVisable: false,
       foodDisplayed: false,
       level: LEVEL01,
+      loadingScreen: true,
     };
     this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
@@ -85,16 +78,14 @@ class MatchByColorGame extends React.Component {
     this.switchCharacterTimeout;
     this.clearingScene = false;
 
-    // SCREEN_HEIGHT = SCREEN_HEIGHT * PIXEL_RATIO;
-    // SCREEN_WIDTH = SCREEN_WIDTH * PIXEL_RATIO;
-
-    // const scaleWidth =  1280 / SCREEN_WIDTH;
-    // const scaleHeight =  800 / SCREEN_HEIGHT;
-    // this.scale = {
-    //   screenWidth: scaleWidth,
-    //   screenHeight: scaleHeight,
-    //   image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
-    // };
+    this.signSound;
+    this.signSoundPlaying = false;
+    this.popSound;
+    this.popPlaying = false;
+    this.celebrateSound;
+    this.celebratePlaying = false;
+    this.disgustSound;
+    this.disgustPlaying = false;
   }
 
   componentWillMount () {
@@ -114,19 +105,88 @@ class MatchByColorGame extends React.Component {
   }
 
   componentDidMount () {
-    // console.log('HEIGH = ', SCREEN_HEIGHT);
-    // console.log('WIDTH = ', SCREEN_WIDTH);
-    // console.log(`scale = ${JSON.stringify(this.scale, null, 2)}`);
-    // console.log(`PIXEL_RATIO ${PIXEL_RATIO}`);
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
   }
 
   componentWillUnmount () {
+    // console.warn("WILL UNMOUNT");
+    this.releaseSounds();
     clearTimeout(this.showFoodTimeout);
     clearTimeout(this.signTimeout);
     clearTimeout(this.trialTimer);
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.eatTimeout);
     clearTimeout(this.switchCharacterTimeout);
+  }
+
+  initSounds () {
+    this.signSound = new Sound('cards_drop.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.signSound.setSpeed(1);
+      this.signSound.setNumberOfLoops(0);
+      this.signSound.setVolume(1);
+    });
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setSpeed(1);
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.leverSound = new Sound('lever_switch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.leverSound.setSpeed(1);
+      this.leverSound.setNumberOfLoops(0);
+      this.leverSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setSpeed(1);
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setSpeed(1);
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
+  }
+
+  releaseSounds () {
+    this.popSound.stop();
+    this.popSound.release();
+    this.leverSound.stop();
+    this.leverSound.release();
+    this.signSound.stop();
+    this.signSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
+  }
+
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseSounds();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
   }
 
   /**
@@ -136,13 +196,15 @@ class MatchByColorGame extends React.Component {
   loadCharacter (characterName) {
     this.level = this.currentLevel(this.numTrialsForCurrentLevel);
     if (this.level === DONE) {
+      // TODO: should probably have sometype of finish screen/animation etc.
       this.homeButtonPressed();
       return;
     }
+
     this.characterUIDs.character = randomstring({ length: 7 });
     this.activeCharacter = gameUtil.getCharacterObject(characterName);
-
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
+
     this.setState({
       character: this.activeCharacter,
       characterAnimationIndex: this.activeCharacter.animationIndex('ALL'),
@@ -152,7 +214,7 @@ class MatchByColorGame extends React.Component {
       clearTimeout(this.setDefaultAnimationState);
       this.setDefaultAnimationState = setTimeout(() => {
         this.setState({
-          leverAnimationIndex: this.leverSprite.animationIndex('WIGGLE'),
+          leverAnimationIndex: this.leverSprite.animationIndex('WIGGLE_LEFT'),
           characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
           loadingCharacter: false,
         });
@@ -161,6 +223,7 @@ class MatchByColorGame extends React.Component {
   }
 
   makeMoveTween (startXY=[40, 400], endXY=[600, 400], duration=1500) {
+    const coords = this.refs.characterRef.getCoordinates();
     // WILL NEED to pass character info to since size characters diff etc.
     return (
       {
@@ -174,6 +237,9 @@ class MatchByColorGame extends React.Component {
   }
 
   onCharacterTweenFinish (characterUID) {
+    console.log(`!! onCharTweenFin, characterUID=${characterUID}`);
+    //const coords = this.refs.characterRef.getCoordinates();
+    //console.log(`FINISH ${JSON.stringify(coords)}`);
     switch (characterUID) {
       case this.characterUIDs.character:
         this.setState({
@@ -217,6 +283,11 @@ class MatchByColorGame extends React.Component {
   }
 
   signDropTween () {
+    if (!this.signSoundPlaying) {
+      this.signSoundPlaying = true;
+      this.signSound.play(() => {this.signSoundPlaying = false;});
+    }
+
     return {
       tweenType: "bounce-drop",
       startY: -300,
@@ -262,11 +333,12 @@ class MatchByColorGame extends React.Component {
         break;
     }
   }
+
   startTrialTimer () {
-    clearTimeout(this.trialTimer);
-    this.trialTimer = setTimeout(()=>{
-      this.clearScene();
-    }, TRIAL_TIMEOUT);
+    // clearTimeout(this.trialTimer);
+    // this.trialTimer = setTimeout(()=>{
+    //   this.clearScene();
+    // }, TRIAL_TIMEOUT);
   }
 
   leverPress () {
@@ -302,6 +374,10 @@ class MatchByColorGame extends React.Component {
       || this.state.signsVisable || this.clearingScene) {
       return;
     }
+    if (!this.leverPlaying) {
+      this.leverPlaying = true;
+      this.leverSound.play(() => {this.leverPlaying = false;});
+    }
     this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
 
     clearTimeout(this.trialTimer);
@@ -315,7 +391,7 @@ class MatchByColorGame extends React.Component {
     this.initializeSignsDropTween();
 
     this.setState({
-      leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_ON'),
+      leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF_LEFT'),
       characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
       signsVisable: true,
       characterAnimationLoop: true,
@@ -325,8 +401,6 @@ class MatchByColorGame extends React.Component {
       // then interval to make food appear on sign.
       clearTimeout(this.showFoodTimeout);
       this.showFoodTimeout = setTimeout(() => {
-        // const coords = this.foodSignDisplayLocations();
-        // this.showFoods(coords, true, true);
         this.displayFoods();
         this.foodActive = true;
         this.startTrialTimer();
@@ -391,40 +465,6 @@ class MatchByColorGame extends React.Component {
     this.setState({foodDisplayed: false});
   }
 
-  showFoods (coords, displayFood, setState = true) {
-    // can be case that this.setState is beeing called and setting
-    // food key and location is suffecient. In other cases want to explicitly
-    // call this.setState.
-    const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
-    const foodPref = gameUtil.favoriteFood(this.activeCharacter.name);
-    const targetFoodIndex = _.findIndex(foods, (food) => food.name === foodPref);
-    const numFoods = this.level === 3 ? 3 : 2;
-    let order = _.shuffle([0, 1, 2]);
-    if (this.level < 3) {
-      const index = _([0, 1, 2]).difference([targetFoodIndex]).shuffle().value().pop();
-      order = _.shuffle([index, targetFoodIndex]);
-    } else {
-      order = _.shuffle([0, 1, 2]);
-    }
-    this.targetFoodPosition = _.findIndex(order, (val) => val === targetFoodIndex);
-    this.leftFood.character = foods[order[0]];
-    this.middleFood.character = foods[order[1]];
-
-    this.leftFood.key = randomstring({length: 7});
-    this.middleFood.key = randomstring({length: 7});
-    // only set those foods that will show.
-    this.leftFood.coords = {top: coords.top, left: coords.leftLeft};
-    this.middleFood.coords = {top: coords.top, left: coords.middleLeft};
-    if (numFoods === 3) {
-      this.rightFood.coords = {top: coords.top, left: coords.rightLeft};
-      this.rightFood.character = foods[order[2]];
-      this.rightFood.key = randomstring({length: 7});
-    }
-    if (setState) {
-      this.setState({foodDisplayed: displayFood});
-    }
-  }
-
   foodDropToCharacter (food, foodStartAt, dropTimeDuration) {
     // get the x,y of mout location withing image
     const waitForFoodAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
@@ -453,6 +493,10 @@ class MatchByColorGame extends React.Component {
         characterAnimationIndex: joyfulEatingIndex,
         characterAnimationLoop: false,
       }, () => {
+        if (!this.celebratePlaying) {
+          this.celebratePlaying = true;
+          this.celebrateSound.play(() => {this.celebratePlaying = false;});
+        }
         this.eatTimeout = setTimeout(() => {
           this.clearScene();
         }, 500);
@@ -467,6 +511,10 @@ class MatchByColorGame extends React.Component {
       this.activeCharacter.animationIndex('DISGUST'),
       this.activeCharacter.animationIndex('DISGUST')
     );
+    if (!this.disgustPlaying) {
+      this.disgustPlaying = true;
+      this.disgustSound.play(() => {this.disgustPlaying = false;});
+    }
     this.setState({
       dropFood: false,
       characterAnimationIndex: unhappy,
@@ -480,6 +528,10 @@ class MatchByColorGame extends React.Component {
   }
 
   foodPressed (foodId) {
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     if (this.state.dropFood || !this.foodActive || this.clearingScene) {
       return;
     }
@@ -512,23 +564,26 @@ class MatchByColorGame extends React.Component {
   }
 
   clearScene () {
+    console.log('!! clearScene()');
     this.clearingScene = true;
     clearTimeout(this.trialTimer);
     this.initializeMoveUpTweensForSigns();
 
-    const timeToExit = 2000;
+    const timeToExit = 1800;
     const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const startFrom = [characterAt.left, characterAt.top];
     const exitTo = [SCREEN_WIDTH, characterAt.top];
+    // exit the stage
     this.activeCharacter.tweenOptions = this.makeMoveTween(
       startFrom,
       exitTo,
-      timeToExit);
+      timeToExit
+    );
 
     clearTimeout(this.signTimeout);
     this.signTimeout = setTimeout(() => {
       this.setState({
-        leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_OFF'),
+        leverAnimationIndex: this.leverSprite.animationIndex('SWITCH_ON_LEFT'),
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         characterAnimationLoop: true,
@@ -539,11 +594,13 @@ class MatchByColorGame extends React.Component {
         clearTimeout(this.switchCharacterTimeout);
         this.switchCharacterTimeout = setTimeout(() => {
           this.clearingScene = false;
+          console.log(`!! getValidCharacterNameForLevel`);
           const name = gameUtil.getValidCharacterNameForLevel(this.level);
+          console.log(`!! next loadCharacter`);
           this.loadCharacter(name);
         }, timeToExit);
       });
-    }, 1500);
+    }, 1000);
   }
 
   canonicalScale (canonicalSize, size, scale) {
@@ -617,7 +674,12 @@ class MatchByColorGame extends React.Component {
     this.props.navigator.replace({ id: 'Main' });
   }
 
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+
   render () {
+    console.log(`!! render this.state.character = ${this.state.character.name}`)
     return (
       <View style={styles.container}>
         <Image source={require('../../media/backgrounds/Game_2_Background_1280.png')}
@@ -625,12 +687,12 @@ class MatchByColorGame extends React.Component {
           height: 800 * this.scale.screenHeight, flex: 1}}
         />
         <AnimatedSprite
-          character={leverSprite}
-          characterUID={this.characterUIDs.lever}
+          sprite={leverSprite}
+          spriteUID={this.characterUIDs.lever}
           animationFrameIndex={this.state.leverAnimationIndex}
           loopAnimation={false}
           tweenOptions={this.leverSprite.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           coordinates={this.leverLocation(this.scale.image)}
           size={this.leverSize(this.scale.image)}
           rotate={[{rotateY:'0deg'}]}
@@ -640,41 +702,41 @@ class MatchByColorGame extends React.Component {
         />
 
         <AnimatedSprite
-          character={signSprite}
+          sprite={signSprite}
           ref={'leftSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('left', this.scale)}
           size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.leftSign.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
 
         <AnimatedSprite
-          character={signSprite}
+          sprite={signSprite}
           ref={'middleSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('middle', this.scale)}
           size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.middleSign.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
 
         <AnimatedSprite
-          character={signSprite}
+          sprite={signSprite}
           ref={'rightSign'}
           animationFrameIndex={[0]}
           coordinates={this.signStartLocation('right', this.scale)}
           size={this.signSize(signSprite, this.scale.image)}
           draggable={false}
           tweenOptions={this.rightSign.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
         />
 
         {this.leftFood.character ?
           <AnimatedSprite
-            character={this.leftFood.character}
+            sprite={this.leftFood.character}
             ref={'leftFood'}
             key={this.leftFood.key}
             animationFrameIndex={[0]}
@@ -682,7 +744,7 @@ class MatchByColorGame extends React.Component {
             size={this.spriteSize(120, this.leftFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.leftFood.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onPress={() => this.foodPressed(LEFT)}
             onTweenFinish={() => this.onFoodTweenFinish(LEFT)}
           />
@@ -690,7 +752,7 @@ class MatchByColorGame extends React.Component {
 
         {this.middleFood.character ?
           <AnimatedSprite
-            character={this.middleFood.character}
+            sprite={this.middleFood.character}
             ref={'middleFood'}
             key={this.middleFood.key}
             animationFrameIndex={[0]}
@@ -698,7 +760,7 @@ class MatchByColorGame extends React.Component {
             size={this.spriteSize(120, this.middleFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.middleFood.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onPress={() => this.foodPressed(MIDDLE)}
             onTweenFinish={() => this.onFoodTweenFinish(MIDDLE)}
           />
@@ -706,7 +768,7 @@ class MatchByColorGame extends React.Component {
 
         {this.rightFood.character ?
           <AnimatedSprite
-            character={this.rightFood.character}
+            sprite={this.rightFood.character}
             ref={'rightFood'}
             key={this.rightFood.key}
             animationFrameIndex={[0]}
@@ -714,25 +776,24 @@ class MatchByColorGame extends React.Component {
             size={this.spriteSize(120, this.rightFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.rightFood.tweenOptions}
-            tweenStart={'fromCode'}
+            tweenStart={'fromMethod'}
             onPress={() => this.foodPressed(RIGHT)}
-            onTweenFinish={(ref) => this.onFoodTweenFinish(RIGHT)}
+            onTweenFinish={() => this.onFoodTweenFinish(RIGHT)}
           />
         : null}
 
         <AnimatedSprite
           ref={'characterRef'}
-          character={this.state.character}
-          characterUID={this.characterUIDs.character}
+          sprite={this.state.character}
+          spriteUID={this.characterUIDs.character}
           key={this.characterUIDs.character}
-          style={{opacity: 1}}
           animationFrameIndex={this.state.characterAnimationIndex}
           loopAnimation={this.state.characterAnimationLoop}
           coordinates={this.characterStartLocation(this.state.character, this.scale.image)}
           size={this.spriteSize(340, this.state.character, this.scale.image)}
           rotate={this.activeCharacter.rotate}
           tweenOptions={this.activeCharacter.tweenOptions}
-          tweenStart={'fromCode'}
+          tweenStart={'fromMethod'}
           onTweenFinish={(characterUID) => this.onCharacterTweenFinish(characterUID)}
         />
 
@@ -745,7 +806,13 @@ class MatchByColorGame extends React.Component {
           height: 150 * this.scale.image,
           top:0, left: 0, position: 'absolute' }}
       />
-
+      {this.state.loadingScreen ?
+        <LoadScreen
+          onTweenFinish={() => this.onLoadScreenFinish()}
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
+        />
+      : null}
       </View>
     );
   }
