@@ -36,6 +36,7 @@ class AnimatedSprite extends React.Component {
     // used for panResponder
     this.spriteStyles = {};
     this.panResponder = {};
+    this.isUnmounting = false;
   }
 
   componentWillMount () {
@@ -74,7 +75,13 @@ class AnimatedSprite extends React.Component {
   }
 
   componentWillUnmount () {
+    // need to stop tween
+    this.isUnmounting = true;
     clearInterval(this.defaultAnimationInterval);
+    _.forEach(this.tweenablValues, (value) => {
+      value.stopAnimation((value) => console.log("Final Value: " + value), 0);
+    });
+    
   }
 
   initPanResponder () {
@@ -167,6 +174,7 @@ class AnimatedSprite extends React.Component {
 
   // notify parent that tween has ended
   tweenCompleted (spriteUID) {
+    if(this.isUnmounting) return;
     if (this.props.onTweenFinish) {
       this.props.onTweenFinish(spriteUID);
     }
