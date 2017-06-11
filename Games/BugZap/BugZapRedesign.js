@@ -34,6 +34,7 @@ const Sound = require('react-native-sound');
 const GAME_TIME_OUT = 15000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+
 const BLUE_BUG = 1;
 const GREEN_BUG = 0;
 const END_PRIMING = 2;
