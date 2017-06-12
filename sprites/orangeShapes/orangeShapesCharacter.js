@@ -4,7 +4,7 @@ const orangeShapesCharacter = {
   name:"orangeShapes",
   size: {width: 124, height: 142},
   animationTypes: ['CIRCLE', 'DIAMOND', 'SQUARE', 'TRIANGLE', 'ALL'],
-  all: [
+  frames: [
     require("./orange_circle.png"),
     require("./orange_diamond.png"),
     require("./orange_square.png"),

@@ -12,7 +12,7 @@ import {
   View
 } from 'react-native';
 
-export default class CognitivePlayground extends Component {
+export default class CogPlay extends Component {
   render() {
     return (
       <View style={styles.container}>
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
   },
 });
 
-AppRegistry.registerComponent('CognitivePlayground', () => CognitivePlayground);
+AppRegistry.registerComponent('CogPlay', () => CogPlay);

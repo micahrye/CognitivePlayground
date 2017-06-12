@@ -2,7 +2,7 @@ const dogCharacter = {
   name:"dog",
   size: {width: 168, height: 220},
   animationTypes: ['IDLE', 'WALK', 'EAT', 'CELEBRATE', 'DISGUST', 'ALL'],
-  all: [
+  frames: [
     require('./dog_idle.png'),
     require('./dog_walk00.png'),
     require('./dog_walk01.png'),
@@ -13,7 +13,7 @@ const dogCharacter = {
     require('./dog_celebrate02.png'),
     require('./dog_disgust01.png'),
   ],
-  animationIndex: function getAnimationIndex (animationType){
+  animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
       case 'IDLE':
         return [0];

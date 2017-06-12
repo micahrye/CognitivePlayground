@@ -5,7 +5,7 @@ const foodSignsCharacter = {
   // size: {width: 188, height: 300},
   size: {width: 188, height: 250},
   animationTypes: ['BUG', 'CAN', 'FRUIT', 'GRASS', 'BLANK', 'ALL'],
-  all: [
+  frames: [
     require("./card_bug.png"),
     require("./card_can.png"),
     require("./card_fruit.png"),

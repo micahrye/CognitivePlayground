@@ -4,7 +4,7 @@ const blueShapesCharacter = {
   name:"apple",
   size: {width: 124, height: 142},
   animationTypes: ['IDLE', 'ALL'],
-  all: [
+  frames: [
     require("./blue_circle.png"),
     require("./blue_diamond.png"),
     require("./blue_square.png"),

@@ -10,9 +10,6 @@ import randomstring from 'random-string';
 
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 
-const SCREEN_WIDTH = require('Dimensions').get('window').width;
-const SCREEN_HEIGHT = require('Dimensions').get('window').height;
-
 // Tile = {
 //   sprite: sprites[index],
 //   frameKey: frameKeys[index],
@@ -23,8 +20,13 @@ class Matrix extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
-
     };
+    if (props.size) {
+      this.size = props.size;
+    } else {
+      this.size = {rows: 3, columns: 3};
+    }
+
   }
 
   componentWillMount () {}
@@ -36,22 +38,22 @@ class Matrix extends React.Component {
   }
 
   cardStartLocation (position, sprite, scale) {
+    const columns = this.size.columns;
+    const rows = this.size.rows;
     const baseTop = 0;
     const baseLeft = 0;
-    const size = this.spriteSize(sprite, scale);
-    const top = baseTop + Math.floor(position/3) * size.height;
-    const left = baseLeft + position%3 * size.width;
+    const spriteSize = this.spriteSize(sprite, scale);
+    const top = baseTop + Math.floor(position/rows) * spriteSize.height;
+    const left = baseLeft + position%columns * spriteSize.width;
     return {top, left};
   }
 
   tilePress (tile, index) {
-    console.log('tilePress');
     if (!this.props.onPress) return;
     this.props.onPress(tile, index);
   }
 
   tilePressIn (tile, index) {
-    console.log('tilePressIn');
     if (!this.props.onPressIn) return;
     this.props.onPressIn(tile, index);
   }
@@ -67,7 +69,7 @@ class Matrix extends React.Component {
       const tileScale = tile.scale ? tile.scale : this.props.tileScale;
       return (
         <AnimatedSprite
-          character={tile.sprite}
+          sprite={tile.sprite}
           ref={`card${index}`}
           key={uid}
           animationFrameIndex={tile.sprite.animationIndex(tile.frameKey)}
@@ -87,11 +89,11 @@ class Matrix extends React.Component {
       </View>
     );
   }
-
 }
 
 Matrix.propTypes = {
   scale: React.PropTypes.object.isRequired,
+  size: React.PropTypes.object,
   tiles: React.PropTypes.array,
   styles: React.PropTypes.object,
   tileScale: React.PropTypes.number,
@@ -103,11 +105,3 @@ Matrix.propTypes = {
 reactMixin.onClass(Matrix, TimerMixin);
 
 export default Matrix;
-
-// cardSprite: React.PropTypes.shape({
-//   name: React.PropTypes.string,
-//   size: React.PropTypes.object,
-//   animationTypes: React.PropTypes.array,
-//   all: React.PropTypes.array,
-//   animationIndex: React.PropTypes.func,
-// }).isRequired,

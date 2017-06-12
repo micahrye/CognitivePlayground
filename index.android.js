@@ -6,32 +6,37 @@
 import React from 'react';
 import {
   AppRegistry,
-  Navigator,
   Dimensions,
-  PixelRatio,
 } from 'react-native';
 
+import {Navigator} from 'react-native-deprecated-custom-components';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 
 import Main from "./main";
+import Prefs from './prefs';
 import BubblesGame from './Games/Bubbles/BubblesGame';
-import BugZapGame from './Games/BugZap/BugZapGame';
+import BugZapGameRedesign from './Games/BugZap/BugZapRedesign';
 import MatchByColorGame from './Games/MatchByColor/MatchByColorGame';
 import MatrixReasoningGame from './Games/MatrixReasoning/MatrixReasoningGame';
 import SymbolDigitCodingGame from './Games/SymbolDigitCoding/SymbolDigitCodingGame';
 import UnlockFoodGame from './Games/UnlockFood/UnlockFoodGame';
 
+const Sound = require('react-native-sound');
+
 const baseHeight = 800;
 const baseWidth = 1280;
-const screenWidth = Dimensions.get('window').width; // * PixelRatio.get();
-const screenHeight = Dimensions.get('window').height; // * PixelRatio.get();
-
-class CognitivePlayground extends React.Component {
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+class CogPlay extends React.Component {
   constructor (props) {
     super(props);
-    const scaleWidth =  screenWidth / baseWidth ;
-    const scaleHeight = screenHeight / baseHeight ;
+    const scaleWidth =  screenWidth / baseWidth;
+    const scaleHeight = screenHeight / baseHeight;
+    console.log(`screenWidth = ${screenWidth}, screenHeight = ${screenHeight}`);
+    console.log(`\n\n!*!screenWidth = ${scaleWidth}`)
+    console.log(`!*!scaleHeight = ${scaleHeight}\n\n`)
+    
     this.scale = {
       screenWidth: scaleWidth,
       screenHeight: scaleHeight,
@@ -40,10 +45,14 @@ class CognitivePlayground extends React.Component {
   }
 
   componentDidMount () {
+  }
 
+  componentWillUnmount () {
+    console.error('unmount index.android')
   }
 
   renderScene (route, navigator) {
+
     if (route.id === 'Main') {
       return <Main
         navigator={navigator}
@@ -59,7 +68,7 @@ class CognitivePlayground extends React.Component {
         />);
     } else if (route.id === 'BugZapGame') {
       return (
-        <BugZapGame
+        <BugZapGameRedesign
           navigator={navigator}
           route={route}
           scale={this.scale}
@@ -87,6 +96,12 @@ class CognitivePlayground extends React.Component {
         />);
     } else if (route.id === 'UnlockFoodGame') {
       return (<UnlockFoodGame
+          navigator={navigator}
+          route={route}
+          scale={this.scale}
+        />);
+    } else if (route.id === 'Prefs') {
+      return (<Prefs
         navigator={navigator}
         route={route}
         scale={this.scale}
@@ -106,6 +121,6 @@ class CognitivePlayground extends React.Component {
   }
 }
 
-reactMixin.onClass(CognitivePlayground, TimerMixin);
+reactMixin.onClass(CogPlay, TimerMixin);
 
-AppRegistry.registerComponent('CognitivePlayground', () => CognitivePlayground);
+AppRegistry.registerComponent('CogPlay', () => CogPlay);

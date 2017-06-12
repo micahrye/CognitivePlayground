@@ -4,7 +4,7 @@ const yellowShapesCharacter = {
   name:"yellowShapes",
   size: {width: 124, height: 142},
   animationTypes: ['CIRCLE', 'DIAMOND', 'SQUARE', 'TRIANGLE', 'ALL'],
-  all: [
+  frames: [
     require("./yellow_circle.png"),
     require("./yellow_diamond.png"),
     require("./yellow_square.png"),

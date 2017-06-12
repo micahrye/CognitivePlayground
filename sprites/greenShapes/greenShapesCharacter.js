@@ -4,7 +4,7 @@ const greenShapesCharacter = {
   name:"greenShapes",
   size: {width: 124, height: 142},
   animationTypes: ['CIRCLE', 'DIAMOND', 'SQUARE', 'TRIANGLE', 'ALL'],
-  all: [
+  frames: [
     require("./green_circle.png"),
     require("./green_diamond.png"),
     require("./green_square.png"),
