@@ -60,9 +60,10 @@ class UnlockFoodGame extends React.Component {
       beltAnimationIndex: [0],
       lightbulbAnimationIndex: [0],
       foodMachineIndex: [0],
+      beltIndex: [0],
       showFood: true,
       tiles: {},
-      trial: 5,
+      trial: 0,
       loadingScreen: true,
       blackout: false,
       lightbulbTweenOptions: null,
@@ -73,7 +74,7 @@ class UnlockFoodGame extends React.Component {
       devMode: false,
     };
     this.ledsOn = [];
-    this.numLeds = 1;
+    this.numLeds = 1; //
     this.numPresses = 0; // NOTE: temperary
     this.activeGameboard = false;
 
@@ -272,6 +273,7 @@ class UnlockFoodGame extends React.Component {
       arrowIndex,
       tiles: gameTiles.gameBoardTilesForTrial(trial),
     });
+    this.numLeds = gameTiles.tileBlinkSequence(this.state.trial).length;
   }
 
   foodStartLocation () {
@@ -343,6 +345,8 @@ class UnlockFoodGame extends React.Component {
     this.blink(blinkSeq);
     clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
+    
+    this.pressSequence = [];
   }
 
   blink (blinkSeq) {
@@ -365,6 +369,7 @@ class UnlockFoodGame extends React.Component {
               let foodMachineIndex = [0];
               let arrowIndex = [0];
               if (this.isReverseTrial(this.state.trial)) {
+                console.log('REVERSE MODE ACTIVE');
                 this.reverseOrder = true;
                 foodMachineIndex = [1];
                 arrowIndex = 1;
@@ -386,30 +391,6 @@ class UnlockFoodGame extends React.Component {
       this.blinkTimeoutArray.push(blinkTimeout);
     });
 
-  }
-
-  leverPressOut () {
-    // this.leverOn = false;
-    // // NOTE: do not like this solution but have issue with async state change.
-    // // it is possilbe for
-    // this.pressSequence = [];
-    // _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
-    // 
-    // const tiles = gameTiles.gameBoardTilesForTrial(this.state.trial);
-    // // if we have not completed the sequence we reset switch to off.
-    // let animationIndex;
-    // if (this.remainingTilesInSeq > 0) {
-    //   animationIndex = leverSprite.animationIndex('SWITCH_OFF');
-    //   this.waitForUserSeq = false;
-    // } else {
-    //   animationIndex = leverSprite.animationIndex('SWITCH_ON');
-    // }
-    // this.setState({
-    //   tiles,
-    //   blackout: false,
-    //   lightbulbImgIndex: 0,
-    //   leverAnimationIndex: animationIndex,
-    // });
   }
 
   leverSize () {
@@ -550,13 +531,22 @@ class UnlockFoodGame extends React.Component {
     );
     this.ledsOn = []; this.numPresses = 0;
     this.setState({
-      foodMachineIndex: [0],
-      arrowIndex: [0],
       birdAnimationIndex: frameIndex,
       showFood: false,
       leds: gameTiles.ledController([], this.numLeds),
       leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
     });
+    this.forwardMachine();
+  }
+  
+  forwardMachine () {
+    this.setTimeout(() => {
+      this.setState({
+        foodMachineIndex: [0],
+        arrowIndex: [0],
+        beltIndex: [0],
+      });
+    }, 500); 
   }
 
   characterCelebrateAndEat () {
@@ -565,6 +555,7 @@ class UnlockFoodGame extends React.Component {
     this.setState({
       birdAnimationIndex: celebratIndex,
       showFood: true,
+      beltIndex: [0, 1],
     }, () => {
       this.celebrateTimeout = setTimeout(() => {
         if (!this.celebratePlaying) {
@@ -573,10 +564,8 @@ class UnlockFoodGame extends React.Component {
         }
         this.nextTrial(this.state.trial + 1);
         this.ledsOn = []; this.numPresses = 0;
-        
+        this.forwardMachine();
         this.setState({
-          foodMachineIndex: [0],
-          arrowIndex: [0],
           birdAnimationIndex: birdSprite.animationIndex('EAT'),
           leds: gameTiles.ledController([], this.numLeds),
           leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
@@ -713,7 +702,7 @@ class UnlockFoodGame extends React.Component {
           <AnimatedSprite
             sprite={beltSprite}
             spriteUID={this.characterUIDs.belt}
-            animationFrameIndex={[0, 1]}
+            animationFrameIndex={this.state.beltIndex}
             loopAnimation={true}
             coordinates={this.conveyorBeltLocation()}
             size={this.conveyorBeltSize()}
@@ -787,7 +776,6 @@ class UnlockFoodGame extends React.Component {
             size={this.leverSize()}
             rotate={[{rotateY:'0deg'}]}
             onPressIn={() => this.leverPressIn()}
-            onPressOut={() => this.leverPressOut()}
           />
 
           {this.state.devMode ?
