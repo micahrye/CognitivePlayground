@@ -1,13 +1,14 @@
 import _ from 'lodash';
 
-const buttonCharacter = {
+const button3Sprite = {
   name: "button",
-  size: {width: 129, height: 129},
+  size: {width: 180, height: 142},
   animationTypes: ['IDLE', 'PRESSED', 'LIT', 'BLINK', 'ALL'],
   frames:[
     require ("./button_neutral.png"),
     require ("./button_lit.png"),
     require ("./button_pressed.png"),
+    require ("./button_lit.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
@@ -23,7 +24,7 @@ const buttonCharacter = {
         if (_.includes(animationType, 'BLINK_')) {
           const parts = _.split(animationType, '_');
           const seqNum = Number(_.last(parts));
-          const seq = _.concat(_.fill(Array(4 * seqNum), 0), [0, 1, 1, 1, 0]);
+          const seq = _.concat(_.fill(Array(4 * seqNum), 0), [0, 1, 1, 0]);
           return seq;
         }
         return [0];
@@ -31,4 +32,4 @@ const buttonCharacter = {
   },
 };
 
-export default buttonCharacter;
+export default button3Sprite;

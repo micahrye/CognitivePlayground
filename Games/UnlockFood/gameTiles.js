@@ -32,7 +32,7 @@ function gameBoardTilesForTrial (trialNumber) {
 
 //
 function ledController (ledsOn, numLeds) {
-  let ledTiles = _.fill(Array(9), false);
+  const ledTiles = _.fill(Array(9), false);
   _.forEach(_.fill(Array(numLeds)), (val, index) => {
     ledTiles[index] = true;
   });

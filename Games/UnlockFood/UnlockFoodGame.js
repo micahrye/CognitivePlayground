@@ -14,9 +14,12 @@ import randomstring from 'random-string';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import Matrix from '../../components/Matrix';
+import AnimatedSpriteMatrix from 'rn-animated-sprite-matrix';
 import LoadScreen from '../../components/LoadScreen';
 
 import leverSprite from '../../sprites/lever/leverCharacter';
+import button3Sprite from '../../sprites/button3/button3Sprite';
+
 import birdSprite from "../../sprites/bird/birdCharacter";
 import foodSprite from "../../sprites/apple/appleCharacter";
 import foodMachineSprite from "../../sprites/foodMachine/foodMachineCharacter";
@@ -56,21 +59,23 @@ class UnlockFoodGame extends React.Component {
       ledAnimationIndex: [0],
       beltAnimationIndex: [0],
       lightbulbAnimationIndex: [0],
+      foodMachineIndex: [0],
       showFood: true,
       tiles: {},
-      trial: 0,
+      trial: 5,
       loadingScreen: true,
       blackout: false,
       lightbulbTweenOptions: null,
       lightbulbImgIndex: 0,
       lightbulbDisplayed: false,
-      arrowIndex: 1,
-      leds: gameTiles.ledController([], 3),
+      arrowIndex: 0,
+      leds: gameTiles.ledController([], 1),
       devMode: false,
     };
     this.ledsOn = [];
-    this.numLeds = 3;
+    this.numLeds = 1;
     this.numPresses = 0; // NOTE: temperary
+    this.activeGameboard = false;
 
     this.scale = this.props.scale;
     this.characterUIDs = {};
@@ -250,17 +255,15 @@ class UnlockFoodGame extends React.Component {
       AppState.removeEventListener('change', this._handleAppStateChange);
     }
   }
-
+  
+  isReverseTrial(trial) {
+    return (((trial >= LEVEL_2A) && (trial < LEVEL_3)) || trial >= LEVEL_4);
+  }
+  
   nextTrial (trial) {
     console.log("TRIAL = ", trial);
     this.reverseOrder = false;
-    let arrowIndex = 1;
-    if ( ((trial >= LEVEL_2A) && (trial < LEVEL_3)) || trial >= LEVEL_4) {
-      /// 4 7 13
-      console.log("REVERSE THINGS")
-      this.reverseOrder = true;
-      arrowIndex = 0;
-    }
+    let arrowIndex = 0;
     if (trial >= LEVEL_3 ) {
       this.showLightbulb();
     }
@@ -358,9 +361,20 @@ class UnlockFoodGame extends React.Component {
             this.remainingTilesInSeq = this.remainingTilesInSeq - 1;
             if (this.remainingTilesInSeq === 0) {
               this.waitForUserSeq = true;
-              this.activeGameboard = true;
+
+              let foodMachineIndex = [0];
+              let arrowIndex = [0];
+              if (this.isReverseTrial(this.state.trial)) {
+                this.reverseOrder = true;
+                foodMachineIndex = [1];
+                arrowIndex = 1;
+              }
+
               setTimeout(() => {
+                this.activeGameboard = true;
                 this.setState({
+                  foodMachineIndex,
+                  arrowIndex,
                   blackout: false,
                   lightbulbImgIndex: 0,
                 });
@@ -375,34 +389,34 @@ class UnlockFoodGame extends React.Component {
   }
 
   leverPressOut () {
-    this.leverOn = false;
-    // NOTE: do not like this solution but have issue with async state change.
-    // it is possilbe for
-    this.pressSequence = [];
-    _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
-
-    const tiles = gameTiles.gameBoardTilesForTrial(this.state.trial);
-    // if we have not completed the sequence we reset switch to off.
-    let animationIndex;
-    if (this.remainingTilesInSeq > 0) {
-      animationIndex = leverSprite.animationIndex('SWITCH_OFF');
-      this.waitForUserSeq = false;
-    } else {
-      animationIndex = leverSprite.animationIndex('SWITCH_ON');
-    }
-    this.setState({
-      tiles,
-      blackout: false,
-      lightbulbImgIndex: 0,
-      leverAnimationIndex: animationIndex,
-    });
+    // this.leverOn = false;
+    // // NOTE: do not like this solution but have issue with async state change.
+    // // it is possilbe for
+    // this.pressSequence = [];
+    // _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
+    // 
+    // const tiles = gameTiles.gameBoardTilesForTrial(this.state.trial);
+    // // if we have not completed the sequence we reset switch to off.
+    // let animationIndex;
+    // if (this.remainingTilesInSeq > 0) {
+    //   animationIndex = leverSprite.animationIndex('SWITCH_OFF');
+    //   this.waitForUserSeq = false;
+    // } else {
+    //   animationIndex = leverSprite.animationIndex('SWITCH_ON');
+    // }
+    // this.setState({
+    //   tiles,
+    //   blackout: false,
+    //   lightbulbImgIndex: 0,
+    //   leverAnimationIndex: animationIndex,
+    // });
   }
 
   leverSize () {
-    const scaleLever = 1.25;
+    const scaleLever = 1.0;
     return ({
-      width: leverSprite.size.width * scaleLever * this.scale.image,
-      height: leverSprite.size.height * scaleLever * this.scale.image,
+      width: button3Sprite.size.width * scaleLever * this.scale.image,
+      height: button3Sprite.size.height * scaleLever * this.scale.image,
     });
   }
 
@@ -411,7 +425,7 @@ class UnlockFoodGame extends React.Component {
     const machineSize = this.machineSize();
     const leftOffset = (15 * this.scale.screenWidth);
     const left = locationMachine.left + machineSize.width - leftOffset;
-    const top = SCREEN_HEIGHT - machineSize.height;
+    const top = SCREEN_HEIGHT - machineSize.height + 160 * this.scale.image;
 
     return {top, left};
   }
@@ -536,6 +550,8 @@ class UnlockFoodGame extends React.Component {
     );
     this.ledsOn = []; this.numPresses = 0;
     this.setState({
+      foodMachineIndex: [0],
+      arrowIndex: [0],
       birdAnimationIndex: frameIndex,
       showFood: false,
       leds: gameTiles.ledController([], this.numLeds),
@@ -557,7 +573,10 @@ class UnlockFoodGame extends React.Component {
         }
         this.nextTrial(this.state.trial + 1);
         this.ledsOn = []; this.numPresses = 0;
+        
         this.setState({
+          foodMachineIndex: [0],
+          arrowIndex: [0],
           birdAnimationIndex: birdSprite.animationIndex('EAT'),
           leds: gameTiles.ledController([], this.numLeds),
           leverAnimationIndex: leverSprite.animationIndex('SWITCH_OFF'),
@@ -699,7 +718,7 @@ class UnlockFoodGame extends React.Component {
             coordinates={this.conveyorBeltLocation()}
             size={this.conveyorBeltSize()}
           />
-
+        
           <Matrix
             styles={{
                 ...(this.ledLocation()),
@@ -711,11 +730,11 @@ class UnlockFoodGame extends React.Component {
             tiles={this.state.leds}
             scale={this.props.scale}
           />
-
+        
           <AnimatedSprite
             sprite={foodMachineSprite}
             spriteUID={this.characterUIDs.machine}
-            animationFrameIndex={[0]}
+            animationFrameIndex={[this.state.foodMachineIndex]}
             loopAnimation={false}
             coordinates={this.machineLocation()}
             size={this.machineSize()}
@@ -741,6 +760,7 @@ class UnlockFoodGame extends React.Component {
             scale={this.props.scale}
             onPress={(tile, index) => this.gameBoardTilePress(tile, index)}
           />
+      
 
           {this.state.blackout ?
             <View style={styles.blackout} />
@@ -759,7 +779,7 @@ class UnlockFoodGame extends React.Component {
           />
 
           <AnimatedSprite
-            sprite={leverSprite}
+            sprite={button3Sprite}
             spriteUID={this.characterUIDs.lever}
             animationFrameIndex={this.state.leverAnimationIndex}
             loopAnimation={false}
@@ -804,3 +824,19 @@ UnlockFoodGame.propTypes = {
 reactMixin.onClass(UnlockFoodGame, TimerMixin);
 
 export default UnlockFoodGame;
+
+
+/*
+<AnimatedSpriteMatrix
+  styles={{
+      ...(this.matrixLocation()),
+      ...(this.matrixSize()),
+      position: 'absolute',
+    }}
+  dimensions={{columns: this.numColumns, rows: this.numRows}}
+  cellSpriteScale={this.cellSpriteScale}
+  cellObjs={this.state.cells}
+  scale={this.scale}
+  onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
+/> 
+*/

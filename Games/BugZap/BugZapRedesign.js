@@ -26,6 +26,7 @@ import splashCharacter from "../../sprites/splash/splashCharacter";
 import lightbulbCharacter from "../../sprites/lightbulb/lightbulbCharacter";
 import backgroundCircleSprite from "../../sprites/backgroundCircle/backgroundCircleSprite";
 import lever from "../../sprites/verticalLever/verticalLeverCharacter";
+import buttonSprite from "../../sprites/button2/buttonSprite";
 
 import styles from "./BugZapStyles";
 import gameUtil from './gameUtil';
@@ -35,8 +36,8 @@ const GAME_TIME_OUT = 15000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
-const BLUE_BUG = 1;
-const GREEN_BUG = 0;
+const BLUE_BUG = 2;
+const GREEN_BUG = 1;
 const END_PRIMING = 2;
 const START_BLACKOUT = 7;
 const END_BLACKOUT = 15;
@@ -758,7 +759,7 @@ class BugZapGameRedesign extends React.Component {
           />
 
           <AnimatedSprite
-            sprite={lever}
+            sprite={buttonSprite}
             coordinates={gameUtil.getCoordinates('lever', this.props.scale.screenHeight,
                           this.props.scale.screenWidth, null)}
             animationFrameIndex={this.state.leverAnimationIndex}
