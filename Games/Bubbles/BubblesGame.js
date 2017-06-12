@@ -3,6 +3,7 @@ import {
   Image,
   AppState,
   AsyncStorage,
+  PixelRatio,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
@@ -76,7 +77,6 @@ class BubblesGame extends React.Component {
       if (prefs) {
         this.setState({ devMode: prefs.developMode });
       }
-      setTimeout(() => this.startInactivityMonitor(), 500);
     });
     this.setState({
       bubbleAnimationIndex: bubbleCharacter.animationIndex('ALL'),
@@ -243,14 +243,19 @@ class BubblesGame extends React.Component {
     if (createTargetBubble) {
       locSequence = [startLeft];
     }
-
+    
+    
+    // console.warn("PR: ", PixelRatio.get());
+    // 3.125 equiv to 800 pixels in 2.5 sec
+    const duration = 3.75 * SCREEN_HEIGHT;
+    
     let backgroundBubbleTween = {
       tweenType: "sine-wave",
       startXY: [startLeft, startTop],
       xTo: locSequence,
       yTo: [-bubbleDeminsions],
       duration: createTargetBubble
-        ? 4000 : this.getRandomDuration(),
+        ? duration : this.getRandomDuration(),
       loop: false,
     };
 
@@ -461,12 +466,14 @@ class BubblesGame extends React.Component {
     });
     clearInterval(this.bubbleFountainInterval);
   }
+  
   foutainSize () {
     return ({
       width: fountainCharacter.size.width * this.scale.image,
       height: fountainCharacter.size.height * this.scale.image,
     });
   }
+  
   fountainLocation () {
     //placement for fountain and lever
     const size = this.foutainSize();
@@ -474,6 +481,7 @@ class BubblesGame extends React.Component {
     const top = (SCREEN_HEIGHT - size.height) - TOP_OFFSET;
     return ({top, left});
   }
+  
   leverSize () {
     const scaleLever = 1.5;
     return ({
@@ -481,6 +489,7 @@ class BubblesGame extends React.Component {
       height: leverCharacter.size.height * scaleLever * this.scale.image,
     });
   }
+  
   leverLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
