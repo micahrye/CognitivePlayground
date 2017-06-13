@@ -23,7 +23,8 @@ import Signs from './Signs';
 import gameUtil from './gameUtil';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 15000;
+const GAME_TIME_OUT = 120000;
+const INACTIVITY_TIMEOUT = 15000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
@@ -98,7 +99,7 @@ class SymbolDigitCodingGame extends React.Component {
     clearTimeout(this.timeoutGameOver);
   }
   
-  startInactivityMonitor () {
+  gameTimeout () {
     if (!this.state.devMode) {
       this.timeoutGameOver = setTimeout(() => {
         this.props.navigator.replace({
@@ -106,6 +107,17 @@ class SymbolDigitCodingGame extends React.Component {
         });
         // game over when 15 seconds go by without bubble being popped
       }, GAME_TIME_OUT);
+    }
+  }
+  
+  startInactivityMonitor () {
+    if (!this.state.devMode) {
+      this.timeoutGameOver = setTimeout(() => {
+        this.props.navigator.replace({
+          id: "Main",
+        });
+        // game over when 15 seconds go by without bubble being popped
+      }, INACTIVITY_TIMEOUT);
     }
   }
 

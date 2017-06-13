@@ -17,6 +17,7 @@ import LoadScreen from '../../components/LoadScreen';
 import bubbleCharacter from '../../sprites/bubbles/bubblesCharacter';
 import monsterCharacter from '../../sprites/monster/monsterCharacter';
 import leverCharacter from '../../sprites/fountainLever/fountainLeverCharacter';
+import buttonSprite from '../../sprites/buttonRight/buttonRightSprite';
 import fountainCharacter from '../../sprites/fountain/fountainCharacter';
 
 import canCharacter from '../../sprites/can/canCharacter';
@@ -447,7 +448,7 @@ class BubblesGame extends React.Component {
       this.leverSound.play(() => {this.leverPlaying = false;});
     }
     this.setState({
-      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_ON'),
+      leverAnimationIndex: buttonSprite.animationIndex('PRESSED'),
     });
     this.bubbleFountainInterval = setInterval(() => {
       this.createBubbles();
@@ -462,7 +463,7 @@ class BubblesGame extends React.Component {
 
   leverPressOut () {
     this.setState({
-      leverAnimationIndex: leverCharacter.animationIndex('SWITCH_OFF'),
+      leverAnimationIndex: buttonSprite.animationIndex('IDLE'),
     });
     clearInterval(this.bubbleFountainInterval);
   }
@@ -483,18 +484,16 @@ class BubblesGame extends React.Component {
   }
   
   leverSize () {
-    const scaleLever = 1.5;
-    return ({
-      width: leverCharacter.size.width * scaleLever * this.scale.image,
-      height: leverCharacter.size.height * scaleLever * this.scale.image,
-    });
+    const scaleButton = 1.0;
+    const size = buttonSprite.size(scaleButton * this.scale.image);
+    return (size);
   }
   
   leverLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();
     const left = locatoinFoutain.left + foutainSize.width - (15 * this.scale.screenWidth);
-    const top = SCREEN_HEIGHT - foutainSize.height * 1.1;
+    const top = SCREEN_HEIGHT - foutainSize.height * 0.9;
 
     return {top, left};
   }
@@ -536,7 +535,7 @@ class BubblesGame extends React.Component {
           height: SCREEN_HEIGHT,
       }}>
           <AnimatedSprite
-            sprite={leverCharacter}
+            sprite={buttonSprite}
             spriteUID={this.spriteUIDs.lever}
             animationFrameIndex={this.state.leverAnimationIndex}
             loopAnimation={false}
