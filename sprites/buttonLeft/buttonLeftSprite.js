@@ -1,13 +1,18 @@
 import _ from 'lodash';
 
-const buttonCharacter = {
-  name: "button",
-  size: {width: 129, height: 129},
+const buttonLeftSprite = {
+  name: "buttonLeft",
+  size: function (scale=1) {
+    const s = {width: 180 * scale, height: 142 * scale};
+    console.log(JSON.stringify(s));
+    return s;
+  },
   animationTypes: ['IDLE', 'PRESSED', 'LIT', 'BLINK', 'ALL'],
   frames:[
     require ("./button_neutral.png"),
     require ("./button_lit.png"),
     require ("./button_pressed.png"),
+    require ("./button_lit.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
@@ -31,4 +36,4 @@ const buttonCharacter = {
   },
 };
 
-export default buttonCharacter;
+export default buttonLeftSprite;

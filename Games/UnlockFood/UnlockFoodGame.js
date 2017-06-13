@@ -358,7 +358,7 @@ class UnlockFoodGame extends React.Component {
 
         _.forEach(tiles, tile => tile.frameKey = 'IDLE');
         this.playTilePressSound(blinkIndex);
-        tiles[blinkIndex].frameKey = 'BLINK_0';
+        tiles[blinkIndex].frameKey = 'BLINK_1';
         if (this.leverOn) {
           this.setState({ tiles }, () => {
             tiles[blinkIndex].frameKey = 'IDLE';
