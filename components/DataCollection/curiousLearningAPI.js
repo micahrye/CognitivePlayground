@@ -9,12 +9,14 @@ const scoreNum = 0;
 const touchNum = 0;
 const responseNum = 0;
 const levelNum = 0;
+const customNum = 0;
 
 const section = "@Section";
 const score = "@Score";
 const touch = "@Touch";
 const response = "@Response";
 const level = "@Level";
+const custom = "@Custom";
 
 const KEYS = [];
 
@@ -140,6 +142,18 @@ const reportResponse = function (appID, secID, responseID, timeStamp, item, foil
     return key;
     }
 
+const reportCustom = function (jsonBlob) {
+  let key = custom.concat(":",customNum.toString());
+  try {
+    AsyncStorage.setItem(key,JSON.stringify(jsonBlob));
+  } catch (error) {
+    //error handling
+  }
+  customNum++;
+  KEYS = KEYS.concat(key);
+  return key;
+}
+
 
 const postToServer = function (value, url) {
   return fetch(url, {
@@ -175,14 +189,31 @@ const showKEYS = function () {
   return KEYS.toString();
 }
 
+const showAllStoredData = function () {
+  let i = 0;
+  let l = KEYS.length;
+  for (; i < l; i++) {
+    let x = KEYS[i];
+    let value = AsyncStorage.getItem(x);
+    console.warn(JSON.stringify(value));
+  }
+}
+
+const clearAllLocalStorage = function () {
+  AsyncStorage.clear();
+}
+
 const collectionAPI = {
   reportSection,
   reportScore,
   reportTouch,
   reportResponse,
+  reportCustom,
   postToServer,
   postAllToServer,
   showKEYS,
+  showAllStoredData,
+  clearAllLocalStorage,
 }
 
 export default collectionAPI;
