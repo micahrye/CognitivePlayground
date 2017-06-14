@@ -116,13 +116,14 @@ const reportTouch = function (appID, secID, timeStamp, objID, custom_data) {
     return key;
     }
 
-const reportResponse = function (appID, secID, responseID, timeStamp, item, foilList, responseTime, responseValue, custom_data) {
+const reportResponse = function (appID, secID, levelID, trialID, timeStamp, item, foilList, responseTime, responseValue, custom_data) {
   const value = {
     key: 'IN_APP_RESPONSE',
     value:  {
       app_ID: appID,
       section_ID: secID,
-      Response_ID: responseID,
+      level_ID: levelID,
+      trial_ID: trialID,
       Time_stamp: timeStamp,
       Item_selected: item,
       Foil_list: foilList,
@@ -137,10 +138,10 @@ const reportResponse = function (appID, secID, responseID, timeStamp, item, foil
   } catch (error) {
       //error handling
     }
-    responseNum++;
-    KEYS = KEYS.concat(key);
-    return key;
-    }
+  responseNum++;
+  KEYS = KEYS.concat(key);
+  return key;
+  }
 
 const reportCustom = function (jsonBlob) {
   let key = custom.concat(":",customNum.toString());
@@ -152,6 +153,22 @@ const reportCustom = function (jsonBlob) {
   customNum++;
   KEYS = KEYS.concat(key);
   return key;
+}
+
+const getJSONFromMemory = function (key) {
+  let json = null;
+  AsyncStorage.getItem(key).then((value) => {
+    json = value;
+  }).done();
+  return json;
+}
+
+const removeJSONFromMemory = function (key) {
+  let json = null;
+  AsyncStorage.removeItem(key).then((value) => {
+    json = value;
+  }).done();
+  return json;
 }
 
 
@@ -178,8 +195,9 @@ const postAllToServer = function (url) {
   let l = KEYS.length;
   for (; i < l; i++) {
     let x = KEYS.pop();
-    let value = AsyncStorage.getItem(x);
-    AsyncStorage.removeItem(x);
+    AsyncStorage.removeItem(x).then((value) => {
+      console.warn(value);
+    }).done();
     postToServer(value,url);
 
   }
@@ -209,6 +227,8 @@ const collectionAPI = {
   reportTouch,
   reportResponse,
   reportCustom,
+  getJSONFromMemory,
+  removeJSONFromMemory,
   postToServer,
   postAllToServer,
   showKEYS,

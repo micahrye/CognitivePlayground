@@ -41,6 +41,8 @@ const STARTY = 0;
 const POPX = 0;
 const POPY = 0;
 
+const trialCounter = 0;
+
 class BubblesGame extends React.Component {
   constructor (props) {
     super(props);
@@ -214,7 +216,7 @@ class BubblesGame extends React.Component {
     return (Math.floor(Math.random() *  (4000)) + 2000);
   }
 
-  sendCustomJSON (velocityMS, startMS, popMS, popX, popY) {
+  sendJSON (velocityMS, startMS, popMS, popX, popY) {
     const obj = {
       custom_data: {
         velocity: velocityMS,
@@ -223,7 +225,7 @@ class BubblesGame extends React.Component {
         popPos: [popX,popY],
       }
     }
-    curious.reportCustom(JSON.stringify(obj));
+    curious.reportResponse(JSON.stringify(obj));
   }
 
   getTimestamp () {
@@ -240,8 +242,7 @@ class BubblesGame extends React.Component {
       elapsedTime = POPTIME - STARTTIME;
     }
     let velocity = distance/elapsedTime;
-    this.sendCustomJSON(velocity, STARTTIME, POPTIME, POPX, POPY);
-    console.warn(curious.showKEYS());
+    this.sendJSON(velocity, STARTTIME, POPTIME, POPX, POPY);
   }
 
 
