@@ -30,8 +30,8 @@ const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 // const PIXEL_RATIO = 1 / PixelRatio.get();
 const GAME_TIME_OUT = 15000;
 const LEFT = 0;
+const RIGHT = 1;
 const MIDDLE = 1;
-const RIGHT = 2;
 const TRIAL_TIMEOUT = 15000;
 
 const LEVEL01 = 1;
@@ -57,6 +57,7 @@ class MatchByColorGame extends React.Component {
       loadingScreen: true,
       devMode: false,
     };
+    this.trialCount = 1; 
     this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
     this.scale = this.props.scale;
@@ -69,6 +70,10 @@ class MatchByColorGame extends React.Component {
     this.leftFood = {tweenOptions: {}};
     this.middleFood = {tweenOptions: {}};
     this.rightFood = {tweenOptions: {}};
+    
+    this.leftFoodAnimationIndex = [0];
+    this.rightFoodAnimationIndex = [0];
+    
     this.targetFoodPosition;
     this.signDropTime = 1500 * this.props.scale.screenHeight;
 
@@ -95,7 +100,7 @@ class MatchByColorGame extends React.Component {
     };
 
     const name = gameUtil.getValidCharacterNameForLevel(this.level);
-    this.loadCharacter(name);
+    this.loadCharacter(name, 1);
     // set offscreen
     this.leftFood.coords = this.foodStartLocation('left', this.scale);
     this.middleFood.coords = this.foodStartLocation('middle', this.scale);
@@ -116,6 +121,7 @@ class MatchByColorGame extends React.Component {
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
   }
+
 
   componentWillUnmount () {
     // console.warn("WILL UNMOUNT");
@@ -207,7 +213,7 @@ class MatchByColorGame extends React.Component {
    * used to load character image frames off screen so that image
    * frames are in memory.
    */
-  loadCharacter (characterName) {
+  loadCharacter (characterName, trialNumber) {
     this.level = this.currentLevel(this.numTrialsForCurrentLevel);
     if (this.level === DONE) {
       // TODO: should probably have sometype of finish screen/animation etc.
@@ -216,7 +222,7 @@ class MatchByColorGame extends React.Component {
     }
 
     this.characterUIDs.character = randomstring({ length: 7 });
-    this.activeCharacter = gameUtil.getCharacterObject(characterName);
+    this.activeCharacter = gameUtil.getCharacterForTrial(trialNumber);
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
 
     this.setState({
@@ -348,8 +354,13 @@ class MatchByColorGame extends React.Component {
     }
   }
 
-  incrementTrialCount (trialCount) {
+  incrementTrialCount (trialCount) {    
     return trialCount + 1;
+  }
+  
+  incrementTrial () {
+    this.trialCount = this.trialCount + 1;
+    console.log(`this.trialCount = ${this.trialCount}`);
   }
 
   currentLevel (currentTrialNumber) {
@@ -382,7 +393,9 @@ class MatchByColorGame extends React.Component {
       this.leverSound.play(() => {this.leverPlaying = false;});
     }
     this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
-
+    
+    this.incrementTrial();
+    
     // creature enter from left
     const startLocation = this.characterStartLocation(this.activeCharacter, this.scale.image);
     const moveFrom = [startLocation.left, startLocation.top]; //[startLocation[1], startLocation[0]]; //[startLocation[1], startLocation[0]];
@@ -428,29 +441,23 @@ class MatchByColorGame extends React.Component {
 
   displayFoods () {
     const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
-    const foodPref = gameUtil.favoriteFood(this.activeCharacter.name);
-    const targetFoodIndex = _.findIndex(foods, (food) => food.name === foodPref);
-    const numFoods = this.level === 3 ? 3 : 2;
-    let order = _.shuffle([0, 1, 2]);
-    if (this.level < 3) {
-      const index = _([0, 1, 2]).difference([targetFoodIndex]).shuffle().value().pop();
-      order = _.shuffle([index, targetFoodIndex]);
-    } else {
-      order = _.shuffle([0, 1, 2]);
-    }
-    this.targetFoodPosition = _.findIndex(order, (val) => val === targetFoodIndex);
-    this.leftFood.character = foods[order[0]];
-    this.middleFood.character = foods[order[1]];
 
+    this.targetFoodPosition = gameUtil.getCorrectFoodSignId(this.trialCount);
+    
+    const leftFood = gameUtil.getFoodForLeft(this.trialCount);
+    const rightFood = gameUtil.getFoodForRight(this.trialCount);
+    
+    this.leftFood.character = leftFood.sprite; //foods[order[0]];
+    this.middleFood.character = rightFood.sprite; //foods[order[1]];
+    
+    this.leftFoodAnimationIndex = leftFood.frameIndex;
+    this.rightFoodAnimationIndex = rightFood.frameIndex;
+    
     this.leftFood.key = randomstring({length: 7});
     this.middleFood.key = randomstring({length: 7});
     this.leftFood.coords = this.displayFoodsLocations('left');
     this.middleFood.coords = this.displayFoodsLocations('middle');
-    if (numFoods === 3) {
-      this.rightFood.coords = this.displayFoodsLocations('right');
-      this.rightFood.character = foods[order[2]];
-      this.rightFood.key = randomstring({length: 7});
-    }
+
     this.setState({foodDisplayed: true});
   }
 
@@ -596,7 +603,7 @@ class MatchByColorGame extends React.Component {
           console.log(`!! getValidCharacterNameForLevel`);
           const name = gameUtil.getValidCharacterNameForLevel(this.level);
           console.log(`!! next loadCharacter`);
-          this.loadCharacter(name);
+          this.loadCharacter(name, this.trialCount);
         }, timeToExit);
       });
     }, 1000);
@@ -732,7 +739,7 @@ class MatchByColorGame extends React.Component {
             sprite={this.leftFood.character}
             ref={'leftFood'}
             key={this.leftFood.key}
-            animationFrameIndex={[0]}
+            animationFrameIndex={this.leftFoodAnimationIndex}
             coordinates={this.leftFood.coords}
             size={this.spriteSize(120, this.leftFood.character, this.scale.image)}
             draggable={false}
@@ -748,14 +755,14 @@ class MatchByColorGame extends React.Component {
             sprite={this.middleFood.character}
             ref={'middleFood'}
             key={this.middleFood.key}
-            animationFrameIndex={[0]}
+            animationFrameIndex={this.rightFoodAnimationIndex}
             coordinates={this.middleFood.coords}
             size={this.spriteSize(120, this.middleFood.character, this.scale.image)}
             draggable={false}
             tweenOptions={this.middleFood.tweenOptions}
             tweenStart={'fromMethod'}
-            onPress={() => this.foodPressed(MIDDLE)}
-            onTweenFinish={() => this.onFoodTweenFinish(MIDDLE)}
+            onPress={() => this.foodPressed(RIGHT)}
+            onTweenFinish={() => this.onFoodTweenFinish(RIGHT)}
           />
         : null}
 

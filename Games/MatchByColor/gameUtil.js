@@ -3,16 +3,118 @@ import _ from 'lodash';
 import blueMonster from '../../sprites/blueMonster/blueMonsterCharacter';
 import redMonster from '../../sprites/redMonster/redMonsterCharacter';
 import greenMonster from '../../sprites/greenMonster/greenMonsterCharacter';
+
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
 import bird from '../../sprites/bird/birdCharacter';
+import frog from '../../sprites/frog/frogCharacter';
 // foods
 import appleCharacter from "../../sprites/apple/appleCharacter";
 import appleBlueSprite from "../../sprites/appleBlue/appleBlueSprite";
 import appleGreenSprite from "../../sprites/appleGreen/appleGreenSprite";
 import appleRedSprite from "../../sprites/appleRed/appleRedSprite";
+
+import bugCharacter from '../../sprites/bug/bugCharacter';
 import grassCharacter from "../../sprites/grass/grassCharacter";
 import canCharacter from "../../sprites/can/canCharacter";
+
+import trials from './trials';
+
+function getTrialObject (trialNumber) {
+  console.log(`getTrialObject called with ${trialNumber}`);
+    const numTrials = trials.length;
+    if (trialNumber >= numTrials) {
+      trialNumber = 0;
+    }
+    
+    trialInfo = trials[trialNumber-1];
+    return trialInfo;
+    // const characterSpriteObject = getCharacter(trialInfo.characterName);
+    // const correctSelection = trialInfo.correctSelection;
+    // const leftFoodSpriteObject = getFood(trialInfo.leftSign);
+    // const rightFoodSpriteObject = getFood(trialInfo.rightSign);
+}
+
+function getCorrectFoodSignId (trialNumber) {
+  const trialInfo = getTrialObject(trialNumber-1);
+  return trialInfo.correctLocation;
+}
+
+function getFoodForTrial (trialNumber, sign) {
+  const trialInfo = getTrialObject(trialNumber-1);
+  debugger;
+  switch (trialInfo[sign]) {
+    case 'CAN':
+      return {sprite: canCharacter, frameIndex: [0]};
+    case 'FRUIT':
+      return {sprite: appleCharacter, frameIndex: [0]};
+    case 'GRASS':
+      return {sprite: grassCharacter, frameIndex: [0]};
+
+
+    case 'BUG':
+      return {sprite: bugCharacter, frameIndex: [0]};
+    case 'CAN_RED':
+      return "FILL THIS IN";;
+    case 'CAN_BLUE':
+      return "FILL THIS IN";
+    case 'GRASS_BLUE':
+      return "FILL THIS IN";;
+    case 'GRASS_GREEN':
+      return "FILL THIS IN";      
+    case 'CAN_GREEN':
+      return "FILL THIS IN";;
+    case 'FRUIT_YELLOW':
+      return "FILL THIS IN";
+      
+      
+      
+    default:
+      console.error('Unknown character requested');
+  }
+}
+
+function getFoodForLeft (trialNumber) {
+  return getFoodForTrial(trialNumber, 'leftSign');
+}
+function getFoodForRight (trialNumber) {
+  return getFoodForTrial(trialNumber, 'rightSign');
+}
+
+function getCharacterForTrial (trialNumber) {
+  const trialInfo = getTrialObject(trialNumber);
+  
+  switch (trialInfo.characterName) {
+    case 'RED_MONSTER':
+    // TODO: make this Object.assign do not mutate.
+      redMonster.rotate = [{rotateY:'180deg'}];
+      return redMonster;
+    case 'BLUE_MONSTER':
+      blueMonster.rotate = [{rotateY:'180deg'}];
+      return blueMonster;
+    case 'GREEN_MONSTER':
+      greenMonster.rotate = [{rotateY:'180deg'}];
+      return greenMonster;
+    case 'YELLOW_MONSTER':
+      greenMonster.rotate = [{rotateY:'180deg'}];
+      return greenMonster;
+    case 'GOAT':
+      goat.rotate = [{rotateY:'0deg'}];
+      return goat;
+    case 'DOG':
+      dog.rotate = [{rotateY:'180deg'}];
+      return dog;
+    case 'BIRD':
+      bird.rotate = [{rotateY:'0deg'}];
+      return bird;
+    case 'FROG':
+      bird.rotate = [{rotateY:'0deg'}];
+      return frog;
+    default:
+      console.error('Unknown character requested');
+  }
+  
+}
 
 function getCharacterObject (characterName) {
   switch (characterName) {
@@ -139,4 +241,9 @@ export default {
   favoriteFood,
   characterMouthLocation,
   startEatingPriorToFoodDropEnd,
+  
+  getCharacterForTrial,
+  getFoodForLeft,
+  getFoodForRight,
+  getCorrectFoodSignId,
 };
