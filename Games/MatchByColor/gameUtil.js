@@ -50,24 +50,43 @@ function getFoodForTrial (trialNumber, sign) {
       return {sprite: appleCharacter, frameIndex: [0]};
     case 'GRASS':
       return {sprite: grassCharacter, frameIndex: [0]};
-
-
     case 'BUG':
       return {sprite: bugCharacter, frameIndex: [0]};
+
+    
     case 'CAN_RED':
-      return "FILL THIS IN";;
+      return {sprite: canCharacter, frameIndex: [3]};
     case 'CAN_BLUE':
-      return "FILL THIS IN";
-    case 'GRASS_BLUE':
-      return "FILL THIS IN";;
-    case 'GRASS_GREEN':
-      return "FILL THIS IN";      
+      return {sprite: canCharacter, frameIndex: [1]};
     case 'CAN_GREEN':
-      return "FILL THIS IN";;
-    case 'FRUIT_YELLOW':
-      return "FILL THIS IN";
+      return {sprite: canCharacter, frameIndex: [2]};
+    case 'CAN_YELLOW':
+      return {sprite: canCharacter, frameIndex: [4]};
       
-      
+    case 'GRASS_RED':
+      return {sprite: grassCharacter, frameIndex: [3]};
+    case 'GRASS_BLUE':
+      return {sprite: grassCharacter, frameIndex: [1]};
+    case 'GRASS_GREEN':
+      return {sprite: grassCharacter, frameIndex: [2]};
+    case 'GRASS_GREEN':
+      return {sprite: grassCharacter, frameIndex: [4]};
+
+    case 'FRUIT_RED':
+      return {sprite: grassCharacter, frameIndex: [2]};
+    case 'FRUIT_BLUE':
+      return {sprite: grassCharacter, frameIndex: [1]};
+    case 'FRUIT_GREEN':
+      return {sprite: grassCharacter, frameIndex: [3]};
+  
+    case 'BUG_RED':
+      return {sprite: grassCharacter, frameIndex: [3]};
+    case 'BUG_BLUE':
+      return {sprite: grassCharacter, frameIndex: [2]};
+    case 'BUG_GREEN':
+      return {sprite: grassCharacter, frameIndex: [1]};
+    case 'BUG_YELLOW':
+      return {sprite: grassCharacter, frameIndex: [4]};
       
     default:
       console.error('Unknown character requested');

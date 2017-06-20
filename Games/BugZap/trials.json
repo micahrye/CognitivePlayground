@@ -21,11 +21,11 @@
     "leftBug": "green"
 	},
   {
-    "frogColor": "blue",
+    "frogColor": "green",
     "frogSide": "left",
     "rotation": "180deg",
-    "rightBug": "green",
-    "leftBug": "blue"
+    "rightBug": "blue",
+    "leftBug": "green"
 	},
   {
     "frogColor": "green",
