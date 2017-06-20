@@ -16,6 +16,7 @@ import _ from 'lodash';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import LoadScreen from '../../components/LoadScreen';
+import KeepAwake from 'react-native-keep-awake';
 
 import greenFrogCharacter from '../../sprites/swimingGreenFrog/greenFrogSprite';
 import blueFrogCharacter from '../../sprites/swimingBlueFrog/blueFrogSprite';
@@ -32,7 +33,7 @@ import styles from "./BugZapStyles";
 import gameUtil from './gameUtil';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 15000;
+const GAME_TIME_OUT = 60000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
@@ -94,6 +95,8 @@ class BugZapGameRedesign extends React.Component {
     this.leftBugColorIndex = GREEN_BUG;
     this.rightBugColorIndex = BLUE_BUG;
     this.blackoutTimeout;
+    
+    KeepAwake.activate();
   }
 
   componentWillMount () {
@@ -490,6 +493,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   showBackgroundCircle () {
+    const sides = gameUtil.spotLightLocation(this.trialNumber);
     let left, right = false;
     if (this.frogSide === 'right') {
       right = true;
@@ -497,8 +501,8 @@ class BugZapGameRedesign extends React.Component {
       left = true;
     }
     this.setState({
-      bgRight: right,
-      bgLeft: left,
+      bgRight: sides.right,
+      bgLeft: sides.left,
     }, () => {
       setTimeout(() => {
         this.setState({
@@ -511,7 +515,6 @@ class BugZapGameRedesign extends React.Component {
 
   blackoutTrial () {
     clearTimeout(this.blackoutTimeout);
-    console.log("BLACKOUT CALLED");
     this.setState({
       lightbulbImgIndex: 1,
       blackout: true,

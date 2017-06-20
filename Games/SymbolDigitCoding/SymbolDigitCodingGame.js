@@ -10,6 +10,7 @@ import _ from 'lodash';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
+import KeepAwake from 'react-native-keep-awake';
 
 import styles from './styles';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
@@ -55,6 +56,8 @@ class SymbolDigitCodingGame extends React.Component {
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustSound = false;
+    
+    KeepAwake.activate();
   }
 
   componentWillMount () {

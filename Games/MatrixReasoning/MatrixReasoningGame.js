@@ -11,6 +11,7 @@ import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 import styles from './styles';
+import KeepAwake from 'react-native-keep-awake';
 
 import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
@@ -47,6 +48,8 @@ class MatrixReasoningGame extends React.Component {
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustPlaying = false;
+    
+    KeepAwake.activate();
   }
 
   componentWillMount () {

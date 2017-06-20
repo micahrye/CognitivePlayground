@@ -144,6 +144,16 @@ function valuesForTrial (trialNumber = 0) {
   }
 }
 
+function spotLightLocation (trialNumber) {
+  const numTrials = trials.length-1;
+  const trialIndx = trialNumber > numTrials ? Math.floor(Math.random() * numTrials) : trialNumber;
+  const trialData = trials[trialIndx];
+  return {
+    left: trialData.leftSpotlight,
+    right: trialData.rightSpotlight,
+  };
+}
+
 export default {
   getCoordinates,
   getSize,
@@ -151,4 +161,5 @@ export default {
   getBugTweenOptions,
   getFrogSprite,
   valuesForTrial,
+  spotLightLocation,
 };

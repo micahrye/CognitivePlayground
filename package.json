@@ -16,6 +16,7 @@
     "react-mixin": "^3.0.5",
     "react-native": "0.44.0",
     "react-native-deprecated-custom-components": "^0.1.0",
+    "react-native-keep-awake": "^2.0.4",
     "react-native-sound": "^0.10.1",
     "react-timer-mixin": "^0.13.3",
     "rn-animated-sprite-matrix": "^0.1.1",

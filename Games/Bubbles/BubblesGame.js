@@ -9,6 +9,7 @@ import {
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
+import KeepAwake from 'react-native-keep-awake';
 
 import AnimatedSprite from "../../components/AnimatedSprite/AnimatedSprite";
 import HomeButton from '../../components/HomeButton/HomeButton';
@@ -31,7 +32,7 @@ const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 const TOP_OFFSET = 20;
 
-const GAME_TIME_OUT = 15000;
+const GAME_TIME_OUT = 60000;
 const MAX_NUMBER_BUBBLES = 10;
 
 class BubblesGame extends React.Component {
@@ -63,6 +64,8 @@ class BubblesGame extends React.Component {
     this.leverPlaying = false;
     this.celebrateSound;
     this.celebratePlaying = false;
+    
+    KeepAwake.activate();
 }
 
   componentWillMount () {
