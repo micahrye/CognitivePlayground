@@ -26,6 +26,8 @@ import flySprite from '../../sprites/bug/bugCharacter';
 import fruitSprite from '../../sprites/apple/appleCharacter';
 import grassSprite from '../../sprites/grass/grassCharacter';
 
+import curious from '../../components/DataCollection/curiousLearningAPI';
+
 const Sound = require('react-native-sound');
 
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
@@ -34,6 +36,14 @@ const TOP_OFFSET = 20;
 
 const GAME_TIME_OUT = 60000;
 const MAX_NUMBER_BUBBLES = 10;
+
+const STARTTIME = 0;
+const POPTIME = 0;
+const STARTY = 0;
+const POPX = 0;
+const POPY = 0;
+
+const trialCounter = 0;
 
 class BubblesGame extends React.Component {
   constructor (props) {
@@ -210,6 +220,37 @@ class BubblesGame extends React.Component {
     return (Math.floor(Math.random() *  (4000)) + 2000);
   }
 
+  sendJSON (velocityMS, startMS, popMS, popX, popY) {
+    const obj = {
+      custom_data: {
+        velocity: velocityMS,
+        startTime: startMS,
+        pop_time: popMS,
+        popPos: [popX,popY],
+      }
+    }
+    curious.reportResponse(JSON.stringify(obj));
+  }
+
+  getTimestamp () {
+    let d = new Date();
+    return Number(d.getSeconds().toString().concat(".",d.getMilliseconds().toString()));
+  }
+
+  aggregateData () {
+    let distance = POPY - STARTY;
+    let elapsedTime = 0;
+    if (POPTIME < STARTTIME) {
+      elapsedTime = POPTIME + (60 - STARTTIME);
+    } else {
+      elapsedTime = POPTIME - STARTTIME;
+    }
+    let velocity = distance/elapsedTime;
+    this.sendJSON(velocity, STARTTIME, POPTIME, POPX, POPY);
+  }
+
+
+
   // populate array of background bubbles
   createBubbles () {
     const uid = randomstring({ length: 7 });
@@ -236,6 +277,8 @@ class BubblesGame extends React.Component {
     const startLeft = fountainCenter - (bubbleSize.width/2 - offsetLeft);
     const startTop = fountainLoc.top - (bubbleSize.width * 0.7);
 
+    STARTY = startTop;
+
     const plusOrMinus = Math.random() < 0.5 ? -1 : 1;
     const minusOrPlus = plusOrMinus > 0 ? -1 : 1;
     locSequence = [
@@ -247,12 +290,12 @@ class BubblesGame extends React.Component {
     if (createTargetBubble) {
       locSequence = [startLeft];
     }
-    
-    
+
+
     // console.warn("PR: ", PixelRatio.get());
     // 3.125 equiv to 800 pixels in 2.5 sec
     const duration = 3.75 * SCREEN_HEIGHT;
-    
+
     let backgroundBubbleTween = {
       tweenType: "sine-wave",
       startXY: [startLeft, startTop],
@@ -309,7 +352,7 @@ class BubblesGame extends React.Component {
           size={bubbleSize}
         />
       );
-
+      STARTTIME = this.getTimestamp();
       if (this.state.bubbleArray.length <= MAX_NUMBER_BUBBLES) {
         this.setState({bubbleArray: this.state.bubbleArray.concat(bubbles)});
       }
@@ -438,6 +481,10 @@ class BubblesGame extends React.Component {
     this.foodFall(stopValueX, stopValueY);
     clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
+    POPTIME = this.getTimestamp();
+    POPX = this.targetBubble.coordinates.left;
+    POPY = this.targetBubble.coordinates.top;
+    this.aggregateData();
   }
 
   targetBubbleTweenFinish () {
@@ -470,14 +517,14 @@ class BubblesGame extends React.Component {
     });
     clearInterval(this.bubbleFountainInterval);
   }
-  
+
   foutainSize () {
     return ({
       width: fountainCharacter.size.width * this.scale.image,
       height: fountainCharacter.size.height * this.scale.image,
     });
   }
-  
+
   fountainLocation () {
     //placement for fountain and lever
     const size = this.foutainSize();
@@ -485,13 +532,13 @@ class BubblesGame extends React.Component {
     const top = (SCREEN_HEIGHT - size.height) - TOP_OFFSET;
     return ({top, left});
   }
-  
+
   leverSize () {
     const scaleButton = 1.0;
     const size = buttonSprite.size(scaleButton * this.scale.image);
     return (size);
   }
-  
+
   leverLocation () {
     const locatoinFoutain = this.fountainLocation();
     const foutainSize = this.foutainSize();

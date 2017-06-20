@@ -76,7 +76,7 @@ class MatrixReasoningGame extends React.Component {
     clearTimeout(this.readyTrialTimeout);
     clearTimeout(this.timeoutGameOver);
   }
-  
+
   startInactivityMonitor () {
     if (!this.state.devMode) {
       this.timeoutGameOver = setTimeout(() => {
@@ -132,6 +132,18 @@ class MatrixReasoningGame extends React.Component {
     }
   }
 
+  sendCustomJSON (velocityMS, startMS, popMS, popX, popY) {
+    const obj = {
+      custom_data: {
+        velocity: velocityMS,
+        startTime: startMS,
+        pop_time: popMS,
+        popPos: [popX,popY],
+      }
+    }
+    curious.reportCustom(JSON.stringify(obj));
+  }
+
   loadCharacter () {
     let dog = _.cloneDeep(this.state.dog);
     dog.frameIndex = _.concat(
@@ -183,7 +195,7 @@ class MatrixReasoningGame extends React.Component {
       dogSprite.animationIndex(action),
       dogSprite.animationIndex(action)
     );
-    this.setState({ dog }, 
+    this.setState({ dog },
       () => {
         this.readyTrialTimeout = setTimeout(() => {
           this.readyTrial(this.state.trial + 1);
@@ -230,7 +242,7 @@ class MatrixReasoningGame extends React.Component {
 
   render () {
     return (
-        <Image source={require('../../media/backgrounds/Game_4_Background_1280.png')} 
+        <Image source={require('../../media/backgrounds/Game_4_Background_1280.png')}
           style={styles.backgroundImage}>
         <AnimatedSprite
           sprite={dogSprite}
