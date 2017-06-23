@@ -39,39 +39,43 @@ class Main extends React.Component {
     const iconList = [
       {
         name: 'BUBBLE',
-        imgSrc: require('./media/gameIcon/game7_icon_color.png'),
         location: this.scaleLocation({top: 130, left: 100}),
         frameIndex: [13],
       },
       {
         name: 'BUG',
-        imgSrc: require('./media/gameIcon/game1_icon_color.png'),
         location: this.scaleLocation({top: 380, left: 220}),
         frameIndex: [1],
       },
       {
         name: 'MATCH',
-        imgSrc: require('./media/gameIcon/game2_icon_color.png'),
         location: this.scaleLocation({top: 200, left: 440}),
         frameIndex: [3],
       },
       {
         name: 'UNLOCK_FOOD',
-        imgSrc: require('./media/gameIcon/game3_icon_color.png'),
         location: this.scaleLocation({top: 400, left: 640}),
         frameIndex: [5],
       },
       {
         name: 'MATRIX',
-        imgSrc: require('./media/gameIcon/game4_icon_color.png'),
         location: this.scaleLocation({top: 80, left: 660}),
         frameIndex: [7],
       },
       {
         name: 'SYMBOL',
-        imgSrc: require('./media/gameIcon/game6_icon_color.png'),
         location: this.scaleLocation({top: 260, left: 900}),
         frameIndex: [11],
+      },
+      {
+        name: 'BOXES',
+        location: this.scaleLocation({top: 20, left: 980}),
+        frameIndex: [14],
+      },
+      {
+        name: 'FOOD_MACHINE',
+        location: this.scaleLocation({top: 520, left: 980}),
+        frameIndex: [15],
       },
     ];
 
@@ -155,6 +159,12 @@ class Main extends React.Component {
         break;
       case 'SYMBOL':
         this.goToGame('SymbolDigitCodingGame');
+        break;
+      case 'BOXES':
+        this.goToGame('BoxGame');
+        break;
+      case 'FOOD_MACHINE':
+        this.goToGame('FoodMachineGame');
         break;
       case 'PREFS':
         this.goToGame('Prefs');
