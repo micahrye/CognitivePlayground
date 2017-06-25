@@ -70,12 +70,12 @@ class Main extends React.Component {
       {
         name: 'BOXES',
         location: this.scaleLocation({top: 20, left: 980}),
-        frameIndex: [14],
+        frameIndex: [15],
       },
       {
         name: 'FOOD_MACHINE',
         location: this.scaleLocation({top: 520, left: 980}),
-        frameIndex: [15],
+        frameIndex: [14],
       },
     ];
 

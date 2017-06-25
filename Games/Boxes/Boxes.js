@@ -17,6 +17,11 @@ import {
   AsyncStorage,
 } from 'react-native';
 
+import reactMixin from 'react-mixin';
+import TimerMixin from 'react-timer-mixin';
+import _ from 'lodash';
+
+import randomstring from 'random-string';
 import HomeButton from '../../components/HomeButton/HomeButton';
 
 import AnimatedSprite from 'react-native-animated-sprite';
@@ -24,9 +29,10 @@ import birdSprite from '../../sprites/bird2';
 import boxSprite from '../../sprites/box';
 import clawSprite from '../../sprites/claw';
 
-
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+import gameUtil from './gameUtil';
+gameUtil.setScreenSize(SCREEN_WIDTH, SCREEN_HEIGHT);
 
 export default class Boxes extends Component {
   constructor (props) {
@@ -35,11 +41,15 @@ export default class Boxes extends Component {
       activeBoxes: [1, 1, 1, 1],
       clawTweenOptions: {},
       clawIndex: [0],
+      clawDown: false,
+      tweenClaw: true,
+      boxID: -1,
     };
     this.scale = this.props.scale;
     this.birdScale = 2.0;
     this.boxScale = 1.25;
     this.clawScale = 1;
+    this.clawTweenTime = 1000;
   }
   
   componentWillMount () {
@@ -68,34 +78,47 @@ export default class Boxes extends Component {
     return {top, left};
   }
   
-  clawLocation () {
-    const size = clawSprite.size(this.clawScale * this.scale.image);
-    const top = 0 - size.height/2;
-    const left = SCREEN_WIDTH/2; 
-    return {top, left};
-  }
-  
-  setClawTween (boxId) {
-    const clawLoc = this.clawLocation();
-    const boxLoc = this.boxLocation(boxId);
-    
+  setClawTweenDown (boxID) {
+    const clawLoc = gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale);
+    // const clawLoc = this.clawLocation();
+    const boxLoc = this.boxLocation(boxID);
+    console.log(`boxLoc = ${JSON.stringify(boxLoc)} for boxid = ${boxID}`);
     const clawTweenOptions = {
       tweenType: "linear-move",
       startXY: [clawLoc.left, clawLoc.top],
-      endXY: [boxLoc.left, 0],
+      endXY: [boxLoc.left + 31, - 9 * this.scale.screenHeight],
       duration: 1000,
       loop: false,
     };
     return clawTweenOptions;
   }
   
-  boxPressed (boxId) {
-    console.log(`\nBOX ${boxId} pressed`);
+  setClawTweenUp () {
+    const clawLoc = gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale);
     
-    const clawTweenOptions = this.setClawTween(boxId);
+    // Using state here, want to make sure state does not change 
+    // TODO: make sure to address box touch events during tween sequence.
+    const boxLoc = this.boxLocation(this.state.boxID);
+    
+    const clawTweenOptions = {
+      tweenType: "linear-move",
+      startXY: [boxLoc.left + 31, - 9 * this.scale.screenHeight],
+      endXY: [clawLoc.left, clawLoc.top],
+      duration: 1000,
+      loop: false,
+    };
+    return clawTweenOptions;
+  }
+  
+  boxPressed (boxID) {
+    console.log(`\nBOX ${boxID} pressed`);
+    
+    const clawTweenOptions = this.setClawTweenDown(boxID);
     debugger;
     this.setState(
       { 
+        boxID,
+        tweenClaw: true,
         clawTweenOptions,
         clawIndex: clawSprite.animationIndex('GRAB'),
       }, 
@@ -103,6 +126,108 @@ export default class Boxes extends Component {
       this.refs.claw.startAnimation();
       this.refs.claw.tweenSprite();
     });
+  }
+  
+  hideInactiveBoxes(activeBoxes) {
+    return new Promise((resolve) => {
+      this.setTimeout(() => {
+        this.setState({activeBoxes});
+        this.refs.claw.tweenSprite();
+        resolve();  
+      }, 200);
+    }); 
+  }
+  
+  openBoxAfterClawReturnTween () {
+    return new Promise((resolve) => {
+      this.setTimeout(() => {
+        this.setState({
+          clawIndex: clawSprite.animationIndex('BOX_OPENED'),
+        }, () => {
+          this.setTimeout(() => {
+            this.refs.claw.startAnimation();
+            // MRE: could add method call to check correct not correct here.
+            this.setTimeout(() => resolve(), 1000); 
+          }, 300);            
+        });
+      }, this.clawTweenTime);
+    });
+  }
+  
+  currentShowStateforBoxes () {
+    const boxes = _.map(this.state.activeBoxes, (val, index) => {
+      if (this.state.boxID === index) {
+        return 0;
+      }
+      return 1
+    });
+    return boxes
+  }
+  
+  pickupPressedBox () {
+    const boxes = this.currentShowStateforBoxes();
+    this.setState({ 
+      clawIndex: clawSprite.animationIndex('BOX_CLOSED'),
+      tweenClaw: true,    
+    }, () => {
+      this.refs.claw.startAnimation();
+      this.setState({  
+        clawTweenOptions: this.setClawTweenUp(),
+        tweenClaw: false,
+      }, () => {
+        this.hideInactiveBoxes(boxes)
+        .then(() => {
+          this.openBoxAfterClawReturnTween()
+          .then(() => this.returnBox());
+        });
+      });
+    });
+  }
+  
+  showAllBoxes () {
+    return new Promise((resolve) => {
+      const boxes = _.map(this.state.activeBoxes, () => 1);
+      this.setState({
+        activeBoxes: boxes,
+      }, () => {
+        resolve();
+      });
+    });
+    
+  }
+  
+  returnBox (boxID) {
+    console.log("NOW GO BACK");
+    const clawTweenOptions = this.setClawTweenDown(this.state.boxID);
+    this.setState({ clawTweenOptions }, 
+    () => {
+      this.refs.claw.tweenSprite();
+      // show all boxes then lift claw. 
+      this.setTimeout(() => {
+        this.showAllBoxes()
+        .then(() => {
+          const clawTweenUp = this.setClawTweenUp();
+          this.setState({
+            clawIndex: clawSprite.animationIndex('RETURN_TO_NETURAL'),
+            clawTweenOptions: clawTweenUp,
+          }, () => {
+            this.refs.claw.startAnimation();
+            this.sleep(100)
+            .then(() => this.refs.claw.tweenSprite());
+          });
+          
+        })
+      }, this.clawTweenTime);
+    });
+  }
+  
+  clawTweenFinish () {
+    if (!this.state.tweenClaw) return;
+    this.pickupPressedBox(); 
+  }
+  
+  sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
   }
   
   render() {
@@ -181,12 +306,12 @@ export default class Boxes extends Component {
         sprite={clawSprite}
         animationFrameIndex={this.state.clawIndex}
         loopAnimation={false}
-        coordinates={this.clawLocation()}
+        coordinates={gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale)}
         size={clawSprite.size(this.clawScale * this.scale.image)}
         tweenOptions={this.state.clawTweenOptions}
         tweenStart={'fromMethod'}
+        onTweenFinish={() => this.clawTweenFinish()}
       />      
-      
       
       {this.state.devMode ?
         <HomeButton
@@ -235,4 +360,5 @@ const styles = StyleSheet.create({
 });
 
 
+reactMixin.onClass(Boxes, TimerMixin);
 AppRegistry.registerComponent('Boxes', () => App);
