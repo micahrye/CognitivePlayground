@@ -9,7 +9,7 @@ const clawSprite2 = {
     return size;  
   },
   animationTypes: ['IDLE', 'OPEN', 'CLOSE', 'GRAB', 
-                  'BOX_CLOSED', 'BOX_OPENED',
+                  'CLAW_WITH_BOX_CLOSED', 'CLAW_WITH_BOX_OPENED',
                   'RETURN_TO_NETURAL', 'ALL',],
   frames: [
     require('./claw_neutral.png'),
@@ -28,9 +28,9 @@ const clawSprite2 = {
         return [2];
       case 'GRAB':
         return [0, 0, 1];
-      case 'BOX_CLOSED':
+      case 'CLAW_WITH_BOX_CLOSED':
         return [3];
-      case 'BOX_OPENED':
+      case 'CLAW_WITH_BOX_OPENED':
         return [4, 4, 4, 4, 4, 4, 4, 3];
       case 'RETURN_TO_NETURAL':
         return [1, 1, 1, 0];
