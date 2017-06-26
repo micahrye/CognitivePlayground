@@ -65,7 +65,7 @@ const litSprites = {
       case 'S':
         return [18];
       case 'T':
-        return [18];
+        return [19];
       case 'U':
         return [20];
       case 'V':

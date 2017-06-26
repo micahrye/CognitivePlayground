@@ -3,7 +3,7 @@ const foodMachineSprite = {
   
   size: function (scale = 1) {
     const size = {
-      width: 400 * scale, 
+      width: 295 * scale, 
       height: 261 * scale,
     };
     return size;  

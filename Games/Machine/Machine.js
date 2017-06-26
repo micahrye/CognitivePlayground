@@ -16,6 +16,9 @@ import {
   AsyncStorage,
 } from 'react-native';
 
+import reactMixin from 'react-mixin';
+import TimerMixin from 'react-timer-mixin';
+
 import _ from 'lodash';
 import randomstring from 'random-string';
 
@@ -24,11 +27,13 @@ import AnimatedSprite from 'react-native-animated-sprite';
 import AnimatedSpriteMatrix from 'rn-animated-sprite-matrix';
 import gameUtil from './gameUtil';
 
+import buttonSprite from '../../sprites/button3/button3Sprite';
 import birdSprite from '../../sprites/bird2';
 import machineSprite from '../../sprites/foodMachine2';
 
 import litSprites from '../../sprites/litSprites';
 
+const GAME_TIME_OUT = 60000;
 const baseHeight = 800;
 const baseWidth = 1280;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
@@ -40,6 +45,7 @@ export default class Machine extends Component {
     this.state = {
       devMode: false,
       cells: [],
+      trialNumber: 0,
     };
     this.scale = this.props.scale;
 
@@ -56,7 +62,21 @@ export default class Machine extends Component {
         this.setState({ devMode: prefs.developMode });
       }
     });
-    this.setState({cells: gameUtil.cellsForTrial(0)});
+    this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
+  }
+  
+  componentDidMount () {
+    this.startInactivityMonitor();
+  }
+  
+  startInactivityMonitor () {
+    if (!this.state.devMode) {
+      this.timeoutGameOver = this.setTimeout(() => {
+        this.props.navigator.replace({
+          id: "Main",
+        });
+      }, GAME_TIME_OUT);
+    }
   }
   
   birdLocation () {
@@ -69,7 +89,7 @@ export default class Machine extends Component {
   machineLocation () {
     const size = machineSprite.size(1.75 * this.scale.image);
     const top = SCREEN_HEIGHT - size.height - 100 * this.scale.screenHeight;
-    const left = SCREEN_WIDTH - size.width - 100 * this.scale.screenWidth; 
+    const left = SCREEN_WIDTH - size.width  - 300 * this.scale.screenWidth; 
     return {top, left};
   }
   
@@ -80,7 +100,7 @@ export default class Machine extends Component {
     const width = this.numColumns * size.width * this.cellSpriteScale;
     const height = this.numRows * size.height * this.cellSpriteScale;
     const top = mloc.top + msize.height * .295;
-    const left = mloc.left + msize.width * .285;
+    const left = mloc.left + msize.width * .385;
     const location = {top, left};
     debugger;
     console.log(`matrixLocation = ${JSON.stringify(location)}`);
@@ -93,6 +113,32 @@ export default class Machine extends Component {
     const width = this.numColumns * size.width * this.cellSpriteScale + (this.numColumns - 1) * defaultMargin ;
     const height = this.numRows * size.height * this.cellSpriteScale + (this.numRows - 1) * defaultMargin;
     return {width, height};
+  }
+  
+  buttonSize () {
+    const scaleLever = 1.0;
+    return ({
+      width: buttonSprite.size.width * scaleLever * this.scale.image,
+      height: buttonSprite.size.height * scaleLever * this.scale.image,
+    });
+  }
+
+  buttonLocation () {
+    const locationMachine = this.machineLocation();
+    const machineSize = machineSprite.size(2 * this.scale.image);
+    const leftOffset = (15 * this.scale.screenWidth);
+    const left = locationMachine.left + machineSize.width - leftOffset;
+    const top = SCREEN_HEIGHT - machineSize.height + 160 * this.scale.image;
+
+    return {top, left};
+  }
+  
+  buttonPressIn () {
+    const trial = this.state.trialNumber + 1; 
+    this.setState({trialNumber: trial},
+    () => {
+      this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
+    });
   }
   
   cellPressed (cellObj, position) {
@@ -131,6 +177,16 @@ export default class Machine extends Component {
           coordinates={this.machineLocation()}
           size={machineSprite.size(2 * this.scale.image)}
           draggable={false}
+        />
+      
+        <AnimatedSprite
+          sprite={buttonSprite}
+          animationFrameIndex={[0]}
+          loopAnimation={false}
+          coordinates={this.buttonLocation()}
+          size={this.buttonSize()}
+          rotate={[{rotateY:'0deg'}]}
+          onPressIn={() => this.buttonPressIn()}
         />
         
         {this.state.devMode ?
@@ -194,5 +250,5 @@ const styles = StyleSheet.create({
   },
 });
 
-
+reactMixin.onClass(Machine, TimerMixin);
 AppRegistry.registerComponent('Machine', () => App);

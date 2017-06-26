@@ -29,6 +29,7 @@ import birdSprite from '../../sprites/bird2';
 import boxSprite from '../../sprites/box';
 import clawSprite from '../../sprites/claw';
 
+const GAME_TIME_OUT = 60000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 import gameUtil from './gameUtil';
@@ -61,6 +62,20 @@ export default class Boxes extends Component {
         this.setState({ devMode: prefs.developMode });
       }
     });
+  }
+  
+  componentDidMount () {
+    this.startInactivityMonitor();
+  }
+  
+  startInactivityMonitor () {
+    if (!this.state.devMode) {
+      this.timeoutGameOver = this.setTimeout(() => {
+        this.props.navigator.replace({
+          id: "Main",
+        });
+      }, GAME_TIME_OUT);
+    }
   }
   
   birdLocation () {
