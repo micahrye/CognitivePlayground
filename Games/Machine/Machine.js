@@ -22,6 +22,7 @@ import randomstring from 'random-string';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from 'react-native-animated-sprite';
 import AnimatedSpriteMatrix from 'rn-animated-sprite-matrix';
+import gameUtil from './gameUtil';
 
 import birdSprite from '../../sprites/bird2';
 import machineSprite from '../../sprites/foodMachine2';
@@ -41,12 +42,8 @@ export default class Machine extends Component {
       cells: [],
     };
     this.scale = this.props.scale;
-    
-    this.activeCells =  [true, true, true, true,];
-		this.animationKeys = ["A", "B", "C", "D",];
-    this.loopAnimation = _.fill(Array(this.activeCells.length), false);
-    this.sprites = _.fill(Array(this.activeCells.length), litSprites);
-    this.cellSpriteScale = 0.85;
+
+    this.cellSpriteScale = 0.80;
     this.numColumns = 2;
     this.numRows = 2;
   }
@@ -59,18 +56,7 @@ export default class Machine extends Component {
         this.setState({ devMode: prefs.developMode });
       }
     });
-    this.setState({cells: this.createCellObjsArray()});
-  }
-  
-  createCellObjsArray () {
-    const cells = _.map(this.activeCells , (active, index) => ({
-      active,
-      sprite: this.sprites[index],
-      animationKey: this.animationKeys[index],
-      loopAnimation: this.loopAnimation[index],
-      uid: randomstring({ length: 7 }),
-    }));
-    return cells;
+    this.setState({cells: gameUtil.cellsForTrial(0)});
   }
   
   birdLocation () {
@@ -83,27 +69,29 @@ export default class Machine extends Component {
   machineLocation () {
     const size = machineSprite.size(1.75 * this.scale.image);
     const top = SCREEN_HEIGHT - size.height - 100 * this.scale.screenHeight;
-    const left = SCREEN_WIDTH - size.width - 90 * this.scale.screenWidth; 
+    const left = SCREEN_WIDTH - size.width - 100 * this.scale.screenWidth; 
     return {top, left};
   }
   
   matrixLocation () {
+    const mloc = this.machineLocation();
+    const msize = machineSprite.size(2 * this.scale.image);
     const size = litSprites.size();
     const width = this.numColumns * size.width * this.cellSpriteScale;
     const height = this.numRows * size.height * this.cellSpriteScale;
-    const top = SCREEN_HEIGHT / 2 - height/2;
-    const left = SCREEN_WIDTH / 2 - width/2;
+    const top = mloc.top + msize.height * .295;
+    const left = mloc.left + msize.width * .285;
     const location = {top, left};
     debugger;
     console.log(`matrixLocation = ${JSON.stringify(location)}`);
     return location;
   }
+  
   matrixSize () {
     const size = litSprites.size();
-    const width = this.numColumns * size.width * this.cellSpriteScale;
-    const height = this.numRows * size.height * this.cellSpriteScale;
-    const s = {width, height};
-    console.log(`matrixSize = ${JSON.stringify(s)}`);
+    const defaultMargin = 10;
+    const width = this.numColumns * size.width * this.cellSpriteScale + (this.numColumns - 1) * defaultMargin ;
+    const height = this.numRows * size.height * this.cellSpriteScale + (this.numRows - 1) * defaultMargin;
     return {width, height};
   }
   
@@ -157,7 +145,6 @@ export default class Machine extends Component {
           />
         : null}
         
-        
         <AnimatedSpriteMatrix
           styles={{
               ...(this.matrixLocation()),
@@ -168,6 +155,8 @@ export default class Machine extends Component {
           cellSpriteScale={this.cellSpriteScale}
           cellObjs={this.state.cells}
           scale={this.matrixImageScale}
+          cellRightMargin={26}
+          cellBottomMargin={18}
           onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
         />    
       
