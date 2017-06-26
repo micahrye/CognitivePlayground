@@ -119,7 +119,6 @@ class BubblesGame extends React.Component {
         this.props.navigator.replace({
           id: "Main",
         });
-        // game over when 15 seconds go by without bubble being popped
       }, GAME_TIME_OUT);
     }
   }
