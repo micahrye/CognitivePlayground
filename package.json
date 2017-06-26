@@ -20,7 +20,7 @@
     "react-native-keep-awake": "^2.0.4",
     "react-native-sound": "^0.10.1",
     "react-timer-mixin": "^0.13.3",
-    "rn-animated-sprite-matrix": "^0.1.1",
+    "rn-animated-sprite-matrix": "^0.2.0",
     "tcomb-form-native": "^0.6.8"
   },
   "devDependencies": {

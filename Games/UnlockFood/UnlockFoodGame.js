@@ -15,7 +15,6 @@ import KeepAwake from 'react-native-keep-awake';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import Matrix from '../../components/Matrix';
-import AnimatedSpriteMatrix from 'rn-animated-sprite-matrix';
 import LoadScreen from '../../components/LoadScreen';
 
 import leverSprite from '../../sprites/lever/leverCharacter';
@@ -815,19 +814,3 @@ UnlockFoodGame.propTypes = {
 reactMixin.onClass(UnlockFoodGame, TimerMixin);
 
 export default UnlockFoodGame;
-
-
-/*
-<AnimatedSpriteMatrix
-  styles={{
-      ...(this.matrixLocation()),
-      ...(this.matrixSize()),
-      position: 'absolute',
-    }}
-  dimensions={{columns: this.numColumns, rows: this.numRows}}
-  cellSpriteScale={this.cellSpriteScale}
-  cellObjs={this.state.cells}
-  scale={this.scale}
-  onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
-/> 
-*/
