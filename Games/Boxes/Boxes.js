@@ -52,20 +52,27 @@ export default class Boxes extends Component {
     this.boxScale = 1.25;
     this.clawScale = 1;
     this.clawTweenTime = 1000;
+    this.willUnmount = false;
   }
+  // TODO: should kill all timeouts and intervals on willUnmount
+  
   
   componentWillMount () {
     AsyncStorage.getItem('@User:pref', (err, result) => {
       console.log(`GETTING = ${JSON.stringify(result)}`);
       const prefs = JSON.parse(result);
       if (prefs) {
-        this.setState({ devMode: prefs.developMode });
+        this.safeSetState({ devMode: prefs.developMode });
       }
     });
   }
   
   componentDidMount () {
     this.startInactivityMonitor();
+  }
+  
+  componentWillUnmount () {
+    this.willUnmount = true;
   }
   
   startInactivityMonitor () {
@@ -132,7 +139,7 @@ export default class Boxes extends Component {
     
     const clawTweenOptions = this.setClawTweenDown(boxID);
     debugger;
-    this.setState(
+    this.safeSetState(
       { 
         boxID,
         allowBoxPress: false,
@@ -149,7 +156,7 @@ export default class Boxes extends Component {
   hideInactiveBoxes(activeBoxes) {
     return new Promise((resolve) => {
       this.setTimeout(() => {
-        this.setState({activeBoxes});
+        this.safeSetState({activeBoxes});
         this.refs.claw.tweenSprite();
         resolve();  
       }, 200);
@@ -157,9 +164,9 @@ export default class Boxes extends Component {
   }
   
   openBoxAfterClawReturnTween () {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       this.setTimeout(() => {
-        this.setState({
+        this.safeSetState({
           clawIndex: clawSprite.animationIndex('CLAW_WITH_BOX_OPENED'),
         }, () => {
           this.setTimeout(() => {
@@ -168,6 +175,7 @@ export default class Boxes extends Component {
             this.setTimeout(() => resolve(), 1000); 
           }, 300);            
         });
+                
       }, this.clawTweenTime);
     });
   }
@@ -184,12 +192,12 @@ export default class Boxes extends Component {
   
   pickupPressedBox () {
     const boxes = this.currentShowStateforBoxes();
-    this.setState({ 
+    this.safeSetState({ 
       clawIndex: clawSprite.animationIndex('CLAW_WITH_BOX_CLOSED'),
       // respondToClawTweenFinish: true,    
     }, () => {
       this.refs.claw.startAnimation();
-      this.setState({  
+      this.safeSetState({  
         clawTweenOptions: this.setClawTweenUp(),
         respondToClawTweenFinish: false,
       }, () => {
@@ -197,7 +205,8 @@ export default class Boxes extends Component {
         .then(() => {
           this.openBoxAfterClawReturnTween()
           .then(() => this.returnBox());
-        });
+        })
+        .catch((err) => console.log("pickupPressedBox: ", err.stack));
       });
     });
   }
@@ -205,7 +214,7 @@ export default class Boxes extends Component {
   showAllBoxes () {
     return new Promise((resolve) => {
       const boxes = _.map(this.state.activeBoxes, () => 1);
-      this.setState({
+      this.safeSetState({
         activeBoxes: boxes,
       }, () => {
         resolve();
@@ -217,7 +226,7 @@ export default class Boxes extends Component {
   startClawReturnUp () {
     return new Promise((resolve) => {
       const clawTweenUp = this.setClawTweenUp();
-      this.setState({
+      this.safeSetState({
         clawIndex: clawSprite.animationIndex('RETURN_TO_NETURAL'),
         clawTweenOptions: clawTweenUp,
       }, () => {
@@ -226,16 +235,23 @@ export default class Boxes extends Component {
         .then(() => {
           this.refs.claw.tweenSprite();
           resolve();
-        });
+        })
+        .catch((err) => console.log("startClawReturnUp: ", err.stack));
         // then allowBoxPress true
       });
     });
   }
   
+  safeSetState (stateObj, fn) {
+    if (!this.willUnmount) {
+      this.setState(stateObj, fn);
+    }
+  }
+  
   returnBox (boxID) {
     console.log("NOW GO BACK");
     const clawTweenOptions = this.setClawTweenDown(this.state.boxID);
-    this.setState({ clawTweenOptions }, 
+    this.safeSetState({ clawTweenOptions }, 
     () => {
       this.refs.claw.tweenSprite();
       // show all boxes then lift claw. 
@@ -244,8 +260,12 @@ export default class Boxes extends Component {
         .then(() => {
           this.startClawReturnUp();
           this.sleep(1500)
-          .then(() => this.setState({ allowBoxPress: true }));
+          .then(() => {
+            this.safeSetState({ allowBoxPress: true })
+            console.log('bam bam mame')
+          });
         })
+        .catch((err) => console.log("returnBox: ", err.stack));
       }, this.clawTweenTime);
     });
   }
