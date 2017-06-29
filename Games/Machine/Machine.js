@@ -14,10 +14,12 @@ import {
   Button,
   Dimensions,
   AsyncStorage,
+  AppState,
 } from 'react-native';
 
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
+const Sound = require('react-native-sound');
 
 import _ from 'lodash';
 import randomstring from 'random-string';
@@ -52,6 +54,8 @@ export default class Machine extends Component {
     this.cellSpriteScale = 0.80;
     this.numColumns = 2;
     this.numRows = 2;
+    this.popPlaying = false;
+    this.leverPlaying = false;
   }
   
   componentWillMount () {
@@ -67,6 +71,56 @@ export default class Machine extends Component {
   
   componentDidMount () {
     this.startInactivityMonitor();
+    this.initSounds();
+    AppState.addEventListener('change', this._handleAppStateChange);
+  }
+  
+  initSounds () {
+    this.popSound = new Sound('pop_touch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.popSound.setNumberOfLoops(0);
+      this.popSound.setVolume(1);
+    });
+    this.leverSound = new Sound('lever_switch.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.leverSound.setNumberOfLoops(0);
+      this.leverSound.setVolume(1);
+    });
+    this.celebrateSound = new Sound('celebrate.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.celebrateSound.setNumberOfLoops(0);
+      this.celebrateSound.setVolume(1);
+    });
+  }
+
+  releaseAudio () {
+    this.popSound.stop();
+    this.popSound.release();
+    this.leverSound.stop();
+    this.leverSound.release();
+    this.celebrateSound.stop();
+    this.celebrateSound.release();
+  }
+  
+  _handleAppStateChange = (appState) => {
+    // release all sound objects
+    if (appState === 'inactive' || appState === 'background') {
+      this.releaseSounds();
+      AppState.removeEventListener('change', this._handleAppStateChange);
+    }
+  }
+  
+  componentWillUnmount () {
+    this.releaseAudio();
   }
   
   startInactivityMonitor () {
@@ -134,6 +188,10 @@ export default class Machine extends Component {
   }
   
   buttonPressIn () {
+    if (!this.leverPlaying) {
+      this.leverPlaying = true;
+      this.leverSound.play(() => {this.leverPlaying = false;});
+    }
     const trial = this.state.trialNumber + 1; 
     this.setState({trialNumber: trial},
     () => {
