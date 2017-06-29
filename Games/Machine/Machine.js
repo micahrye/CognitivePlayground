@@ -42,6 +42,8 @@ const baseWidth = 1280;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
+const TWEEN_DURATION = 1500;
+
 export default class Machine extends Component {
   constructor (props) {
     super(props);
@@ -87,7 +89,7 @@ export default class Machine extends Component {
       startXY: [this.foodSprite.coords.left, this.foodSprite.coords.top],
       xTo: [mloc.left, birdLoc.left + birdSize.width * 0.45],
       yTo: [mloc.top + msize.height/2, birdLoc.top + birdSize.height * 0.33],
-      duration: 1500,
+      duration: TWEEN_DURATION,
       loop: false,
     };
     console.log(`tweenOptions = ${JSON.stringify(this.foodSprite.tweenOptions, null, 2)}`);
@@ -245,7 +247,6 @@ export default class Machine extends Component {
       trialNumber: trial,
       showFood: 1,
     }, () => {
-      this.refs.foodRef.startTween(); 
       this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
     });
   }
@@ -258,16 +259,28 @@ export default class Machine extends Component {
     }
     console.log(`cell in postion ${position} pressed`);
     if (position === 2) {
-      this.birdCelebrate();
+      this.setState({
+        showFood: 1,
+      }, () => {
+        this.refs.foodRef.startTween(); 
+        this.birdCelebrate();
+      });
+      
     }
   }
   
   birdCelebrate () {
-    const celebratIndex = birdSprite.animationIndex('CELEBRATE');
     this.setState({
-      birdAnimationIndex: celebratIndex
+      birdAnimationIndex: birdSprite.animationIndex('CELEBRATE')
     }, () => {
       this.refs.bird.startAnimation();
+      this.setTimeout(() => {
+        this.setState({
+          birdAnimationIndex: birdSprite.animationIndex('EAT')
+        }, () => {
+          this.refs.bird.startAnimation();
+        });
+      }, TWEEN_DURATION - 200);
     });
   }
   
@@ -297,9 +310,21 @@ export default class Machine extends Component {
             height: SCREEN_HEIGHT,
           }}
         />
+      
+        <AnimatedSprite
+          sprite={foodSprite}
+          ref={'foodRef'}
+          key={this.foodSprite.UID}
+          opacity={this.state.showFood}
+          animationFrameIndex={[0]}
+          tweenOptions = {this.foodSprite.tweenOptions}
+          tweenStart={'fromMethod'}
+          loopAnimation={false}
+          coordinates={this.foodSprite.coords}
+          size={this.foodSize()}
+          onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+        />
         
-      
-      
         <AnimatedSprite
           ref={'bird'}
           sprite={birdSprite}
@@ -357,20 +382,6 @@ export default class Machine extends Component {
           onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
         />    
       
-        <AnimatedSprite
-            sprite={foodSprite}
-            ref={'foodRef'}
-            key={this.foodSprite.UID}
-            opacity={this.state.showFood}
-            animationFrameIndex={[0]}
-            tweenOptions = {this.foodSprite.tweenOptions}
-            tweenStart={'fromMethod'}
-            loopAnimation={false}
-            coordinates={this.foodSprite.coords}
-            size={this.foodSize()}
-            onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
-          />
-        
       </View>
     );
   }
