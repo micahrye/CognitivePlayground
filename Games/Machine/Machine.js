@@ -31,6 +31,7 @@ import gameUtil from './gameUtil';
 
 import buttonSprite from '../../sprites/button3/button3Sprite';
 import birdSprite from '../../sprites/bird2';
+import foodSprite from "../../sprites/apple/appleCharacter";
 import machineSprite from '../../sprites/foodMachine2';
 
 import litSprites from '../../sprites/litSprites';
@@ -48,6 +49,12 @@ export default class Machine extends Component {
       devMode: false,
       cells: [],
       trialNumber: 0,
+      showFood: 1,
+      birdAnimationIndex: [0],
+    };
+    this.foodSprite = {
+      tweenOptions: {},
+      coords: {top: 0, left: 0},
     };
     this.scale = this.props.scale;
 
@@ -56,6 +63,7 @@ export default class Machine extends Component {
     this.numRows = 2;
     this.popPlaying = false;
     this.leverPlaying = false;
+    this.showFood = 0;
   }
   
   componentWillMount () {
@@ -67,6 +75,22 @@ export default class Machine extends Component {
       }
     });
     this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
+    this.foodSprite.coords = this.foodStartLocation();
+    
+    const birdLoc = this.birdLocation();
+    const birdSize = birdSprite.size(2 * this.scale.image);
+    const mloc = this.machineLocation();
+    const msize = machineSprite.size();
+    this.foodSprite.UID = randomstring({length: 7});
+    this.foodSprite.tweenOptions = {
+      tweenType: 'sine-wave',
+      startXY: [this.foodSprite.coords.left, this.foodSprite.coords.top],
+      xTo: [mloc.left, birdLoc.left + birdSize.width * 0.45],
+      yTo: [mloc.top + msize.height/2, birdLoc.top + birdSize.height * 0.33],
+      duration: 1500,
+      loop: false,
+    };
+    console.log(`tweenOptions = ${JSON.stringify(this.foodSprite.tweenOptions, null, 2)}`);
   }
   
   componentDidMount () {
@@ -147,6 +171,27 @@ export default class Machine extends Component {
     return {top, left};
   }
   
+  foodSize () {
+    // scale to 120 x 120 or closest.
+    const scale = 1;
+    return ({
+        width: foodSprite.size.width * scale * this.scale.image,
+        height: foodSprite.size.height * scale * this.scale.image,
+      }
+    );
+  }
+  
+  foodStartLocation () {
+    const msize = machineSprite.size(1.75 * this.scale.image);
+    const mloc = this.machineLocation();
+    const foodSize = this.foodSize();
+    const coords = {
+      top: mloc.top + msize.height * 0.31,
+      left: mloc.left + msize.width/2,
+    };
+    return coords;
+  }
+  
   matrixLocation () {
     const mloc = this.machineLocation();
     const msize = machineSprite.size(2 * this.scale.image);
@@ -187,28 +232,60 @@ export default class Machine extends Component {
     return {top, left};
   }
   
-  buttonPressIn () {
+  buttonPressIn () { 
+    
+    this.foodSprite.UID = randomstring({length: 7});
+    
     if (!this.popPlaying) {
       this.popPlaying = true;
       this.popSound.play(() => {this.popPlaying = false;});
     }
     const trial = this.state.trialNumber + 1; 
-    this.setState({trialNumber: trial},
-    () => {
+    this.setState({
+      trialNumber: trial,
+      showFood: 1,
+    }, () => {
+      this.refs.foodRef.startTween(); 
       this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
     });
   }
   
   cellPressed (cellObj, position) {
+    if (this.state.showFood) {
+      this.setState({showFood: 0});  
+    } else {
+      this.setState({showFood: 1});
+    }
     console.log(`cell in postion ${position} pressed`);
+    if (position === 2) {
+      this.birdCelebrate();
+    }
+  }
+  
+  birdCelebrate () {
+    const celebratIndex = birdSprite.animationIndex('CELEBRATE');
+    this.setState({
+      birdAnimationIndex: celebratIndex
+    }, () => {
+      this.refs.bird.startAnimation();
+    });
   }
   
   sleep (time) {
     return new Promise((resolve) => setTimeout(resolve, time));
   }
   
+  onFoodTweenFinish () {
+    console.log("FOOD TWEEN FINISH");
+    //this.foodSprite.coords = this.foodStartLocation();
+    this.foodSprite.UID = randomstring({length: 7});
+    this.setState({
+      showFood: 0,
+    });
+  }
+  
   render() {
-    
+
     return (
       <View>
         <Image
@@ -221,10 +298,12 @@ export default class Machine extends Component {
           }}
         />
         
+      
+      
         <AnimatedSprite
           ref={'bird'}
           sprite={birdSprite}
-          animationFrameIndex={[0]}
+          animationFrameIndex={this.state.birdAnimationIndex}
           loopAnimation={false}
           coordinates={this.birdLocation()}
           size={birdSprite.size(2 * this.scale.image)}
@@ -278,6 +357,20 @@ export default class Machine extends Component {
           onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
         />    
       
+        <AnimatedSprite
+            sprite={foodSprite}
+            ref={'foodRef'}
+            key={this.foodSprite.UID}
+            opacity={this.state.showFood}
+            animationFrameIndex={[0]}
+            tweenOptions = {this.foodSprite.tweenOptions}
+            tweenStart={'fromMethod'}
+            loopAnimation={false}
+            coordinates={this.foodSprite.coords}
+            size={this.foodSize()}
+            onTweenFinish={(characterUID) => this.onFoodTweenFinish(characterUID)}
+          />
+        
       </View>
     );
   }
