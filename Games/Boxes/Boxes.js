@@ -55,6 +55,7 @@ export default class Boxes extends Component {
     this.clawScale = 1;
     this.clawTweenTime = 1000;
     this.willUnmount = false;
+    this.popPlaying = false;
   }
   // TODO: should kill all timeouts and intervals on willUnmount
   
@@ -119,7 +120,7 @@ export default class Boxes extends Component {
   _handleAppStateChange = (appState) => {
     // release all sound objects
     if (appState === 'inactive' || appState === 'background') {
-      this.releaseSounds();
+      this.releaseAudio();
       AppState.removeEventListener('change', this._handleAppStateChange);
     }
   }
@@ -185,6 +186,11 @@ export default class Boxes extends Component {
   
   boxPressed (boxID) {    
     if (!this.state.allowBoxPress) return;
+    
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
     
     const clawTweenOptions = this.setClawTweenDown(boxID);
     debugger;

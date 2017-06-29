@@ -114,7 +114,7 @@ export default class Machine extends Component {
   _handleAppStateChange = (appState) => {
     // release all sound objects
     if (appState === 'inactive' || appState === 'background') {
-      this.releaseSounds();
+      this.releaseAudio();
       AppState.removeEventListener('change', this._handleAppStateChange);
     }
   }
@@ -188,9 +188,9 @@ export default class Machine extends Component {
   }
   
   buttonPressIn () {
-    if (!this.leverPlaying) {
-      this.leverPlaying = true;
-      this.leverSound.play(() => {this.leverPlaying = false;});
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
     }
     const trial = this.state.trialNumber + 1; 
     this.setState({trialNumber: trial},
@@ -201,6 +201,10 @@ export default class Machine extends Component {
   
   cellPressed (cellObj, position) {
     console.log(`cell in postion ${position} pressed`);
+  }
+  
+  sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
   }
   
   render() {
