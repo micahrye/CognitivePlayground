@@ -406,7 +406,7 @@ class BubblesGame extends React.Component {
       case 'fly':
         food.name = 'fly';
         food.character = flySprite;
-        food.index = [4];
+        food.index = [0];
         food.size = {
           width: this.foodSize(food, 'width'),
           height: this.foodSize(food, 'height')};

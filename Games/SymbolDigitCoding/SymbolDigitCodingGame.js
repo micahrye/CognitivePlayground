@@ -24,7 +24,7 @@ import Signs from './Signs';
 import gameUtil from './gameUtil';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 120000;
+const GAME_TIME_OUT = 60000;
 const INACTIVITY_TIMEOUT = 15000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;

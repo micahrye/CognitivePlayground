@@ -18,6 +18,7 @@ import {
   AppState
 } from 'react-native';
 
+import KeepAwake from 'react-native-keep-awake';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import _ from 'lodash';
@@ -56,6 +57,7 @@ export default class Boxes extends Component {
     this.clawTweenTime = 1000;
     this.willUnmount = false;
     this.popPlaying = false;
+    KeepAwake.activate();
   }
   // TODO: should kill all timeouts and intervals on willUnmount
   
