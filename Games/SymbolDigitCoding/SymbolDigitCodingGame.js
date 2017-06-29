@@ -56,7 +56,7 @@ class SymbolDigitCodingGame extends React.Component {
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustSound = false;
-    
+    this.numberUniqueTrials = gameUtil.numberOfTrials();
     KeepAwake.activate();
   }
 
@@ -246,13 +246,19 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   nextTrial () {
-    const trial = this.state.trial + 1;
+    let trial = this.state.trial + 1;
+    if (trial === this.numberUniqueTrials) {
+      trial = 0;
+    }
     const symbolOrder = gameUtil.symbols(trial);
     this.food.sprite = gameUtil.foodSprite(trial);
+    const thoughtTiles = gameUtil.thoughtTilesForTrial(trial);
     this.setState({
       trial,
+      thoughtTiles,
       symbolOrder: symbolOrder,
-      thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
+    }, () => {
+
     });
   }
 

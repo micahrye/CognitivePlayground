@@ -20,6 +20,9 @@ function createTilesArray (activeTiles, sprites, frameKeys) {
   }));
 }
 
+function numberOfTrials () {
+  return trials.length;
+}
 
 function thoughtTilesForTrial (trialNumber) {
   // assuming there is always one valid trial in trails.
@@ -60,4 +63,5 @@ export default {
   correctSymbol,
   foodSprite,
   thoughtTilesForTrial,
+  numberOfTrials,
 };
