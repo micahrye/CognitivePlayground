@@ -6,6 +6,9 @@ import {
   AsyncStorage,
 } from 'react-native';
 
+import reactMixin from 'react-mixin';
+import TimerMixin from 'react-timer-mixin';
+
 // NOTES for myself to look back on as I continue to redo things
 // spotlight style goes in styles instead of hard coded in here
 // frog fps necessary?
@@ -49,7 +52,7 @@ class BugZapGameRedesign extends React.Component {
     // BUG: state is dependent on activeFrogColor, if order changed then we
     // throw an exception.
     // zero indexing for trialNumber
-    this.trialNumber = END_BLACKOUT;
+    this.trialNumber = 0;
     this.activeFrogColor = blueFrogCharacter;
     this.showOtherSign = false;
     this.frogPosX = 900 * this.props.scale.screenWidth;
@@ -94,7 +97,9 @@ class BugZapGameRedesign extends React.Component {
     this.disgustPlaying = false;
     this.leftBugColorIndex = GREEN_BUG;
     this.rightBugColorIndex = BLUE_BUG;
+    this.bugCanBePressed = true;
     this.blackoutTimeout;
+    this.gotoNextTrialOnTimeout;
     
     KeepAwake.activate();
   }
@@ -352,6 +357,8 @@ class BugZapGameRedesign extends React.Component {
   }
 
   onBugPress (pressedBug) {
+    if (!this.bugCanBePressed) return;
+    
     if (pressedBug === 'bugRight') {
       if (this.activeFrogColor.name.includes('green')) {
         if (this.rightBugColorIndex === GREEN_BUG) {
@@ -384,6 +391,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   correctBugTapped (bugSide) {
+    this.bugCanBePressed = false;
     clearTimeout(this.displayBeeTimeout);
     if (bugSide == 'left') {
       this.refs.bugLeftRef.startTween();
@@ -479,6 +487,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   resetTrialSettings () {
+    this.bugCanBePressed = true;
     this.clearScene = setTimeout(() => {
       this.setState({
         showBugRight: false,
@@ -564,6 +573,10 @@ class BugZapGameRedesign extends React.Component {
     )
   }
 
+  hideBee () {
+    this.setState({ showBee: false });
+  }
+  
   displayBee () {
     // need to hide corresponding bug
     //frogSide
@@ -578,7 +591,12 @@ class BugZapGameRedesign extends React.Component {
         showBugLeft: false,
       });
     }
-
+    
+    this.gotoNextTrialOnTimeout = this.setTimeout(() => {
+      this.hideBee();
+      this.resetTrialSettings();
+    }, 1000);
+    
   }
 
   beeLocation (frogSide) {
@@ -790,4 +808,5 @@ BugZapGameRedesign.propTypes = {
   route: React.PropTypes.object,
 };
 
+reactMixin.onClass(BugZapGameRedesign, TimerMixin);
 export default BugZapGameRedesign;

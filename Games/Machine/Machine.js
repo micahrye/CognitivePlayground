@@ -29,7 +29,7 @@ import AnimatedSprite from 'react-native-animated-sprite';
 import AnimatedSpriteMatrix from 'rn-animated-sprite-matrix';
 import gameUtil from './gameUtil';
 
-import buttonSprite from '../../sprites/button3/button3Sprite';
+import buttonSprite from '../../sprites/buttonLeft/buttonLeftSprite';
 import birdSprite from '../../sprites/bird2';
 import foodSprite from "../../sprites/apple/appleCharacter";
 import machineSprite from '../../sprites/foodMachine2';
@@ -65,6 +65,9 @@ export default class Machine extends Component {
     this.numRows = 2;
     this.popPlaying = false;
     this.leverPlaying = false;
+    this.celebratePlaying = false;
+    this.characterAudioPlaying = false;
+    this.allowCellSelection = false;
     this.showFood = 0;
   }
   
@@ -219,8 +222,8 @@ export default class Machine extends Component {
   buttonSize () {
     const scaleLever = 1.0;
     return ({
-      width: buttonSprite.size.width * scaleLever * this.scale.image,
-      height: buttonSprite.size.height * scaleLever * this.scale.image,
+      width: buttonSprite.size().width * scaleLever * this.scale.image,
+      height: buttonSprite.size().height * scaleLever * this.scale.image,
     });
   }
 
@@ -228,16 +231,16 @@ export default class Machine extends Component {
     const locationMachine = this.machineLocation();
     const machineSize = machineSprite.size(2 * this.scale.image);
     const leftOffset = (15 * this.scale.screenWidth);
-    const left = locationMachine.left + machineSize.width - leftOffset;
-    const top = SCREEN_HEIGHT - machineSize.height + 160 * this.scale.image;
+    const left = SCREEN_WIDTH - this.buttonSize().width;
+    const top = SCREEN_HEIGHT - machineSize.height + 120 * this.scale.image;
 
     return {top, left};
   }
   
   buttonPressIn () { 
-    
+    this.birdTalk();
     this.foodSprite.UID = randomstring({length: 7});
-    
+  
     if (!this.popPlaying) {
       this.popPlaying = true;
       this.popSound.play(() => {this.popPlaying = false;});
@@ -252,21 +255,74 @@ export default class Machine extends Component {
   }
   
   cellPressed (cellObj, position) {
-    if (this.state.showFood) {
-      this.setState({showFood: 0});  
-    } else {
-      this.setState({showFood: 1});
+    if (!this.allowCellSelection) {
+      return; 
     }
+    const correctSelection = gameUtil.correctForTrial(this.state.trialNumber);
+
     console.log(`cell in postion ${position} pressed`);
-    if (position === 2) {
+    if (correctSelection === position) {
       this.setState({
         showFood: 1,
       }, () => {
         this.refs.foodRef.startTween(); 
         this.birdCelebrate();
-      });
+      });    
+    } else {
       
+      // this.birdDisapointed();
     }
+  }
+  
+  playAudioFile (file) {
+    file = "a_name.wav";
+    if (this.characterAudioPlaying) {
+      return;
+    }
+    const audio = new Sound(file, Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.leverSound.setNumberOfLoops(0);
+      this.leverSound.setVolume(1);
+      this.characterAudioPlaying = true;
+      audio.play(() => {
+        this.characterAudioPlaying = false;
+        this.celebratePlaying = false;
+        audio.stop();
+        audio.release();
+      });
+    });
+    this.setTimeout(() => {this.allowCellSelection = true;});
+  }
+  
+  birdTalk () {
+    const audioFileName = gameUtil.audioFileName(this.state.trialNumber);
+    this.playAudioFile(audioFileName);
+    this.setState({
+      birdAnimationIndex: birdSprite.animationIndex('EAT'),
+    }, () => {
+      this.refs.bird.startAnimation();
+    });
+  }
+  
+  birdEat () {
+    this.setTimeout(() => {
+      if (!this.celebratePlaying) {
+        this.celebratePlaying = true;
+        this.celebrateSound.play(() => {this.celebratePlaying = false;});
+      }
+    }, TWEEN_DURATION - 310);
+    
+    this.setTimeout(() => {
+      this.setState({
+        birdAnimationIndex: birdSprite.animationIndex('EAT')
+      }, () => {
+        this.refs.bird.startAnimation();
+        this.allowCellSelection = false;
+      });
+    }, TWEEN_DURATION - 200);
   }
   
   birdCelebrate () {
@@ -274,13 +330,7 @@ export default class Machine extends Component {
       birdAnimationIndex: birdSprite.animationIndex('CELEBRATE')
     }, () => {
       this.refs.bird.startAnimation();
-      this.setTimeout(() => {
-        this.setState({
-          birdAnimationIndex: birdSprite.animationIndex('EAT')
-        }, () => {
-          this.refs.bird.startAnimation();
-        });
-      }, TWEEN_DURATION - 200);
+      this.birdEat(); 
     });
   }
   

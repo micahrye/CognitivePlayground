@@ -5,35 +5,40 @@
 		"animationKeys": ["S", "T", "A", "R"],
     "correct": "A",
     "numRows": 2,
-    "numCOlumns": 2
+    "numCOlumns": 2,
+		"audioFileName": "A_Name.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
 		"animationKeys": ["W", "X", "Y", "Z"],
     "correct": "X",
     "numRows": 2,
-    "numCOlumns": 2
+    "numCOlumns": 2,
+		"audioFileName": "X_Sound.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
 		"animationKeys": ["G", "A", "Y", "T"],
     "correct": "Y",
     "numRows": 2,
-    "numCOlumns": 2
+    "numCOlumns": 2,
+		"audioFileName": "Y_Sound.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
 		"animationKeys": ["Q", "P", "Y", "K"],
     "correct": "Q",
     "numRows": 2,
-    "numCOlumns": 2
+    "numCOlumns": 2,
+		"audioFileName": "Q_Sound.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
 		"animationKeys": ["S", "N", "A", "P"],
     "correct": "S",
     "numRows": 2,
-    "numCOlumns": 2
+    "numCOlumns": 2,
+		"audioFileName": "S_Sound.wav"
 	}
   
 ]

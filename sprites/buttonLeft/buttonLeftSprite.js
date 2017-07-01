@@ -23,7 +23,7 @@ const buttonLeftSprite = {
       case 'PRESSED':
         return [2];
       case 'ALL':
-        return [0,1,2];
+        return [0, 1, 2];
       default:
         if (_.includes(animationType, 'BLINK_')) {
           const parts = _.split(animationType, '_');
