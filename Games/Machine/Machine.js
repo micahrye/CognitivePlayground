@@ -24,6 +24,7 @@ const Sound = require('react-native-sound');
 import _ from 'lodash';
 import randomstring from 'random-string';
 
+import LoadScreen from '../../components/LoadScreen';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from 'react-native-animated-sprite';
 import AnimatedSpriteMatrix from 'rn-animated-sprite-matrix';
@@ -33,6 +34,7 @@ import buttonSprite from '../../sprites/buttonLeft/buttonLeftSprite';
 import birdSprite from '../../sprites/bird2';
 import foodSprite from "../../sprites/apple/appleCharacter";
 import machineSprite from '../../sprites/foodMachine2';
+import beltSprite from '../../sprites/conveyorBelt/beltCharacter';
 
 import litSprites from '../../sprites/litSprites';
 
@@ -50,23 +52,27 @@ export default class Machine extends Component {
     this.state = {
       devMode: false,
       cells: [],
-      trialNumber: 0,
+      trialNumber: -1,
       showFood: 1,
       birdAnimationIndex: [0],
+      showMatrix: false,
+      beltFrameIndex: [0],
+      loadingScreen: true,
     };
     this.foodSprite = {
       tweenOptions: {},
       coords: {top: 0, left: 0},
     };
     this.scale = this.props.scale;
-
-    this.cellSpriteScale = 0.80;
+    this.machineScale = 2;
+    this.cellSpriteScale = 0.66 * this.scale.image;
     this.numColumns = 2;
     this.numRows = 2;
     this.popPlaying = false;
     this.leverPlaying = false;
     this.celebratePlaying = false;
     this.characterAudioPlaying = false;
+    this.disgustPlaying = false;
     this.allowCellSelection = false;
     this.showFood = 0;
   }
@@ -79,29 +85,44 @@ export default class Machine extends Component {
         this.setState({ devMode: prefs.developMode });
       }
     });
-    this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
-    this.foodSprite.coords = this.foodStartLocation();
     
+    this.foodSprite.coords = this.foodStartLocation();
     const birdLoc = this.birdLocation();
     const birdSize = birdSprite.size(2 * this.scale.image);
     const mloc = this.machineLocation();
-    const msize = machineSprite.size();
+    const msize = this.machineSize(); // machineSprite.size();
     this.foodSprite.UID = randomstring({length: 7});
     this.foodSprite.tweenOptions = {
       tweenType: 'sine-wave',
       startXY: [this.foodSprite.coords.left, this.foodSprite.coords.top],
-      xTo: [mloc.left, birdLoc.left + birdSize.width * 0.45],
-      yTo: [mloc.top + msize.height/2, birdLoc.top + birdSize.height * 0.33],
+      xTo: [mloc.left - 20, birdLoc.left + birdSize.width * 0.45],
+      yTo: [mloc.top + msize.height * 0.3, birdLoc.top + birdSize.height * 0.33],
       duration: TWEEN_DURATION,
       loop: false,
     };
-    console.log(`tweenOptions = ${JSON.stringify(this.foodSprite.tweenOptions, null, 2)}`);
+    
   }
   
   componentDidMount () {
     this.startInactivityMonitor();
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
+    
+    this.setState({
+      beltFrameIndex: beltSprite.animationIndex('ALL'),
+      birdAnimationIndex: birdSprite.animationIndex('ALL'),
+    }, () => {
+      this.refs.bird.startAnimation();
+      this.setTimeout(() => {
+        this.setState({
+          beltFrameIndex: beltSprite.animationIndex('IDLE'),
+          birdAnimationIndex: birdSprite.animationIndex('IDLE'),
+        }, () => {
+          this.refs.bird.startAnimation();
+        })
+      }, 1000);
+    });
+    
   }
   
   initSounds () {
@@ -129,6 +150,14 @@ export default class Machine extends Component {
       this.celebrateSound.setNumberOfLoops(0);
       this.celebrateSound.setVolume(1);
     });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
   }
 
   releaseAudio () {
@@ -138,6 +167,8 @@ export default class Machine extends Component {
     this.leverSound.release();
     this.celebrateSound.stop();
     this.celebrateSound.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
   }
   
   _handleAppStateChange = (appState) => {
@@ -169,10 +200,31 @@ export default class Machine extends Component {
     return {top, left};
   }
   
+  machineSize () {
+    return machineSprite.size(this.machineScale * this.scale.image);
+  }
+  
   machineLocation () {
-    const size = machineSprite.size(1.75 * this.scale.image);
-    const top = SCREEN_HEIGHT - size.height - 100 * this.scale.screenHeight;
-    const left = SCREEN_WIDTH - size.width  - 300 * this.scale.screenWidth; 
+    const size = this.machineSize(); //machineSprite.size(1.75 * this.scale.image);
+    const top = SCREEN_HEIGHT - size.height - 80 * this.scale.screenHeight;
+    const left = SCREEN_WIDTH - size.width  - 220 * this.scale.screenWidth; 
+    return {top, left};
+  }
+  
+  conveyorBeltSize () {
+    const scaleBelt = 1;
+    return ({
+      width: beltSprite.size.width * scaleBelt * this.scale.image,
+      height: beltSprite.size.height * scaleBelt * this.scale.image,
+    });
+  }
+
+  conveyorBeltLocation () {
+    const locationMachine = this.machineLocation();
+    const machineSize = this.machineSize();
+    const leftOffset = 283 * this.scale.screenWidth;
+    const left = locationMachine.left ;
+    const top = SCREEN_HEIGHT - (machineSize.height * 0.6);
     return {top, left};
   }
   
@@ -187,11 +239,11 @@ export default class Machine extends Component {
   }
   
   foodStartLocation () {
-    const msize = machineSprite.size(1.75 * this.scale.image);
+    const msize = this.machineSize(); // machineSprite.size(1.75 * this.scale.image);
     const mloc = this.machineLocation();
     const foodSize = this.foodSize();
     const coords = {
-      top: mloc.top + msize.height * 0.31,
+      top: mloc.top + msize.height * 0.3,
       left: mloc.left + msize.width/2,
     };
     return coords;
@@ -199,10 +251,10 @@ export default class Machine extends Component {
   
   matrixLocation () {
     const mloc = this.machineLocation();
-    const msize = machineSprite.size(2 * this.scale.image);
-    const size = litSprites.size();
-    const width = this.numColumns * size.width * this.cellSpriteScale;
-    const height = this.numRows * size.height * this.cellSpriteScale;
+    const msize = this.machineSize(); // machineSprite.size(2 * this.scale.image);
+    const size = litSprites.size(this.cellSpriteScale);
+    const width = this.numColumns * size.width;
+    const height = this.numRows * size.height;
     const top = mloc.top + msize.height * .295;
     const left = mloc.left + msize.width * .385;
     const location = {top, left};
@@ -212,10 +264,10 @@ export default class Machine extends Component {
   }
   
   matrixSize () {
-    const size = litSprites.size();
+    const size = litSprites.size(this.cellSpriteScale);
     const defaultMargin = 10;
-    const width = this.numColumns * size.width * this.cellSpriteScale + (this.numColumns - 1) * defaultMargin ;
-    const height = this.numRows * size.height * this.cellSpriteScale + (this.numRows - 1) * defaultMargin;
+    const width = this.numColumns * size.width + (this.numColumns - 1) * defaultMargin ;
+    const height = this.numRows * size.height + (this.numRows - 1) * defaultMargin;
     return {width, height};
   }
   
@@ -229,7 +281,7 @@ export default class Machine extends Component {
 
   buttonLocation () {
     const locationMachine = this.machineLocation();
-    const machineSize = machineSprite.size(2 * this.scale.image);
+    const machineSize = this.machineSize(); // machineSprite.size(2 * this.scale.image);
     const leftOffset = (15 * this.scale.screenWidth);
     const left = SCREEN_WIDTH - this.buttonSize().width;
     const top = SCREEN_HEIGHT - machineSize.height + 120 * this.scale.image;
@@ -238,19 +290,22 @@ export default class Machine extends Component {
   }
   
   buttonPressIn () { 
-    this.birdTalk();
+    const trial = this.state.trialNumber + 1;
+    this.birdTalk(trial);
     this.foodSprite.UID = randomstring({length: 7});
   
     if (!this.popPlaying) {
       this.popPlaying = true;
       this.popSound.play(() => {this.popPlaying = false;});
-    }
-    const trial = this.state.trialNumber + 1; 
+    } 
     this.setState({
       trialNumber: trial,
       showFood: 1,
     }, () => {
-      this.setState({cells: gameUtil.cellsForTrial(this.state.trialNumber)});
+      this.setState({
+        cells: gameUtil.cellsForTrial(this.state.trialNumber),
+        showMatrix: true,
+      });
     });
   }
   
@@ -264,18 +319,17 @@ export default class Machine extends Component {
     if (correctSelection === position) {
       this.setState({
         showFood: 1,
+        beltFrameIndex: beltSprite.animationIndex('RUN'),
       }, () => {
         this.refs.foodRef.startTween(); 
         this.birdCelebrate();
       });    
     } else {
-      
-      // this.birdDisapointed();
+      this.birdDisapointed();
     }
   }
   
   playAudioFile (file) {
-    file = "a_name.wav";
     if (this.characterAudioPlaying) {
       return;
     }
@@ -297,8 +351,8 @@ export default class Machine extends Component {
     this.setTimeout(() => {this.allowCellSelection = true;});
   }
   
-  birdTalk () {
-    const audioFileName = gameUtil.audioFileName(this.state.trialNumber);
+  birdTalk (trial) {
+    const audioFileName = gameUtil.audioFileName(trial);
     this.playAudioFile(audioFileName);
     this.setState({
       birdAnimationIndex: birdSprite.animationIndex('EAT'),
@@ -317,7 +371,8 @@ export default class Machine extends Component {
     
     this.setTimeout(() => {
       this.setState({
-        birdAnimationIndex: birdSprite.animationIndex('EAT')
+        birdAnimationIndex: birdSprite.animationIndex('EAT'),
+        beltFrameIndex: beltSprite.animationIndex('IDLE'),
       }, () => {
         this.refs.bird.startAnimation();
         this.allowCellSelection = false;
@@ -334,17 +389,33 @@ export default class Machine extends Component {
     });
   }
   
+  birdDisapointed () {
+    this.allowCellSelection = false;
+    this.setState({
+      birdAnimationIndex: birdSprite.animationIndex('DISGUST')
+    }, () => {
+      this.refs.bird.startAnimation();
+      if (!this.disgustPlaying) {
+        this.disgustPlaying = true;
+        this.disgustSound.play(() => {this.disgustPlaying = false;});
+      }
+    });
+  }
+  
+  
   sleep (time) {
     return new Promise((resolve) => setTimeout(resolve, time));
   }
   
   onFoodTweenFinish () {
-    console.log("FOOD TWEEN FINISH");
-    //this.foodSprite.coords = this.foodStartLocation();
     this.foodSprite.UID = randomstring({length: 7});
     this.setState({
       showFood: 0,
     });
+  }
+  
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
   }
   
   render() {
@@ -360,7 +431,7 @@ export default class Machine extends Component {
             height: SCREEN_HEIGHT,
           }}
         />
-      
+          
         <AnimatedSprite
           sprite={foodSprite}
           ref={'foodRef'}
@@ -382,7 +453,16 @@ export default class Machine extends Component {
           loopAnimation={false}
           coordinates={this.birdLocation()}
           size={birdSprite.size(2 * this.scale.image)}
-          draggable={true}
+          draggable={false}
+        />
+      
+        <AnimatedSprite
+          ref={'beltRef'}
+          sprite={beltSprite}
+          animationFrameIndex={this.state.beltFrameIndex}
+          loopAnimation={true}
+          coordinates={this.conveyorBeltLocation()}
+          size={this.conveyorBeltSize()}
         />
       
         <AnimatedSprite
@@ -391,7 +471,7 @@ export default class Machine extends Component {
           animationFrameIndex={[0]}
           loopAnimation={false}
           coordinates={this.machineLocation()}
-          size={machineSprite.size(2 * this.scale.image)}
+          size={this.machineSize()}
           draggable={false}
         />
       
@@ -417,21 +497,29 @@ export default class Machine extends Component {
           />
         : null}
         
-        <AnimatedSpriteMatrix
-          styles={{
-              ...(this.matrixLocation()),
-              ...(this.matrixSize()),
-              position: 'absolute',
-            }}
-          dimensions={{columns: this.numColumns, rows: this.numRows}}
-          cellSpriteScale={this.cellSpriteScale}
-          cellObjs={this.state.cells}
-          scale={this.matrixImageScale}
-          cellRightMargin={26}
-          cellBottomMargin={18}
-          onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
-        />    
-      
+        {this.state.showMatrix ?
+          <AnimatedSpriteMatrix
+            styles={{
+                ...(this.matrixLocation()),
+                ...(this.matrixSize()),
+                position: 'absolute',
+              }}
+            dimensions={{columns: this.numColumns, rows: this.numRows}}
+            cellSpriteScale={this.cellSpriteScale}
+            cellObjs={this.state.cells}
+            cellRightMargin={34 * this.scale.image}
+            cellBottomMargin={28 * this.scale.image}
+            onPress={(cellObj, position) => this.cellPressed(cellObj, position)}
+          />    
+        : null}
+        
+        {this.state.loadingScreen ?
+          <LoadScreen
+            onTweenFinish={() => this.onLoadScreenFinish()}
+            width={SCREEN_WIDTH}
+            height={SCREEN_HEIGHT}
+          />
+        : null}
       </View>
     );
   }

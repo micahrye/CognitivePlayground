@@ -6,7 +6,7 @@
     "correct": "A",
     "numRows": 2,
     "numCOlumns": 2,
-		"audioFileName": "A_Name.wav"
+		"audioFileName": "a_name.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
@@ -14,7 +14,7 @@
     "correct": "X",
     "numRows": 2,
     "numCOlumns": 2,
-		"audioFileName": "X_Sound.wav"
+		"audioFileName": "x_name.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
@@ -22,7 +22,7 @@
     "correct": "Y",
     "numRows": 2,
     "numCOlumns": 2,
-		"audioFileName": "Y_Sound.wav"
+		"audioFileName": "y_name.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
@@ -30,7 +30,7 @@
     "correct": "Q",
     "numRows": 2,
     "numCOlumns": 2,
-		"audioFileName": "Q_Sound.wav"
+		"audioFileName": "q_name.wav"
 	},
   {
 		"activeCells": [true, true, true, true],
@@ -38,7 +38,7 @@
     "correct": "S",
     "numRows": 2,
     "numCOlumns": 2,
-		"audioFileName": "S_Sound.wav"
+		"audioFileName": "s_name.wav"
 	}
   
 ]

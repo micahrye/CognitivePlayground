@@ -6,6 +6,7 @@ const litSprites = {
       width: 200 * scale, 
       height: 200 * scale,
     };
+    console.log(`LITSPRITE size = ${JSON.stringify(size)}`);
     return size;  
   },
   animationTypes: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],

@@ -25,6 +25,7 @@ import _ from 'lodash';
 const Sound = require('react-native-sound');
 
 import randomstring from 'random-string';
+import LoadScreen from '../../components/LoadScreen';
 import HomeButton from '../../components/HomeButton/HomeButton';
 
 import AnimatedSprite from 'react-native-animated-sprite';
@@ -49,6 +50,7 @@ export default class Boxes extends Component {
       respondToClawTweenFinish: true,
       boxID: -1,
       allowBoxPress: true,
+      loadingScreen: true,
     };
     this.scale = this.props.scale;
     this.birdScale = 2.0;
@@ -336,6 +338,10 @@ export default class Boxes extends Component {
     return new Promise((resolve) => setTimeout(resolve, time));
   }
   
+  onLoadScreenFinish () {
+    this.setState({loadingScreen: false});
+  }
+  
   render() {
     
     return (
@@ -428,6 +434,14 @@ export default class Boxes extends Component {
             width: 150 * this.scale.image,
             height: 150 * this.scale.image,
             top:0, left: 0, position: 'absolute' }}
+        />
+      : null}
+      
+      {this.state.loadingScreen ?
+        <LoadScreen
+          onTweenFinish={() => this.onLoadScreenFinish()}
+          width={SCREEN_WIDTH}
+          height={SCREEN_HEIGHT}
         />
       : null}
       
