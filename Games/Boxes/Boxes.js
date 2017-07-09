@@ -32,8 +32,10 @@ import AnimatedSprite from 'react-native-animated-sprite';
 import birdSprite from '../../sprites/bird2';
 import boxSprite from '../../sprites/box';
 import clawSprite from '../../sprites/claw';
+import buttonSprite from '../../sprites/buttonLeft/buttonLeftSprite';
 
 const GAME_TIME_OUT = 60000;
+const AUDIO_SEQ_INTERVAL = 500;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 import gameUtil from './gameUtil';
@@ -51,7 +53,9 @@ export default class Boxes extends Component {
       boxID: -1,
       allowBoxPress: true,
       loadingScreen: true,
+      trialNumber: 0,
     };
+    this.allowButtonPress = true;
     this.scale = this.props.scale;
     this.birdScale = 2.0;
     this.boxScale = 1.25;
@@ -78,6 +82,8 @@ export default class Boxes extends Component {
     this.startInactivityMonitor();
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
+    const clawLoc = gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale);
+    gameUtil.createMoveSeq(clawLoc);
   }
   
   componentWillUnmount () {
@@ -296,7 +302,6 @@ export default class Boxes extends Component {
           resolve();
         })
         .catch((err) => console.log("startClawReturnUp: ", err.stack));
-        // then allowBoxPress true
       });
     });
   }
@@ -329,6 +334,68 @@ export default class Boxes extends Component {
     });
   }
   
+  clawMoveSequence (index = 0) {
+    const moveSeq = gameUtil.getClawMoveSeq();
+    if (index >= moveSeq.length) {
+      return;
+    }
+    const clawTweenOptions = moveSeq[index];
+    
+    if (index === moveSeq.length-1) {
+      console.log('BOX: allow box press');
+      this.setState({
+        clawTweenOptions,
+        allowBoxPress: true
+      }, () => {
+        this.refs.claw.tweenSprite();
+      });
+    } else {
+      this.safeSetState(
+        { 
+          clawTweenOptions,
+          allowBoxPress: false,
+          respondToClawTweenFinish: false,
+          clawIndex: clawSprite.animationIndex('IDLE'),
+        }, 
+      () => {
+        this.refs.claw.startAnimation();
+        this.refs.claw.tweenSprite();
+      });
+    }
+    
+  }
+  
+  playAudioSequence (audioFiles, index = 0) {
+    if (index === audioFiles.length) {
+      console.log(`BOX: calling clawMove with 4`);
+      this.clawMoveSequence(4);
+    }
+    if (index >= audioFiles.length) {
+      return;
+    }
+    console.log(`BOX: index = ${index}`);
+    const audioFile = audioFiles[index];
+    const audio = new Sound(audioFile, Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      audio.setNumberOfLoops(0);
+      audio.setVolume(1);
+      audio.play(() => {
+        const newIndex = index + 1;
+        audio.stop();
+        audio.release();
+        this.setTimeout(() => {
+          console.log(`BOX: newIndex = ${newIndex}`);
+          this.playAudioSequence(audioFiles, newIndex);
+          this.clawMoveSequence(newIndex);
+        }, AUDIO_SEQ_INTERVAL);
+      });
+      
+    });
+  }
+  
   clawTweenFinish () {
     if (!this.state.respondToClawTweenFinish) return;
     this.pickupPressedBox(); 
@@ -340,6 +407,50 @@ export default class Boxes extends Component {
   
   onLoadScreenFinish () {
     this.setState({loadingScreen: false});
+  }
+  
+  buttonSize () {
+    const scaleLever = 1.0;
+    return ({
+      width: buttonSprite.size().width * scaleLever * this.scale.image,
+      height: buttonSprite.size().height * scaleLever * this.scale.image,
+    });
+  }
+
+  buttonLocation () {
+    const leftOffset = (15 * this.scale.screenWidth);
+    const left = SCREEN_WIDTH - this.buttonSize().width;
+    const top = SCREEN_HEIGHT - 520 * this.scale.image;
+
+    return {top, left};
+  }
+  
+  buttonPressIn () {
+    if (!this.allowButtonPress) {
+      return;
+    }
+    this.allowButtonPress = false;
+    const speakAudio = gameUtil.getSpeakAudioFor(this.trialNumber);
+    const boxAudioFiles = gameUtil.getBoxAudioFor(this.trialNumber);
+    // At the end of the claw move sequence the bird will indicate the 
+    // box to choose. 
+    this.clawMoveSequence();
+    this.playAudioSequence(boxAudioFiles);
+  }
+  
+  cloudStyle () {
+    const width = 193 * 1.25 * this.props.scale.image;
+    const height =  135 * 1.25 * this.props.scale.image;
+    const top = this.birdLocation().top - (height * 0.55);
+    const left = this.birdLocation().left - (width * 0.0);
+
+    return {
+      width,
+      height,
+      top,
+      left,
+      position: 'absolute',
+    };
   }
   
   render() {
@@ -437,6 +548,20 @@ export default class Boxes extends Component {
         />
       : null}
       
+      <Image source={require('../../sprites/thoughtBubble/thought_bubble.png')}
+        style={this.cloudStyle()}
+      />
+      
+      <AnimatedSprite
+        sprite={buttonSprite}
+        animationFrameIndex={[0]}
+        loopAnimation={false}
+        coordinates={this.buttonLocation()}
+        size={this.buttonSize()}
+        rotate={[{rotateY:'0deg'}]}
+        onPressIn={() => this.buttonPressIn()}
+      />
+    
       {this.state.loadingScreen ?
         <LoadScreen
           onTweenFinish={() => this.onLoadScreenFinish()}

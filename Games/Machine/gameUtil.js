@@ -2,9 +2,7 @@
 
 import _ from 'lodash';
 import randomstring from 'random-string';
-
 import litSprites from '../../sprites/litSprites';
-
 import trials from './trials';
 
 const getTrialIndex = function tiralIndex(trialNumber) {

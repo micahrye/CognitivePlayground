@@ -280,7 +280,6 @@ export default class Machine extends Component {
   }
 
   buttonLocation () {
-    const locationMachine = this.machineLocation();
     const machineSize = this.machineSize(); // machineSprite.size(2 * this.scale.image);
     const leftOffset = (15 * this.scale.screenWidth);
     const left = SCREEN_WIDTH - this.buttonSize().width;

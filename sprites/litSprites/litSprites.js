@@ -9,7 +9,8 @@ const litSprites = {
     console.log(`LITSPRITE size = ${JSON.stringify(size)}`);
     return size;  
   },
-  animationTypes: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'],
+  animationTypes: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
+                  '0', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
   frames: [
     require('./letters/Letter_A.png'), require('./letters/Letter_B.png'),
     require('./letters/Letter_C.png'), require('./letters/Letter_D.png'),
