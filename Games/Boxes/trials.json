@@ -2,7 +2,7 @@
   {
     "boxAudioFiles": ["a_name.wav", "q_name.wav", "x_name.wav", "s_name.wav"],
     "correct": "q_nmae",
-    "speakAudio": "q_nmae.wav",
+    "speakAudio": "q_name.wav",
     "thinkImage": false
   },
   {

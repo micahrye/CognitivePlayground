@@ -51,9 +51,11 @@ export default class Boxes extends Component {
       clawDown: false,
       respondToClawTweenFinish: true,
       boxID: -1,
-      allowBoxPress: true,
+      allowBoxPress: false,
       loadingScreen: true,
       trialNumber: 0,
+      showThought: false,
+      birdAnimationIndex: [0],
     };
     this.allowButtonPress = true;
     this.scale = this.props.scale;
@@ -125,6 +127,8 @@ export default class Boxes extends Component {
     this.leverSound.release();
     this.celebrateSound.stop();
     this.celebrateSound.release();
+    this.audio.stop();
+    this.audio.release();
   }
   
   _handleAppStateChange = (appState) => {
@@ -325,13 +329,50 @@ export default class Boxes extends Component {
           this.startClawReturnUp();
           this.sleep(1500)
           .then(() => {
-            this.safeSetState({ allowBoxPress: true })
-            console.log('bam bam mame')
+            this.safeSetState({allowBoxPress: false, });
+            this.allowButtonPress = true;
           });
         })
         .catch((err) => console.log("returnBox: ", err.stack));
       }, this.clawTweenTime);
     });
+  }
+  
+  birdSpeak (audio) {
+    // bird animation to speak
+    this.setState({
+      birdAnimationIndex: birdSprite.animationIndex('EAT'),
+    }, () => {
+      this.refs.bird.startAnimation();
+      audio.play(() => {
+        audio.stop();
+        audio.release();
+      });
+    });
+    
+  }
+  
+  indicateCorrectBox () {
+    const speakAudio = gameUtil.getSpeakAudioFor(this.trialNumber);
+    if (speakAudio) {
+      this.setState({
+        showThought: false,
+      });
+      console.log(`BOX: speakAudio = ${speakAudio}`);
+      this.audio = new Sound(speakAudio, Sound.MAIN_BUNDLE, (error) => {
+        if (error) {
+          console.warn('failed to load the sound', error);
+          return;
+        }
+        this.audio.setNumberOfLoops(0);
+        this.audio.setVolume(1);
+        this.birdSpeak(this.audio);
+      });
+    } else {
+      this.setState({
+        showThought: true,
+      });
+    }
   }
   
   clawMoveSequence (index = 0) {
@@ -348,6 +389,10 @@ export default class Boxes extends Component {
         allowBoxPress: true
       }, () => {
         this.refs.claw.tweenSprite();
+        // claw retuns then have character indicate box to choose
+        this.setTimeout(() => {
+          this.indicateCorrectBox();
+        }, clawTweenOptions.duration);
       });
     } else {
       this.safeSetState(
@@ -375,17 +420,17 @@ export default class Boxes extends Component {
     }
     console.log(`BOX: index = ${index}`);
     const audioFile = audioFiles[index];
-    const audio = new Sound(audioFile, Sound.MAIN_BUNDLE, (error) => {
+    this.audio = new Sound(audioFile, Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
         return;
       }
-      audio.setNumberOfLoops(0);
-      audio.setVolume(1);
-      audio.play(() => {
+      this.audio.setNumberOfLoops(0);
+      this.audio.setVolume(1);
+      this.audio.play(() => {
         const newIndex = index + 1;
-        audio.stop();
-        audio.release();
+        this.audio.stop();
+        this.audio.release();
         this.setTimeout(() => {
           console.log(`BOX: newIndex = ${newIndex}`);
           this.playAudioSequence(audioFiles, newIndex);
@@ -430,10 +475,8 @@ export default class Boxes extends Component {
       return;
     }
     this.allowButtonPress = false;
-    const speakAudio = gameUtil.getSpeakAudioFor(this.trialNumber);
     const boxAudioFiles = gameUtil.getBoxAudioFor(this.trialNumber);
-    // At the end of the claw move sequence the bird will indicate the 
-    // box to choose. 
+    // At the end of the claw move sequence the bird will indicate the box to choose. 
     this.clawMoveSequence();
     this.playAudioSequence(boxAudioFiles);
   }
@@ -469,7 +512,7 @@ export default class Boxes extends Component {
       <AnimatedSprite
         ref={'bird'}
         sprite={birdSprite}
-        animationFrameIndex={[0]}
+        animationFrameIndex={this.state.birdAnimationIndex}
         loopAnimation={false}
         coordinates={this.birdLocation()}
         size={birdSprite.size(this.birdScale * this.scale.image)}
@@ -548,9 +591,11 @@ export default class Boxes extends Component {
         />
       : null}
       
-      <Image source={require('../../sprites/thoughtBubble/thought_bubble.png')}
-        style={this.cloudStyle()}
-      />
+      {this.state.showThought ? 
+        <Image source={require('../../sprites/thoughtBubble/thought_bubble.png')}
+          style={this.cloudStyle()}
+        />
+      : null}
       
       <AnimatedSprite
         sprite={buttonSprite}
