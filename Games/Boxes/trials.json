@@ -1,14 +1,26 @@
 [
   {
-    "boxAudioFiles": ["a_name.wav", "q_name.wav", "x_name.wav", "s_name.wav"],
-    "correct": "q_nmae",
-    "speakAudio": "q_name.wav",
+    "boxAudioFiles": ["s_name.wav", "q_name.wav", "x_name.wav", "a_name.wav"],
+    "correct": "x_name",
+    "speakAudio": false,
+    "thinkImage": "Letter_X"
+  },
+  {
+    "boxAudioFiles": ["s_name.wav", "q_name.wav", "x_name.wav", "a_name.wav"],
+    "correct": "q_name",
+    "speakAudio": "q_name",
     "thinkImage": false
   },
   {
     "boxAudioFiles": ["s_name.wav", "q_name.wav", "x_name.wav", "a_name.wav"],
-    "correct": "x_nmae",
+    "correct": "a_name",
     "speakAudio": false,
-    "thinkImage": "Letter_X"
+    "thinkImage": "Letter_A"
+  },
+  {
+    "boxAudioFiles": ["s_name.wav", "q_name.wav", "x_name.wav", "a_name.wav"],
+    "correct": "s_name",
+    "speakAudio": "s_name",
+    "thinkImage": false
   }
 ]

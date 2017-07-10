@@ -86,6 +86,21 @@ const getSpeakAudioFor = function SpeakAudio (trialNumber) {
   return speakAudio;
 }
 
+const checkCorrectSelection = function correctSelection (trialNumber, selection) {
+  const trialIndex = getTrialIndex(trialNumber);
+  const correct = trials[trialIndex].correct;
+  const selectedAudio = trials[trialIndex].boxAudioFiles[selection];
+  const audioName = selectedAudio.split('.')[0];
+  console.log(`BOX: correct = ${correct}, audioName = ${audioName}, same? = ${_.isEqual(correct, audioName)}`);
+  return _.isEqual(correct, audioName);
+}
+
+const getThinkImage = function thinkImage (trialNumber) {
+  const trialIndex = getTrialIndex(trialNumber);
+  const thinkImageName = trials[trialIndex].thinkImage;
+  return thinkImageName;
+}
+
 export default {
   getClawLocation,
   setScreenSize,
@@ -93,4 +108,6 @@ export default {
   getClawMoveSeq,
   getBoxAudioFor,
   getSpeakAudioFor,
+  checkCorrectSelection,
+  getThinkImage,
 };

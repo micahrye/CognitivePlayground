@@ -30,9 +30,12 @@ import HomeButton from '../../components/HomeButton/HomeButton';
 
 import AnimatedSprite from 'react-native-animated-sprite';
 import birdSprite from '../../sprites/bird2';
+import appleRedSprite from '../../sprites/appleRed/appleRedSprite';
 import boxSprite from '../../sprites/box';
 import clawSprite from '../../sprites/claw';
 import buttonSprite from '../../sprites/buttonLeft/buttonLeftSprite';
+
+import litSprites from '../../sprites/litSprites';
 
 const GAME_TIME_OUT = 60000;
 const AUDIO_SEQ_INTERVAL = 500;
@@ -53,10 +56,12 @@ export default class Boxes extends Component {
       boxID: -1,
       allowBoxPress: false,
       loadingScreen: true,
-      trialNumber: 0,
       showThought: false,
       birdAnimationIndex: [0],
+      showFood: false,
+      litAnimationIndex: [0],
     };
+    this.trialNumber = 0;
     this.allowButtonPress = true;
     this.scale = this.props.scale;
     this.birdScale = 2.0;
@@ -65,6 +70,7 @@ export default class Boxes extends Component {
     this.clawTweenTime = 1000;
     this.willUnmount = false;
     this.popPlaying = false;
+    this.celebratePlaying = false;
     KeepAwake.activate();
   }
   // TODO: should kill all timeouts and intervals on willUnmount
@@ -118,6 +124,14 @@ export default class Boxes extends Component {
       this.celebrateSound.setNumberOfLoops(0);
       this.celebrateSound.setVolume(1);
     });
+    this.disgustSound = new Sound('disgust.mp3', Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.disgustSound.setNumberOfLoops(0);
+      this.disgustSound.setVolume(0.9);
+    });
   }
 
   releaseAudio () {
@@ -127,8 +141,12 @@ export default class Boxes extends Component {
     this.leverSound.release();
     this.celebrateSound.stop();
     this.celebrateSound.release();
-    this.audio.stop();
-    this.audio.release();
+    this.disgustSound.stop();
+    this.disgustSound.release();
+    if (this.audio) {
+      this.audio.stop();
+      this.audio.release();  
+    }
   }
   
   _handleAppStateChange = (appState) => {
@@ -207,7 +225,6 @@ export default class Boxes extends Component {
     }
     
     const clawTweenOptions = this.setClawTweenDown(boxID);
-    debugger;
     this.safeSetState(
       { 
         boxID,
@@ -232,6 +249,60 @@ export default class Boxes extends Component {
     }); 
   }
   
+  sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+  
+  birdCelebrate () {
+    if (!this.celebratePlaying) {
+      this.celebratePlaying = true;
+      this.celebrateSound.play(() => {this.celebratePlaying = false;});
+    }
+    const animation = _.concat(birdSprite.animationIndex('SMALL_CELEBRATE'), birdSprite.animationIndex('EAT'));
+    this.setState({
+      birdAnimationIndex: animation,
+      showThought: false,
+    }, () => {
+      this.refs.bird.startAnimation();
+      // this.birdEat(); 
+    });
+  }
+  
+  birdDisapointed () {
+    const animation = _.concat(birdSprite.animationIndex('DISGUST'), birdSprite.animationIndex('DISGUST'));
+    this.setState({
+      birdAnimationIndex: animation,
+      showThought: false,
+    }, () => {
+      this.refs.bird.startAnimation();
+      if (!this.disgustPlaying) {
+        this.disgustPlaying = true;
+        this.disgustSound.play(() => {this.disgustPlaying = false;});
+      }
+    });
+  }
+  
+  checkCorrect () {
+    // check if correct, if so dope food and react, if not disapointed
+    const correct = gameUtil.checkCorrectSelection(this.trialNumber, this.state.boxID);
+    if (correct) {
+      
+      this.setState({
+        showFood: true
+      },() => {
+        
+        this.trialNumber = this.trialNumber + 1;
+        this.birdCelebrate();
+        this.refs.food.tweenSprite();
+      });
+    } else {
+      // console.warn("NO NO NO");
+      this.trialNumber = this.trialNumber + 1;
+      this.birdDisapointed();
+    }
+    
+  }
+  
   openBoxAfterClawReturnTween () {
     return new Promise((resolve, reject) => {
       this.setTimeout(() => {
@@ -241,6 +312,8 @@ export default class Boxes extends Component {
           this.setTimeout(() => {
             this.refs.claw.startAnimation();
             // MRE: could add method call to check correct not correct here.
+            // console.warn("CORRECT OR NOT?");
+            this.setTimeout(() => this.checkCorrect(), 100);
             this.setTimeout(() => resolve(), 1000); 
           }, 300);            
         });
@@ -369,8 +442,14 @@ export default class Boxes extends Component {
         this.birdSpeak(this.audio);
       });
     } else {
+      const thinkImage = gameUtil.getThinkImage(this.trialNumber);
+      let imageIndex = [0];
+      if (thinkImage) {
+        imageIndex = litSprites.animationIndex(thinkImage);
+      }
       this.setState({
         showThought: true,
+        litAnimationIndex: imageIndex,
       });
     }
   }
@@ -471,6 +550,7 @@ export default class Boxes extends Component {
   }
   
   buttonPressIn () {
+    clearTimeout(this.timeoutGameOver);
     if (!this.allowButtonPress) {
       return;
     }
@@ -496,6 +576,43 @@ export default class Boxes extends Component {
     };
   }
   
+  foodSize () {
+    const bsize = appleRedSprite.size;
+    const size = {
+      width: bsize.width * 0.9 * this.props.scale.image,
+      height: bsize.height * 0.9 * this.props.scale.image,
+    }
+    return size;
+  }
+  
+  foodStartLocation () {
+    const top = 220 * this.props.scale.screenHeight;
+    const left = 240 * this.props.scale.screenWidth;
+    return {top, left}
+  }
+  
+  foodTweenOptions () {
+    const loc = this.foodStartLocation();
+    const bloc = this.birdLocation();
+    const bsize = birdSprite.size(this.birdScale * this.scale.image);
+    const tween = {
+      tweenType: "linear-move",
+      startXY: [loc.left, loc.top],
+      endXY: [bloc.left + bsize.width * 0.65, bloc.top + bsize.height * 0.35],
+      duration: 500,
+      loop: false,
+    };
+    return tween;
+  }
+  
+  foodPressed () {
+    this.refs.food.tweenSprite();
+  }
+  
+  foodTweenFinish () {
+    this.setState({showFood: false})
+  }
+  
   render() {
     
     return (
@@ -509,6 +626,22 @@ export default class Boxes extends Component {
           height: SCREEN_HEIGHT,
         }}
       />
+    
+      {this.state.showFood ? 
+        <AnimatedSprite
+          ref={'food'}
+          sprite={appleRedSprite}
+          animationFrameIndex={[0]}
+          loopAnimation={false}
+          coordinates={this.foodStartLocation()}
+          size={this.foodSize()}
+          tweenOptions={this.foodTweenOptions()}
+          tweenStart={'fromMethod'}
+          onPress={()=> this.foodPressed()}
+          onTweenFinish={() => this.foodTweenFinish()}
+        />
+      : null}
+      
       <AnimatedSprite
         ref={'bird'}
         sprite={birdSprite}
@@ -518,7 +651,7 @@ export default class Boxes extends Component {
         size={birdSprite.size(this.birdScale * this.scale.image)}
         draggable={true}
       />
-    
+      
       {this.state.activeBoxes[0] ? 
         <AnimatedSprite
           ref={'box0'}
@@ -594,7 +727,19 @@ export default class Boxes extends Component {
       {this.state.showThought ? 
         <Image source={require('../../sprites/thoughtBubble/thought_bubble.png')}
           style={this.cloudStyle()}
-        />
+        >
+          <AnimatedSprite
+            ref={'lit'}
+            sprite={litSprites}
+            animationFrameIndex={this.state.litAnimationIndex}
+            loopAnimation={false}
+            coordinates={ {
+              top: 18 * this.props.scale.image,
+              left: 50 * this.props.scale.image,
+            }}
+            size={litSprites.size(this.props.scale.image * 0.45)}
+          />  
+        </Image>
       : null}
       
       <AnimatedSprite
@@ -606,7 +751,7 @@ export default class Boxes extends Component {
         rotate={[{rotateY:'0deg'}]}
         onPressIn={() => this.buttonPressIn()}
       />
-    
+  
       {this.state.loadingScreen ?
         <LoadScreen
           onTweenFinish={() => this.onLoadScreenFinish()}

@@ -4,7 +4,6 @@ const buttonLeftSprite = {
   name: "buttonLeft",
   size: function (scale=1) {
     const s = {width: 180 * scale, height: 142 * scale};
-    console.log(JSON.stringify(s));
     return s;
   },
   animationTypes: ['IDLE', 'PRESSED', 'LIT', 'BLINK', 'ALL'],

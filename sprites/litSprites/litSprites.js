@@ -9,8 +9,8 @@ const litSprites = {
     console.log(`LITSPRITE size = ${JSON.stringify(size)}`);
     return size;  
   },
-  animationTypes: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',
-                  '0', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+  animatioOTypes: ['Letter_A', 'Letter_B', 'Letter_C', 'Letter_D', 'Letter_E', 'Letter_F', 'Letter_G', 'Letter_H', 'Letter_I', 'Letter_J', 'Letter_K', 'Letter_L', 'Letter_M', 'LetterLetter__N',
+                  'Letter_O', 'Letter_P', 'Letter_Q', 'Letter_R', 'Letter_S', 'Letter_T', 'Letter_U', 'Letter_V', 'Letter_W', 'Letter_X', 'Letter_Y', 'Letter_Z'],
   frames: [
     require('./letters/Letter_A.png'), require('./letters/Letter_B.png'),
     require('./letters/Letter_C.png'), require('./letters/Letter_D.png'),
@@ -28,57 +28,57 @@ const litSprites = {
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
-      case 'A':
+      case 'Letter_A':
         return [0];
-      case 'B':
+      case 'Letter_B':
         return [1];
-      case 'C':
+      case 'Letter_C':
         return [2];
-      case 'D':
+      case 'Letter_D':
         return [3];
-      case 'E':
+      case 'Letter_E':
         return [4];
-      case 'F':
+      case 'Letter_F':
         return [5];
-      case 'G':
+      case 'Letter_G':
         return [6];
-      case 'H':
+      case 'Letter_H':
         return [7];
-      case 'I':
+      case 'Letter_I':
         return [8];
-      case 'J':
+      case 'Letter_J':
         return [9];
-      case 'K':
+      case 'Letter_K':
         return [10];
-      case 'L':
+      case 'Letter_L':
         return [11];
-      case 'M':
+      case 'Letter_M':
         return [12];
-      case 'N':
+      case 'Letter_N':
         return [13];
-      case 'O':
+      case 'Letter_O':
         return [14];
-      case 'P':
+      case 'Letter_P':
         return [15];
-      case 'Q':
+      case 'Letter_Q':
         return [16];
-      case 'R':
+      case 'Letter_R':
         return [17];
-      case 'S':
+      case 'Letter_S':
         return [18];
-      case 'T':
+      case 'Letter_T':
         return [19];
-      case 'U':
+      case 'Letter_U':
         return [20];
-      case 'V':
+      case 'Letter_V':
         return [21];
-      case 'W':
+      case 'Letter_W':
         return [22];
-      case 'X':
+      case 'Letter_X':
         return [23];
-      case 'Y':
+      case 'Letter_Y':
         return [24];
-      case 'Z':
+      case 'Letter_Z':
         return [25];
       case 'ALL':
         return [0, 1, 2, 3, 4];
