@@ -60,7 +60,9 @@ export default class Boxes extends Component {
       birdAnimationIndex: [0],
       showFood: false,
       litAnimationIndex: [0],
+      showBoxes: true,
     };
+    this.validLongPress = true;
     this.trialNumber = 0;
     this.allowButtonPress = true;
     this.scale = this.props.scale;
@@ -71,6 +73,8 @@ export default class Boxes extends Component {
     this.willUnmount = false;
     this.popPlaying = false;
     this.celebratePlaying = false;
+    this.audioPlaying = false;
+    this.longPressTimeout;
     KeepAwake.activate();
   }
   // TODO: should kill all timeouts and intervals on willUnmount
@@ -91,7 +95,7 @@ export default class Boxes extends Component {
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
     const clawLoc = gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale);
-    gameUtil.createMoveSeq(clawLoc);
+    gameUtil.createMoveSeq(clawLoc, this.scale);
   }
   
   componentWillUnmount () {
@@ -216,7 +220,15 @@ export default class Boxes extends Component {
     return clawTweenOptions;
   }
   
-  boxPressed (boxID) {    
+  longPress (boxID) {
+    // clearTimeout(this.longPressTimeout);
+    debugger;
+    if (!this.validLongPress) {
+      console.log('!*! no long press');
+      return;
+    }
+    console.log('!*! in longpress');
+    this.validLongPress = true;
     if (!this.state.allowBoxPress) return;
     
     if (!this.popPlaying) {
@@ -237,6 +249,51 @@ export default class Boxes extends Component {
       this.refs.claw.startAnimation();
       this.refs.claw.tweenSprite();
     });
+  }
+  
+  boxPressOut (boxID) {
+    console.log('!*! clear timeout')
+    this.validLongPress = false;
+    clearTimeout(this.longPressTimeout);
+  }
+  
+  setValidLongPress () {
+    this.validLongPress = true;
+  }
+  
+  boxPressIn (boxID) {
+    if (!this.state.allowBoxPress) return;
+    // this.setValidLongPress();
+    this.validLongPress = true;
+    this.longPressTimeout = this.setTimeout(() => {
+      console.log('!*! WTF');
+      this.longPress(boxID);
+    }, 1000);
+    
+    const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
+    const audioFile = boxAudioFiles[boxID];
+    if (this.audioPlaying) {
+      return;
+    }
+        
+    this.audio = new Sound(audioFile, Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.warn('failed to load the sound', error);
+        return;
+      }
+      this.audio.setNumberOfLoops(0);
+      this.audio.setVolume(1);
+      this.audioPlaying = true;
+      this.audio.play(() => {
+        this.audioPlaying = false;
+        this.audio.stop();
+        this.audio.release();
+      });
+    });
+  }
+  
+  boxPressed (boxID) {
+    
   }
   
   hideInactiveBoxes(activeBoxes) {
@@ -390,7 +447,6 @@ export default class Boxes extends Component {
   }
   
   returnBox (boxID) {
-    console.log("NOW GO BACK");
     const clawTweenOptions = this.setClawTweenDown(this.state.boxID);
     this.safeSetState({ clawTweenOptions }, 
     () => {
@@ -403,6 +459,7 @@ export default class Boxes extends Component {
           this.sleep(1500)
           .then(() => {
             this.safeSetState({allowBoxPress: false, });
+            // this.setState({showBoxes: false});
             this.allowButtonPress = true;
           });
         })
@@ -551,11 +608,13 @@ export default class Boxes extends Component {
   
   buttonPressIn () {
     clearTimeout(this.timeoutGameOver);
+    this.startInactivityMonitor();
     if (!this.allowButtonPress) {
       return;
     }
+    // this.setState({showBoxes: true});
     this.allowButtonPress = false;
-    const boxAudioFiles = gameUtil.getBoxAudioFor(this.trialNumber);
+    const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
     // At the end of the claw move sequence the bird will indicate the box to choose. 
     this.clawMoveSequence();
     this.playAudioSequence(boxAudioFiles);
@@ -652,53 +711,57 @@ export default class Boxes extends Component {
         draggable={true}
       />
       
-      {this.state.activeBoxes[0] ? 
-        <AnimatedSprite
-          ref={'box0'}
-          sprite={boxSprite}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
-          coordinates={this.boxLocation(0)}
-          size={boxSprite.size(this.boxScale * this.scale.image)}
-          onPress={()=> this.boxPressed(0)}
-        />
-      : null}
-      
-      {this.state.activeBoxes[1] ? 
-        <AnimatedSprite
-          ref={'box1'}
-          sprite={boxSprite}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
-          coordinates={this.boxLocation(1)}
-          size={boxSprite.size(this.boxScale * this.scale.image)}
-          onPress={()=> this.boxPressed(1)}
-        />
-      : null}
-      
-      {this.state.activeBoxes[2] ? 
-        <AnimatedSprite
-          ref={'box2'}
-          sprite={boxSprite}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
-          coordinates={this.boxLocation(2)}
-          size={boxSprite.size(this.boxScale * this.scale.image)}
-          onPress={()=> this.boxPressed(2)}
-        />
-      : null}
-      
-      {this.state.activeBoxes[3] ? 
-        <AnimatedSprite
-          ref={'box3'}
-          sprite={boxSprite}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
-          coordinates={this.boxLocation(3)}
-          size={boxSprite.size(this.boxScale * this.scale.image)}
-          onPress={()=> this.boxPressed(3)}
-        />
-      : null}
+      {this.state.showBoxes && this.state.activeBoxes[0] ? 
+          <AnimatedSprite
+            ref={'box0'}
+            sprite={boxSprite}
+            animationFrameIndex={[0]}
+            loopAnimation={false}
+            coordinates={this.boxLocation(0)}
+            size={boxSprite.size(this.boxScale * this.scale.image)}
+            onPressIn={()=> this.boxPressIn(0)}
+            onPressOut={() => this.boxPressOut(0)}
+          />
+        : null}
+        
+        {this.state.showBoxes && this.state.activeBoxes[1] ? 
+          <AnimatedSprite
+            ref={'box1'}
+            sprite={boxSprite}
+            animationFrameIndex={[0]}
+            loopAnimation={false}
+            coordinates={this.boxLocation(1)}
+            size={boxSprite.size(this.boxScale * this.scale.image)}
+            onPressIn={()=> this.boxPressIn(1)}
+            onPressOut={() => this.boxPressOut(1)}
+          />
+        : null}
+        
+        {this.state.showBoxes && this.state.activeBoxes[2] ? 
+          <AnimatedSprite
+            ref={'box2'}
+            sprite={boxSprite}
+            animationFrameIndex={[0]}
+            loopAnimation={false}
+            coordinates={this.boxLocation(2)}
+            size={boxSprite.size(this.boxScale * this.scale.image)}
+            onPressIn={()=> this.boxPressIn(2)}
+            onPressOut={() => this.boxPressOut(2)}
+          />
+        : null}
+        
+        {this.state.showBoxes && this.state.activeBoxes[3] ? 
+          <AnimatedSprite
+            ref={'box3'}
+            sprite={boxSprite}
+            animationFrameIndex={[0]}
+            loopAnimation={false}
+            coordinates={this.boxLocation(3)}
+            size={boxSprite.size(this.boxScale * this.scale.image)}
+            onPressIn={()=> this.boxPressIn(3)}
+            onPressOut={() => this.boxPressOut(3)}
+          />
+        : null}
       
       <AnimatedSprite
         ref={'claw'}
@@ -793,7 +856,6 @@ const styles = StyleSheet.create({
     fontSize: 42,
   },
 });
-
 
 reactMixin.onClass(Boxes, TimerMixin);
 AppRegistry.registerComponent('Boxes', () => App);

@@ -33,39 +33,39 @@ const getClawMoveSeq = function clawMoveSeq (index) {
   return tweenSequence;
 }
 
-const createMoveSeq = function gameMoveSeq (clawLoc) {
+const createMoveSeq = function gameMoveSeq (clawLoc, scales) {
   tweenSequence = [
     {
       tweenType: "linear-move",
       startXY: [clawLoc.left, clawLoc.top],
-      endXY: [400, clawLoc.top],
+      endXY: [400 * scales.image, clawLoc.top],
       duration: 500,
       loop: false,
     },
     {
       tweenType: "linear-move",
-      startXY: [400, clawLoc.top],
-      endXY: [600, clawLoc.top],
+      startXY: [400 * scales.image, clawLoc.top],
+      endXY: [620 * scales.image, clawLoc.top],
       duration: 500,
       loop: false,
     },
     {
       tweenType: "linear-move",
-      startXY: [600, clawLoc.top],
-      endXY: [800, clawLoc.top],
+      startXY: [620 * scales.image, clawLoc.top],
+      endXY: [840 * scales.image, clawLoc.top],
       duration: 500,
       loop: false,
     },
     {
       tweenType: "linear-move",
-      startXY: [800, clawLoc.top],
-      endXY: [1000, clawLoc.top],
+      startXY: [840 * scales.image, clawLoc.top],
+      endXY: [1060 * scales.image, clawLoc.top],
       duration: 500,
       loop: false,
     },
     {
       tweenType: "linear-move",
-      startXY: [1000, clawLoc.top],
+      startXY: [1060 * scales.image, clawLoc.top],
       endXY: [clawLoc.left, clawLoc.top],
       duration: 500,
       loop: false,
@@ -74,7 +74,7 @@ const createMoveSeq = function gameMoveSeq (clawLoc) {
   return tweenSequence;
 }
 
-const getBoxAudioFor = function trialBoxAudio (trialNumber) {
+const getAllBoxAudioFor = function trialBoxAudio (trialNumber) {
   const trialIndex = getTrialIndex(trialNumber);
   const audioFiles = trials[trialIndex].boxAudioFiles;
   return audioFiles;
@@ -106,7 +106,7 @@ export default {
   setScreenSize,
   createMoveSeq,
   getClawMoveSeq,
-  getBoxAudioFor,
+  getAllBoxAudioFor,
   getSpeakAudioFor,
   checkCorrectSelection,
   getThinkImage,
