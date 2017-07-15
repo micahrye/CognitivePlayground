@@ -608,7 +608,7 @@ export default class Boxes extends Component {
   
   buttonPressIn () {
     clearTimeout(this.timeoutGameOver);
-    this.startInactivityMonitor();
+    this.startInactivityMonitor(); 
     if (!this.allowButtonPress) {
       return;
     }

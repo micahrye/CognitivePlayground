@@ -76,6 +76,10 @@ class BubblesGame extends React.Component {
     this.celebratePlaying = false;
     
     KeepAwake.activate();
+    
+    this.targetBubbleDuration = 3500 * this.scale.screenHeight;
+    this.missedBubbles = 0;
+    this.targetPopped = false;
 }
 
   componentWillMount () {
@@ -249,33 +253,14 @@ class BubblesGame extends React.Component {
   }
 
 
-
-  // populate array of background bubbles
-  createBubbles () {
-    const uid = randomstring({ length: 7 });
-    const displayTargetBubble = Math.random() < 0.5;
-    let createTargetBubble = displayTargetBubble && !this.state.targetBubbleActive;
-
-    let bubbles = [];
-    let bubbleSize = {};
-    let locSequence = [];
-    let bubbleDeminsions;
-    if (createTargetBubble) {
-      bubbleDeminsions = 200;
-    } else {
-      bubbleDeminsions = Math.floor(Math.random()* 100) + 50;
-    }
-    bubbleSize = {
-      width: Math.floor(bubbleDeminsions * this.scale.image),
-      height: Math.floor(bubbleDeminsions * this.scale.image),
-    };
+  bubbleTweenCoordinates (bubbleSize, isTargetBubble) {
     const fountainSize = this.foutainSize();
     const fountainLoc = this.fountainLocation();
     const fountainCenter = (fountainLoc.left + fountainSize.width/2);
     const offsetLeft = 80 * this.scale.screenWidth;
     const startLeft = fountainCenter - (bubbleSize.width/2 - offsetLeft);
     const startTop = fountainLoc.top - (bubbleSize.width * 0.7);
-
+    
     STARTY = startTop;
 
     const plusOrMinus = Math.random() < 0.5 ? -1 : 1;
@@ -286,75 +271,133 @@ class BubblesGame extends React.Component {
       startLeft + plusOrMinus * Math.random() * (SCREEN_WIDTH/4),
       startLeft + minusOrPlus * Math.random() * (SCREEN_WIDTH/3),
     ];
-    if (createTargetBubble) {
+    if (isTargetBubble) {
       locSequence = [startLeft];
     }
-
-
-    // console.warn("PR: ", PixelRatio.get());
-    // 3.125 equiv to 800 pixels in 2.5 sec
-    const duration = 3.75 * SCREEN_HEIGHT;
-
-    let backgroundBubbleTween = {
+    
+    return {
+      startLeft,
+      startTop,
+      locSequence,
+    };
+  }
+  
+  getTargetBubbleDuration () {
+    const velocityChange = 300 * this.scale.screenHeight;
+    if (this.targetPopped) {
+      if (this.targetBubbleDuration <= 500) {
+        return this.targetBubbleDuration;
+      }
+      this.targetBubbleDuration = this.targetBubbleDuration - velocityChange;
+      return this.targetBubbleDuration;
+    } else {
+      if (this.missedBubbles > 0 && this.missedBubbles <= 10) {
+        this.targetBubbleDuration = this.targetBubbleDuration + velocityChange;
+        return this.targetBubbleDuration;
+      }
+      return this.targetBubbleDuration;
+    }    
+  }
+  
+  makeTargetBubbleWithTween () {
+    const bubbleDeminsions = 200;
+    const bubbleSize = {
+      width: Math.floor(bubbleDeminsions * this.scale.image),
+      height: Math.floor(bubbleDeminsions * this.scale.image),
+    };
+    
+    const tweenCoords = this.bubbleTweenCoordinates(bubbleSize, true);
+    const duration = this.getTargetBubbleDuration();
+    console.log()
+    let bubbleTween = {
       tweenType: "sine-wave",
-      startXY: [startLeft, startTop],
-      xTo: locSequence,
+      startXY: [tweenCoords.startLeft, tweenCoords.startTop],
+      xTo: tweenCoords.locSequence,
       yTo: [-bubbleDeminsions],
-      duration: createTargetBubble
-        ? duration : this.getRandomDuration(),
+      duration: duration,
+      loop: false,
+    };
+    
+    const target = Math.floor(Math.random() * 4);
+    switch (target) {
+      case 0:
+        this.targetBubble.frameIndex = bubbleCharacter.animationIndex('CAN');
+        this.targetBubble.name = 'can';
+        break;
+      case 1:
+        this.targetBubble.frameIndex = bubbleCharacter.animationIndex('FRUIT');
+        this.targetBubble.name = 'fruit';
+        break;
+      case 2:
+        this.targetBubble.frameIndex = bubbleCharacter.animationIndex('FLY');
+        this.targetBubble.name = 'fly';
+        break;
+      case 3:
+        this.targetBubble.frameIndex = bubbleCharacter.animationIndex('GRASS');
+        this.targetBubble.name = 'grass';
+        break;
+    }
+    this.targetBubble.visable = true;
+    this.targetBubble.uid = randomstring({ length: 7 });
+    this.targetBubble.tweenOptions = bubbleTween;
+    this.targetBubble.coordinates = {
+      top: tweenCoords.startTop * this.scale.screenHeight,
+      left: tweenCoords.startLeft * this.scale.screenWidth,
+    };
+    this.targetBubble.size = bubbleSize;
+    this.setState({targetBubbleActive: true});
+    this.missedBubbles = this.missedBubbles + 1; 
+    this.targetPopped = false;
+  }
+  // populate array of background bubbles
+  createBubbles () {
+    const uid = randomstring({ length: 7 });
+    const displayTargetBubble = Math.random() < 0.5;
+    let createTargetBubble = displayTargetBubble && !this.state.targetBubbleActive;
+    
+    if (createTargetBubble) {
+      this.makeTargetBubbleWithTween(bubbleSize);
+      return;
+    }
+    
+    let bubbles = [];
+    let bubbleSize = {};
+    let bubbleDeminsions = Math.floor(Math.random()* 100) + 50;
+    bubbleSize = {
+      width: Math.floor(bubbleDeminsions * this.scale.image),
+      height: Math.floor(bubbleDeminsions * this.scale.image),
+    };
+    const isTargetBubble = false;
+    const tweenCoords = this.bubbleTweenCoordinates(bubbleSize, isTargetBubble);
+
+    let bubbleTween = {
+      tweenType: "sine-wave",
+      startXY: [tweenCoords.startLeft, tweenCoords.startTop],
+      xTo: tweenCoords.locSequence,
+      yTo: [-bubbleDeminsions],
+      duration: this.getRandomDuration(),
       loop: false,
     };
 
-    if (createTargetBubble) {
-      const target = Math.floor(Math.random() * 4);
-      switch (target) {
-        case 0:
-          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('CAN');
-          this.targetBubble.name = 'can';
-          break;
-        case 1:
-          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('FRUIT');
-          this.targetBubble.name = 'fruit';
-          break;
-        case 2:
-          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('FLY');
-          this.targetBubble.name = 'fly';
-          break;
-        case 3:
-          this.targetBubble.frameIndex = bubbleCharacter.animationIndex('GRASS');
-          this.targetBubble.name = 'grass';
-          break;
-      }
-      this.targetBubble.visable = true;
-      this.targetBubble.uid = uid;
-      this.targetBubble.tweenOptions = backgroundBubbleTween;
-      this.targetBubble.coordinates = {
-        top: startTop * this.scale.screenHeight,
-        left: startLeft * this.scale.screenWidth,
-      };
-      this.targetBubble.size = bubbleSize;
-      this.setState({targetBubbleActive: true});
-    } else if (bubbles.length < MAX_NUMBER_BUBBLES) {
-      bubbles.push(
-        <AnimatedSprite
-          sprite={bubbleCharacter}
-          key={randomstring({ length: 7 })}
-          spriteUID={uid}
-          animationFrameIndex={[0]}
-          tweenOptions={backgroundBubbleTween}
-          tweenStart={'fromMount'}
-          onTweenFinish={(spriteUID) => this.onTweenFinish(spriteUID)}
-          loopAnimation={false}
-          coordinates={{
-            top: startTop * this.scale.screenHeight,
-            left: startLeft * this.scale.screenWidth}}
-          size={bubbleSize}
-        />
-      );
-      STARTTIME = this.getTimestamp();
-      if (this.state.bubbleArray.length <= MAX_NUMBER_BUBBLES) {
-        this.setState({bubbleArray: this.state.bubbleArray.concat(bubbles)});
-      }
+    bubbles.push(
+      <AnimatedSprite
+        sprite={bubbleCharacter}
+        key={randomstring({ length: 7 })}
+        spriteUID={uid}
+        animationFrameIndex={[0]}
+        tweenOptions={bubbleTween}
+        tweenStart={'fromMount'}
+        onTweenFinish={(spriteUID) => this.onTweenFinish(spriteUID)}
+        loopAnimation={false}
+        coordinates={{
+          top:tweenCoords.startTop * this.scale.screenHeight,
+          left: tweenCoords.startLeft * this.scale.screenWidth}}
+        size={bubbleSize}
+      />
+    );
+    STARTTIME = this.getTimestamp();
+    if (this.state.bubbleArray.length <= MAX_NUMBER_BUBBLES) {
+      this.setState({bubbleArray: this.state.bubbleArray.concat(bubbles)});
     }
   }
 
@@ -466,6 +509,8 @@ class BubblesGame extends React.Component {
     if (!this.targetBubble.visable) {
       return;
     }
+    this.missedBubbles = this.missedBubbles - 1;
+    this.targetPopped = true;
     const stopValueX = stopValues[0];
     const stopValueY = stopValues[1];
     // TODO: opacity part of hack to what may be a
