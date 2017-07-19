@@ -255,6 +255,10 @@ export default class Boxes extends Component {
     console.log('!*! clear timeout')
     this.validLongPress = false;
     clearTimeout(this.longPressTimeout);
+    // IF claw animation has not finished then claw should go back.
+    // Use this.refs.claw.getCoordinates() to get current coordniates to create
+    // tween options to go back.  
+    console.warn(`claw loc ${JSON.stringify(this.refs.claw.getCoordinates())}`);
   }
   
   setValidLongPress () {
@@ -619,6 +623,8 @@ export default class Boxes extends Component {
     this.clawMoveSequence();
     this.playAudioSequence(boxAudioFiles);
   }
+  
+  
   
   cloudStyle () {
     const width = 193 * 1.25 * this.props.scale.image;

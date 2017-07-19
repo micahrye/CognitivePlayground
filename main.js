@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   View,
@@ -6,6 +5,7 @@ import {
   Button,
   StyleSheet,
   Dimensions,
+  AsyncStorage,
 } from 'react-native';
 
 import _ from 'lodash';
@@ -21,12 +21,25 @@ const baseWidth = 1280;
 const screenWidth = Dimensions.get('window').width;
 const screenHeight = Dimensions.get('window').height;
 
+// THIS HAS TO MATCH WHAT IS IN PREFS
+const GAME_NAMES_TO_PREF_KEYS = {
+   "BUBBLE": "BubbleGame",
+   "BUG": "BugZap",
+   "MATCH": "MatchGame",
+   "MATRIX": "MatrixReasoning",
+   "UNLOCK_FOOD": "UnlockFood",
+   "BOXES": "ClawGame",
+   "FOOD_MACHINE": "BoxesGame",
+   "SYMBOL": "SymbolDigit",
+}
+
 
 class Main extends React.Component {
   constructor (props) {
     super(props);
     this.state = {
       iconArray: [],
+      iconsSet: false,
     };
     const scaleWidth = screenWidth / baseWidth;
     const scaleHeight = screenHeight / baseHeight;
@@ -36,7 +49,70 @@ class Main extends React.Component {
       image: scaleHeight > scaleWidth ? scaleWidth : scaleHeight,
     };
 
-    const iconList = [
+    //this.iconList = this.defaultIcons(); //iconList; // _.shuffle(iconList);
+    this.iconAppearTimeout = [];
+    this.gameIcon = {tweenOptions: {}};
+    this.iconRefs = [];
+    this.gamePrefs; 
+  }
+
+  componentWillMount () {
+    
+  }
+
+  componentDidMount () {
+    this.getGamePreferences()
+    .then((results) => {
+      this.gamePrefs = results;
+      this.iconList  = this.createIconList(this.gamePrefs);
+      this.setState({ iconsSet: true }, 
+      () => {
+        this.startTimedApperanceOfIcons(this.iconList);
+      });
+      // need to render icons and then startAnimation for them
+    });
+  }
+
+  componentWillUnmount () {
+    _.forEach(this.iconAppearTimeout, timeout => clearTimeout(timeout));
+  }
+  
+  getGamePreferences () {
+    return new Promise((resolve, reject) => {
+      AsyncStorage.getItem('@User:pref', (err, result) => {
+        console.log(`AsyncStorage = ${JSON.stringify(result)}`);
+        resolve(JSON.parse(result));
+      });
+    });
+  }
+  
+  startTimedApperanceOfIcons (iconList) {
+    _.forEach(iconList, (icon, index) => {
+      const timeout = setTimeout(() => {
+        let iconRef = this.refs[this.iconRefs[index]];
+        iconRef.startTween();
+      }, 100 * index);
+      this.iconAppearTimeout.push(timeout);
+    });
+  }
+  
+  createIconList (prefs) {
+    const defaultIcons = this.defaultIcons();
+    debugger;
+    const showIcons = _.filter(defaultIcons, (icon) => {
+      const key = GAME_NAMES_TO_PREF_KEYS[icon.name]
+      if (!key) return;
+      if (prefs[key]) {
+        return prefs[key];
+      } else {
+        return false;
+      }
+    });
+    return showIcons;
+  }  
+  
+  defaultIcons () {
+    return [
       {
         name: 'BUBBLE',
         location: this.scaleLocation({top: 130, left: 100}),
@@ -78,29 +154,6 @@ class Main extends React.Component {
         frameIndex: [14],
       },
     ];
-
-    this.iconList = _.shuffle(iconList);
-    this.iconAppearTimeout = [];
-    this.gameIcon = {tweenOptions: {}};
-    this.iconRefs = [];
-  }
-
-  componentWillMount () {
-
-  }
-
-  componentDidMount () {
-    _.forEach(this.iconList, (icon, index) => {
-      const timeout = setTimeout(() => {
-        let iconRef = this.refs[this.iconRefs[index]];
-        iconRef.startTween();
-      }, 100 * index);
-      this.iconAppearTimeout.push(timeout);
-    });
-  }
-
-  componentWillUnmount () {
-    _.forEach(this.iconAppearTimeout, timeout => clearTimeout(timeout));
   }
 
   startSize () {
@@ -179,7 +232,7 @@ class Main extends React.Component {
     const icons = _.map(this.iconList, (icon, index) => {
       const ref = ("gameRef" + index);
       this.iconRefs.push(ref);
-      return (
+      return (        
         <AnimatedSprite
           ref={ref}
           sprite={gameIcon}
@@ -214,7 +267,7 @@ class Main extends React.Component {
             title="Session Prefs"
           />
         </View>
-        {icons}
+        {this.state.iconsSet ? icons : null}
       </View>
     );
   }
@@ -236,9 +289,5 @@ Main.propTypes = {
   scale: React.PropTypes.object,
 };
 reactMixin.onClass(Main, TimerMixin);
-
-
-
-
 
 export default Main;

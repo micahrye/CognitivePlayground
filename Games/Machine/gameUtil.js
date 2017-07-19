@@ -32,6 +32,17 @@ function cellsForTrial (trialNumber) {
   return createCellObjsArray(activeCells, animationKeys, loopAnimation, sprites)
 }
 
+function cellsForTrialHideSelected (trialNumber, selected) {
+  const trialIndex = getTrialIndex(trialNumber);
+  const activeCells = _.cloneDeep(trials[trialIndex].activeCells);
+  activeCells[selected] = false;
+  const animationKeys = trials[trialIndex].animationKeys;
+  const loopAnimation = _.fill(Array(activeCells.length), false);
+  const sprites = _.fill(Array(activeCells.length), litSprites);
+  
+  return createCellObjsArray(activeCells, animationKeys, loopAnimation, sprites)
+}
+
 function correctForTrial (trialNumber) {
   const trialIndex = getTrialIndex(trialNumber);
   const animationKeys = trials[trialIndex].animationKeys;
@@ -50,4 +61,5 @@ export default {
   cellsForTrial,
   correctForTrial,
   audioFileName,
+  cellsForTrialHideSelected,
 };

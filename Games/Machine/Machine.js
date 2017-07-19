@@ -39,6 +39,7 @@ import beltSprite from '../../sprites/conveyorBelt/beltCharacter';
 import litSprites from '../../sprites/litSprites';
 
 const GAME_TIME_OUT = 60000;
+const GET_USER_ATTENTION = 5000;
 const baseHeight = 800;
 const baseWidth = 1280;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
@@ -52,12 +53,14 @@ export default class Machine extends Component {
     this.state = {
       devMode: false,
       cells: [],
-      trialNumber: -1,
+      trialNumber: 0,
       showFood: 1,
       birdAnimationIndex: [0],
+      buttonAnimationIndex: [0],
       showMatrix: false,
       beltFrameIndex: [0],
       loadingScreen: true,
+      showButton: true,
     };
     this.foodSprite = {
       tweenOptions: {},
@@ -75,6 +78,8 @@ export default class Machine extends Component {
     this.disgustPlaying = false;
     this.allowCellSelection = false;
     this.showFood = 0;
+    this.numStartButtonPresses = 0;
+    this.activeTrial = false;
   }
   
   componentWillMount () {
@@ -105,6 +110,7 @@ export default class Machine extends Component {
   
   componentDidMount () {
     this.startInactivityMonitor();
+    this.getUserAttention();
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
     
@@ -191,6 +197,16 @@ export default class Machine extends Component {
         });
       }, GAME_TIME_OUT);
     }
+  }
+  
+  getUserAttention () {
+    this.getUserAttentionTimeout = this.setTimeout(() => {
+      this.setState({
+        buttonAnimationIndex: buttonSprite.animationIndex("ATTENTION"),
+      }, () => {
+        this.refs.buttonSprite.startAnimation();
+      });
+    }, GET_USER_ATTENTION);
   }
   
   birdLocation () {
@@ -288,23 +304,52 @@ export default class Machine extends Component {
     return {top, left};
   }
   
-  buttonPressIn () { 
-    const trial = this.state.trialNumber + 1;
-    this.birdTalk(trial);
-    this.foodSprite.UID = randomstring({length: 7});
-  
-    if (!this.popPlaying) {
-      this.popPlaying = true;
-      this.popSound.play(() => {this.popPlaying = false;});
-    } 
+  buttonPressIn () {
     this.setState({
-      trialNumber: trial,
+      buttonAnimationIndex: buttonSprite.animationIndex('PRESSED'),
+    }, () => {
+      if (this.refs.buttonSprite) {
+        this.refs.buttonSprite.startAnimation()
+      }
+    });
+    if (this.numStartButtonPresses < 3) {
+      this.numStartButtonPresses = this.numStartButtonPresses + 1;
+      if (!this.popPlaying) {
+        this.popPlaying = true;
+        this.popSound.play(() => {this.popPlaying = false;});
+      }      
+      this.birdTalk(this.state.trialNumber);
+    }
+    if (this.numStartButtonPresses === 3) {
+      this.setState({ showButton: false });
+    }
+    if (this.activeTrial) {
+      return;
+    }
+    this.activeTrial = true; 
+    this.foodSprite.UID = randomstring({length: 7});
+    this.setState({
       showFood: 1,
     }, () => {
+      
       this.setState({
         cells: gameUtil.cellsForTrial(this.state.trialNumber),
         showMatrix: true,
       });
+    });
+    
+    clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.getUserAttentionTimeout);
+    this.startInactivityMonitor()
+  }
+  
+  buttonPressOut () {
+    this.setState({
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
+    }, () => {
+      if (this.refs.buttonSprite) {
+        this.refs.buttonSprite.startAnimation()
+      }
     });
   }
   
@@ -322,10 +367,26 @@ export default class Machine extends Component {
       }, () => {
         this.refs.foodRef.startTween(); 
         this.birdCelebrate();
+        this.numStartButtonPresses = 0;
+        this.activeTrial = false;
       });    
     } else {
       this.birdDisapointed();
+      this.numStartButtonPresses = 0;
+      this.activeTrial = false;
     }
+    
+    this.setState({
+      cells: gameUtil.cellsForTrialHideSelected(this.state.trialNumber, position),
+      showMatrix: true,
+    }, () => {
+      this.setState({ 
+        trialNumber: this.state.trialNumber + 1 
+      });
+    });
+    
+    clearTimeout(this.getUserAttentionTimeout);
+    this.getUserAttention();
   }
   
   playAudioFile (file) {
@@ -381,22 +442,32 @@ export default class Machine extends Component {
   
   birdCelebrate () {
     this.setState({
-      birdAnimationIndex: birdSprite.animationIndex('CELEBRATE')
+      showButton: true,
+      birdAnimationIndex: birdSprite.animationIndex('CELEBRATE'),
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
     }, () => {
       this.refs.bird.startAnimation();
       this.birdEat(); 
+      if (this.refs.buttonSprite) {
+        this.refs.buttonSprite.startAnimation()
+      }
     });
   }
   
   birdDisapointed () {
     this.allowCellSelection = false;
     this.setState({
-      birdAnimationIndex: birdSprite.animationIndex('DISGUST')
+      showButton: true,
+      birdAnimationIndex: birdSprite.animationIndex('DISGUST'),
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
     }, () => {
       this.refs.bird.startAnimation();
       if (!this.disgustPlaying) {
         this.disgustPlaying = true;
         this.disgustSound.play(() => {this.disgustPlaying = false;});
+      }
+      if (this.refs.buttonSprite) {
+        this.refs.buttonSprite.startAnimation()
       }
     });
   }
@@ -474,15 +545,19 @@ export default class Machine extends Component {
           draggable={false}
         />
       
-        <AnimatedSprite
-          sprite={buttonSprite}
-          animationFrameIndex={[0]}
-          loopAnimation={false}
-          coordinates={this.buttonLocation()}
-          size={this.buttonSize()}
-          rotate={[{rotateY:'0deg'}]}
-          onPressIn={() => this.buttonPressIn()}
-        />
+        {this.state.showButton ?
+          <AnimatedSprite
+            sprite={buttonSprite}
+            ref={"buttonSprite"}
+            animationFrameIndex={this.state.buttonAnimationIndex}
+            loopAnimation={false}
+            coordinates={this.buttonLocation()}
+            size={this.buttonSize()}
+            rotate={[{rotateY:'0deg'}]}
+            onPressIn={() => this.buttonPressIn()}
+            onPressOut={() => this.buttonPressOut()}
+          />
+        : null}
         
         {this.state.devMode ?
           <HomeButton

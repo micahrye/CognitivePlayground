@@ -21,6 +21,8 @@ const buttonLeftSprite = {
         return [1];
       case 'PRESSED':
         return [2];
+      case 'ATTENTION':
+        return [2, 2, 0, 0, 2, 2, 0, 0];
       case 'ALL':
         return [0, 1, 2];
       default:
