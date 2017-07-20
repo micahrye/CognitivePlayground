@@ -10,6 +10,7 @@ import {
   AppRegistry,
   TouchableHighlight,
   AsyncStorage,
+  ScrollView,
 } from 'react-native';
 
 import curious from './components/DataCollection/curiousLearningAPI';
@@ -33,9 +34,9 @@ const Person = t.struct({
   MatchGame: t.Boolean,
   MatrixReasoning: t.Boolean,
   UnlockFood: t.Boolean,
-  // ClawGame: t.Boolean,
-  // BoxesGame: t.Boolean,
-  // SymbolDigit: t.Boolean,
+  ClawGame: t.Boolean,
+  BoxesGame: t.Boolean,
+  SymbolDigit: t.Boolean,
 });
 
 class Prefs extends React.Component {
@@ -103,37 +104,34 @@ class Prefs extends React.Component {
   render () {
     return (
       <View style={{backgroundColor: '#ffffff', flex: 1}} >
-        <View style={styles.container}>
-          <Form
-            ref="form"
-            type={Person}
-            value={this.state.value}
-            options={{}}
-          />
-          <View style={{flexDirection: 'row'}}>
-          <TouchableHighlight
-            style={styles.postbutton}
-            onPress={() => this.onPostDataPress()}
-            underlayColor='#99d9f4'
-          >
-            <Text style={styles.buttonText}>Post All Data to Server</Text>
-          </TouchableHighlight>
-          <Text style={styles.postText}> {this.state.posts} </Text>
+        
+        <ScrollView
+          style={{height: 800}}
+        >
+          <View style={styles.button} >
+            <Button          
+              onPress={() => this.goToGame('Main')}
+              title="Game Launcher"
+            />
           </View>
-          <TouchableHighlight
-            style={styles.fbutton}
-            onPress={() => this.onPress()}
-            underlayColor='#99d9f4'
-          >
-            <Text style={styles.buttonText}>Save</Text>
-          </TouchableHighlight>
-        </View>
-        <View style={styles.button} >
-          <Button
-            onPress={() => this.goToGame('Main')}
-            title="Game Launcher"
-          />
-        </View>
+          <View style={styles.container}>
+            <Form
+              ref="form"
+              type={Person}
+              value={this.state.value}
+              options={{}}
+            />
+          
+            <TouchableHighlight 
+              style={styles.saveButton} 
+              onPress={() => this.onPress()} 
+              underlayColor='#99d9f4'
+            >
+              <Text style={styles.buttonText}>Save</Text>
+            </TouchableHighlight>
+          </View>
+          
+        </ScrollView>
       </View>
     );
   }
@@ -154,6 +152,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     top: 60,
     marginTop: 50,
+    marginBottom: 50,
     padding: 20,
     backgroundColor: '#ffffff',
   },
@@ -171,8 +170,8 @@ const styles = StyleSheet.create({
     fontSize: 23,
     marginBottom: 30
   },
-  fbutton: {
-    height: 36,
+  saveButton: {
+    height: 80,
     backgroundColor: '#48BBEC',
     borderColor: '#48BBEC',
     borderWidth: 1,
