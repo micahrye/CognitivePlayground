@@ -282,7 +282,7 @@ class BubblesGame extends React.Component {
     };
   }
   
-  getTargetBubbleDuration () {
+  stairCaseDuration () {
     const velocityChange = 300 * this.scale.screenHeight;
     if (this.targetPopped) {
       if (this.targetBubbleDuration <= 500) {
@@ -296,7 +296,11 @@ class BubblesGame extends React.Component {
         return this.targetBubbleDuration;
       }
       return this.targetBubbleDuration;
-    }    
+    }
+  }
+  
+  getTargetBubbleDuration () {    
+    return this.stairCaseDuration();
   }
   
   makeTargetBubbleWithTween () {
