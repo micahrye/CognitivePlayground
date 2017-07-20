@@ -40,6 +40,10 @@ const GAME_TIME_OUT = 60000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
+// stair case 
+const FASTER = true;
+const SLOWER = false;
+
 const BLUE_BUG = 2;
 const GREEN_BUG = 1;
 const END_PRIMING = 2;
@@ -100,6 +104,17 @@ class BugZapGameRedesign extends React.Component {
     this.bugCanBePressed = true;
     this.blackoutTimeout;
     this.gotoNextTrialOnTimeout;
+    
+    this.signDownDuration = 3000; // miliseconds
+    this.signDurationStepSize = 500; // miliseconds
+    this.signStepDownIncrement = 0;
+    this.signStepUpIncrement = 0;
+    this.maxSignStepDowns = 20; // signDownDuration / signDurationStepSize
+    this.maxSignStepUps = 20;
+    
+    this.bugPressed = false;
+    this.beeAppearDuration; 
+    this.bee_appear_duration; 
     
     KeepAwake.activate();
   }
@@ -357,7 +372,15 @@ class BugZapGameRedesign extends React.Component {
   }
 
   onBugPress (pressedBug) {
-    if (!this.bugCanBePressed) return;
+    // TODO: consider changing so that bug can only be pressed after the 
+    // frog has fully appeard. 
+    if (!this.bugCanBePressed) {
+      console.log("NO BUG PRESS");
+      return;
+    }
+    this.bugPressed = true;
+    this.stairCaseSignRetractDuration(FASTER);
+    clearTimeout(this.signRetractTimeout);
     
     if (pressedBug === 'bugRight') {
       if (this.activeFrogColor.name.includes('green')) {
@@ -424,7 +447,12 @@ class BugZapGameRedesign extends React.Component {
     switch (character) {
       case 'signRight':
         if (!this.retractingSign) {
-          this.setState({showBugRight: true, showSplashCharacter: true});
+          this.setState({showBugRight: true, showSplashCharacter: true},
+              () => {
+                console.log("!*! call startSignRetractTimeout");
+                // this.startSignRetractTimeout();
+              }
+          );
           this.leverPressable = false;
           // we are in active game state.
           if (this.trialNumber >= END_BLACKOUT) {
@@ -433,6 +461,7 @@ class BugZapGameRedesign extends React.Component {
               this.displayBee();
             }, 1500);
           }
+          // startDuration
         }
         else {
           this.leverPressable = true;
@@ -440,7 +469,12 @@ class BugZapGameRedesign extends React.Component {
         break;
       case 'signLeft':
         if (!this.retractingSign) {
-          this.setState({showBugLeft: true});
+          this.setState({showBugLeft: true},
+              () => {
+                console.log("!*! call startSignRetractTimeout");
+                // this.startSignRetractTimeout();
+              }
+          );
         }
         break;
       case 'bugRight':
@@ -457,13 +491,48 @@ class BugZapGameRedesign extends React.Component {
       }
     }
   }
+  
+  // mutating 
+  stairCaseSignRetractDuration (direction) {
+    // speed up
+    if (direction && this.signStepDownIncrement < this.maxSignStepDowns) {
+      console.log("!*! STEP UP");
+      this.signDownDuration = this.signDownDuration - this.signDurationStepSize;
+      this.signStepDownIncrement += 1;
+      this.signStepUpIncrement -= 1;
+    }
+    // slow down
+    if (!direction && this.signStepUpIncrement < this.maxSignStepUps) {
+      console.log("!*! STEP DOWN");
+      this.signDownDuration = this.signDownDuration + this.signDurationStepSize;
+      this.signStepDownIncrement -= 1;
+      this.signStepUpIncrement += 1;
+    }
+    console.log(`DURATION = ${this.signDownDuration}`);
+  }
+  
+  startSignRetractTimeout () {
+    console.log("\n\nSTARTING RETRACT TIMEOUT");
+    this.signRetractTimeout = this.setTimeout(() => {
+      // protect against race condition
+      if (!this.bugPressed) {
+        this.bugCanBePressed = false;
+        this.resetTrialSettings(false);
+        // if this runs it means no bug was pressed. 
+        this.stairCaseSignRetractDuration(SLOWER);
+      }
+    }, this.signDownDuration);
+  }
 
   onAnimationFinish (character) {
     switch (character) {
       case 'splash':
         if (!this.trialOver && !this.retractingSign && !this.state.blackout) {
-          console.log("SHOWING FROG FROM animationFinish")
-          this.setState({showFrog: true});
+          this.setState({showFrog: true},
+              () => {
+                console.log("!*! call startSignRetractTimeout");
+                this.startSignRetractTimeout();
+              });
         }
         this.setState({showSplashCharacter: false});
         break;
@@ -486,8 +555,9 @@ class BugZapGameRedesign extends React.Component {
     }
   }
 
-  resetTrialSettings () {
+  resetTrialSettings (incrementTrial = true) {
     this.bugCanBePressed = true;
+    this.bugPressed = false;
     this.clearScene = setTimeout(() => {
       this.setState({
         showBugRight: false,
@@ -497,8 +567,10 @@ class BugZapGameRedesign extends React.Component {
       this.retractSign();
       this.trialOver = false;
       this.leverPressable = true;
-      this.trialNumber = this.trialNumber + 1;
-    }, 1000);
+      if (incrementTrial) {
+        this.trialNumber = this.trialNumber + 1;
+      }
+    }, 100);
   }
 
   showBackgroundCircle () {
@@ -538,6 +610,10 @@ class BugZapGameRedesign extends React.Component {
         showFrog: true,
         blackout: false,
         lightbulbImgIndex: 0,
+      },
+        () => {
+          console.log("!*! call startSignRetractTimeout");
+          this.startSignRetractTimeout();
       });
     }, 1000);
   }
