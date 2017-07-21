@@ -79,6 +79,7 @@ class BubblesGame extends React.Component {
     
     this.targetBubbleDuration = 3500 * this.scale.screenHeight;
     this.missedBubbles = 0;
+    this.maxStepDowns = 10;
     this.targetPopped = false;
 }
 
@@ -284,14 +285,19 @@ class BubblesGame extends React.Component {
   
   stairCaseDuration () {
     const velocityChange = 300 * this.scale.screenHeight;
+    // speed up
     if (this.targetPopped) {
+      console.log("!*! SPEED UP");
       if (this.targetBubbleDuration <= 500) {
         return this.targetBubbleDuration;
       }
       this.targetBubbleDuration = this.targetBubbleDuration - velocityChange;
       return this.targetBubbleDuration;
-    } else {
-      if (this.missedBubbles > 0 && this.missedBubbles <= 10) {
+    } 
+    // slow down
+    else {
+      console.log("!*! SLOW DOWN");
+      if (this.missedBubbles > 0 && this.missedBubbles <= this.maxStepDowns) {
         this.targetBubbleDuration = this.targetBubbleDuration + velocityChange;
         return this.targetBubbleDuration;
       }
@@ -350,7 +356,8 @@ class BubblesGame extends React.Component {
     };
     this.targetBubble.size = bubbleSize;
     this.setState({targetBubbleActive: true});
-    this.missedBubbles = this.missedBubbles + 1; 
+    const numMisses = this.missedBubbles + 1;
+    this.missedBubbles = numMisses > this.maxStepDowns ? this.maxStepDowns : numMisses; 
     this.targetPopped = false;
   }
   // populate array of background bubbles
@@ -513,7 +520,8 @@ class BubblesGame extends React.Component {
     if (!this.targetBubble.visable) {
       return;
     }
-    this.missedBubbles = this.missedBubbles - 1;
+    const numMisses = this.missedBubbles - 1;
+    this.missedBubbles = numMisses < 0 ? 0 : numMisses;
     this.targetPopped = true;
     const stopValueX = stopValues[0];
     const stopValueY = stopValues[1];
