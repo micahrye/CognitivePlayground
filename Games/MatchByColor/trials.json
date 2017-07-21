@@ -71,9 +71,9 @@
 	},
 	{
 		"characterName": "BLUE_MONSTER",
-		"correctSelection": "BUG_BlUE",
+		"correctSelection": "BUG_BLUE",
 		"correctLocation": 0,
-		"leftSign": "BUG_BlUE",
+		"leftSign": "BUG_BLUE",
 		"rightSign": "FRUIT_GREEN"
 	},
 	{

@@ -13,6 +13,8 @@ import appleCharacter from "../../sprites/apple/appleCharacter";
 import appleBlueSprite from "../../sprites/appleBlue/appleBlueSprite";
 import appleGreenSprite from "../../sprites/appleGreen/appleGreenSprite";
 import appleRedSprite from "../../sprites/appleRed/appleRedSprite";
+import appleYellowSprite from "../../sprites/appleYellow/appleYellowSprite";
+
 
 import bugCharacter from '../../sprites/bug/bugCharacter';
 import grassCharacter from "../../sprites/grass/grassCharacter";
@@ -21,18 +23,19 @@ import canCharacter from "../../sprites/can/canCharacter";
 import trials from './trials';
 
 function getTrialObject (trialNumber) {
-  console.log(`getTrialObject called with ${trialNumber}`);
-    const numTrials = trials.length;
-    if (trialNumber >= numTrials) {
-      trialNumber = 0;
-    }
-    
-    trialInfo = trials[trialNumber-1];
+  let trialInfo;
+  const numTrials = trials.length;
+  console.log(`getTrialObject called with ${trialNumber} of numTrials ${numTrials}`);
+  if (trialNumber >= numTrials) {
+    trialNumber = 0;
+    trialInfo = trials[trialNumber];
     return trialInfo;
-    // const characterSpriteObject = getCharacter(trialInfo.characterName);
-    // const correctSelection = trialInfo.correctSelection;
-    // const leftFoodSpriteObject = getFood(trialInfo.leftSign);
-    // const rightFoodSpriteObject = getFood(trialInfo.rightSign);
+  }
+  if (trialNumber >= 20) {
+    debugger;
+  }
+  trialInfo = trials[trialNumber];
+  return trialInfo;
 }
 
 function getCorrectFoodSignId (trialNumber) {
@@ -42,7 +45,7 @@ function getCorrectFoodSignId (trialNumber) {
 
 function getFoodForTrial (trialNumber, sign) {
   const trialInfo = getTrialObject(trialNumber-1);
-  debugger;
+  console.log(`TRIAL num ${trialNumber} FOOD ${trialInfo[sign]}`);
   switch (trialInfo[sign]) {
     case 'CAN':
       return {sprite: canCharacter, frameIndex: [0]};
@@ -69,27 +72,29 @@ function getFoodForTrial (trialNumber, sign) {
       return {sprite: grassCharacter, frameIndex: [1]};
     case 'GRASS_GREEN':
       return {sprite: grassCharacter, frameIndex: [2]};
-    case 'GRASS_GREEN':
+    case 'GRASS_YELLOW':
       return {sprite: grassCharacter, frameIndex: [4]};
 
     case 'FRUIT_RED':
-      return {sprite: grassCharacter, frameIndex: [2]};
+      return {sprite: appleRedSprite, frameIndex: [0]};
     case 'FRUIT_BLUE':
-      return {sprite: grassCharacter, frameIndex: [1]};
+      return {sprite: appleBlueSprite, frameIndex: [0]};
     case 'FRUIT_GREEN':
-      return {sprite: grassCharacter, frameIndex: [3]};
+      return {sprite: appleGreenSprite, frameIndex: [0]};
+    case 'FRUIT_YELLOW':
+      return {sprite: appleYellowSprite, frameIndex: [0]};
   
     case 'BUG_RED':
-      return {sprite: grassCharacter, frameIndex: [3]};
+      return {sprite: bugCharacter, frameIndex: [3]};
     case 'BUG_BLUE':
-      return {sprite: grassCharacter, frameIndex: [2]};
+      return {sprite: bugCharacter, frameIndex: [2]};
     case 'BUG_GREEN':
-      return {sprite: grassCharacter, frameIndex: [1]};
+      return {sprite: bugCharacter, frameIndex: [1]};
     case 'BUG_YELLOW':
-      return {sprite: grassCharacter, frameIndex: [4]};
+      return {sprite: bugCharacter, frameIndex: [4]};
       
     default:
-      console.error('Unknown character requested');
+      console.warn('Unknown food character requested');
   }
 }
 
@@ -102,7 +107,8 @@ function getFoodForRight (trialNumber) {
 
 function getCharacterForTrial (trialNumber) {
   const trialInfo = getTrialObject(trialNumber);
-  
+  console.log(`GET CHARACTER for trial ${trialNumber} trialinfo = ${JSON.stringify(trialInfo)}`);
+  debugger;
   switch (trialInfo.characterName) {
     case 'RED_MONSTER':
     // TODO: make this Object.assign do not mutate.
@@ -253,6 +259,10 @@ function startEatingPriorToFoodDropEnd (characterName) {
   }
 }
 
+const totalNumberTrials = function () {
+  return trials.length;
+}
+
 export default {
   getCharacterObject,
   getValidCharacterNameForLevel,
@@ -260,6 +270,7 @@ export default {
   favoriteFood,
   characterMouthLocation,
   startEatingPriorToFoodDropEnd,
+  totalNumberTrials,
   
   getCharacterForTrial,
   getFoodForLeft,

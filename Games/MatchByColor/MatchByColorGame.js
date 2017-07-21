@@ -38,7 +38,9 @@ const TRIAL_TIMEOUT = 15000;
 const LEVEL01 = 1;
 const LEVEL02 = 2;
 const LEVEL03 = 3;
-const DONE = 4;
+
+// const DONE = 4;
+
 const LEVEL01_TRAILS = 6;
 const LEVEL02_TRIALS = 6;
 const LEVEL03_TRIALS = 6;
@@ -58,8 +60,8 @@ class MatchByColorGame extends React.Component {
       loadingScreen: true,
       devMode: false,
     };
-    this.trialCount = 1; 
-    this.numTrialsForCurrentLevel = 0;
+    this.trialCount = 0; 
+    // this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
     this.scale = this.props.scale;
     this.activeCharacter;
@@ -103,7 +105,7 @@ class MatchByColorGame extends React.Component {
     };
 
     const name = gameUtil.getValidCharacterNameForLevel(this.level);
-    this.loadCharacter(name, 1);
+    this.loadCharacter(name, this.trialCount);
     // set offscreen
     this.leftFood.coords = this.foodStartLocation('left', this.scale);
     this.middleFood.coords = this.foodStartLocation('middle', this.scale);
@@ -217,14 +219,22 @@ class MatchByColorGame extends React.Component {
    * frames are in memory.
    */
   loadCharacter (characterName, trialNumber) {
-    this.level = this.currentLevel(this.numTrialsForCurrentLevel);
-    if (this.level === DONE) {
-      // TODO: should probably have sometype of finish screen/animation etc.
+    // this.level = this.currentLevel(this.numTrialsForCurrentLevel);
+    // if (this.level === DONE) {
+    //   // TODO: should probably have sometype of finish screen/animation etc.
+    //   this.homeButtonPressed();
+    //   return;
+    // }
+    
+    // TODO: if all trials done then exit
+    if (trialNumber == gameUtil.totalNumberTrials()) {
+      // You are done. 
       this.homeButtonPressed();
       return;
     }
 
     this.characterUIDs.character = randomstring({ length: 7 });
+    
     this.activeCharacter = gameUtil.getCharacterForTrial(trialNumber);
     this.activeCharacter.tweenOptions = {tweenOptions: {}};
 
@@ -357,34 +367,34 @@ class MatchByColorGame extends React.Component {
     }
   }
 
-  incrementTrialCount (trialCount) {    
-    return trialCount + 1;
-  }
+  // incrementTrialCount (trialCount) {    
+  //   return trialCount + 1;
+  // }
   
   incrementTrial () {
     this.trialCount = this.trialCount + 1;
     console.log(`this.trialCount = ${this.trialCount}`);
   }
 
-  currentLevel (currentTrialNumber) {
-    // starts in level 1
-    const maxNumTrials = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
-    const levelTwo = LEVEL01_TRAILS + LEVEL02_TRIALS;
-    const levelThree = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
-
-    if ((currentTrialNumber >= LEVEL01_TRAILS)
-    && (currentTrialNumber < levelTwo)) {
-      if (currentTrialNumber === LEVEL01_TRAILS-1) return;
-      return LEVEL02;
-    } else if ((currentTrialNumber >= levelTwo) &&
-    (currentTrialNumber < levelThree)) {
-      if (currentTrialNumber === levelTwo-1) return;
-      return LEVEL03;
-    } else if (currentTrialNumber >= maxNumTrials) {
-      return DONE;
-    }
-    return LEVEL01;
-  }
+  // currentLevel (currentTrialNumber) {
+  //   // starts in level 1
+  //   const maxNumTrials = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
+  //   const levelTwo = LEVEL01_TRAILS + LEVEL02_TRIALS;
+  //   const levelThree = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
+  // 
+  //   if ((currentTrialNumber >= LEVEL01_TRAILS)
+  //   && (currentTrialNumber < levelTwo)) {
+  //     if (currentTrialNumber === LEVEL01_TRAILS-1) return;
+  //     return LEVEL02;
+  //   } else if ((currentTrialNumber >= levelTwo) &&
+  //   (currentTrialNumber < levelThree)) {
+  //     if (currentTrialNumber === levelTwo-1) return;
+  //     return LEVEL03;
+  //   } else if (currentTrialNumber >= maxNumTrials) {
+  //     return DONE;
+  //   }
+  //   return LEVEL01;
+  // }
 
   buttonPressIn () {
     if (this.state.loadingCharacter
@@ -395,9 +405,8 @@ class MatchByColorGame extends React.Component {
       this.leverPlaying = true;
       this.leverSound.play(() => {this.leverPlaying = false;});
     }
-    this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
-    
     this.incrementTrial();
+    // this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
     
     // creature enter from left
     const startLocation = this.characterStartLocation(this.activeCharacter, this.scale.image);
@@ -606,7 +615,14 @@ class MatchByColorGame extends React.Component {
           console.log(`!! getValidCharacterNameForLevel`);
           const name = gameUtil.getValidCharacterNameForLevel(this.level);
           console.log(`!! next loadCharacter`);
-          this.loadCharacter(name, this.trialCount);
+          // TODO: if all trials done then exit
+          if (this.trialCount >= gameUtil.totalNumberTrials()) {
+            // You are done. 
+            this.homeButtonPressed();
+            return;
+          } else {
+            this.loadCharacter(name, this.trialCount);
+          }
         }, timeToExit);
       });
     }, 1000);
