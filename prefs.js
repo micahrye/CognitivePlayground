@@ -66,6 +66,7 @@ class Prefs extends React.Component {
       console.log(`GETTING = ${JSON.stringify(result)}`);
       if (result) {
         const prefs = JSON.parse(result);
+        this.setState({ value: prefs });
         // this.setState({ value: prefs, posts: `there are ${prefs.keysCount()} items in memory` });
       }
     });

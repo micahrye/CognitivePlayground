@@ -60,8 +60,11 @@ export default class Boxes extends Component {
       birdAnimationIndex: [0],
       showFood: false,
       litAnimationIndex: [0],
-      showBoxes: true,
+      buttonAnimationIndex: [0],
+      boxAnimationIndex: [[0], [0], [0], [0]],
+      showBoxes: false,
     };
+    this.leverPlaying = false;
     this.validLongPress = true;
     this.trialNumber = 0;
     this.allowButtonPress = true;
@@ -75,6 +78,7 @@ export default class Boxes extends Component {
     this.celebratePlaying = false;
     this.audioPlaying = false;
     this.longPressTimeout;
+    this.ignoreBoxPressOut = true;
     KeepAwake.activate();
   }
   // TODO: should kill all timeouts and intervals on willUnmount
@@ -96,6 +100,7 @@ export default class Boxes extends Component {
     AppState.addEventListener('change', this._handleAppStateChange);
     const clawLoc = gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale);
     gameUtil.createMoveSeq(clawLoc, this.scale);
+    this.flashButton(4000);
   }
   
   componentWillUnmount () {
@@ -203,16 +208,16 @@ export default class Boxes extends Component {
     return clawTweenOptions;
   }
   
-  setClawTweenUp () {
+  setClawTweenUpFrom (location) {
     const clawLoc = gameUtil.getClawLocation(clawSprite, this.clawScale, this.scale);
     
     // Using state here, want to make sure state does not change 
     // TODO: make sure to address box touch events during tween sequence.
-    const boxLoc = this.boxLocation(this.state.boxID);
+    // const boxLoc = this.boxLocation(this.state.boxID);
     
     const clawTweenOptions = {
       tweenType: "linear-move",
-      startXY: [boxLoc.left + 31 * this.scale.image, - 9 * this.scale.screenHeight],
+      startXY: [location.left + 31 * this.scale.image, - 9 * this.scale.screenHeight],
       endXY: [clawLoc.left, clawLoc.top],
       duration: 1000,
       loop: false,
@@ -222,6 +227,7 @@ export default class Boxes extends Component {
   
   longPress (boxID) {
     // clearTimeout(this.longPressTimeout);
+    this.ignoreBoxPressOut = false;
     debugger;
     if (!this.validLongPress) {
       console.log('!*! no long press');
@@ -251,14 +257,43 @@ export default class Boxes extends Component {
     });
   }
   
+  squeezeAnimationFor (boxId = -1) {
+    return _.map(this.state.boxAnimationIndex, (animationIndex, index) => {
+      if (boxId === -1) {
+        return [0];
+      } else if (index === boxId) {
+        return [1];
+      }
+      return [0];
+    })
+  }
+  
   boxPressOut (boxID) {
-    console.log('!*! clear timeout')
     this.validLongPress = false;
     clearTimeout(this.longPressTimeout);
-    // IF claw animation has not finished then claw should go back.
-    // Use this.refs.claw.getCoordinates() to get current coordniates to create
-    // tween options to go back.  
-    console.warn(`claw loc ${JSON.stringify(this.refs.claw.getCoordinates())}`);
+    this.safeSetState({
+      // boxAnimationIndex: boxSprite.animationIndex("IDLE"),
+      boxAnimationIndex: this.squeezeAnimationFor(-1),
+    }, () => {this.refs[`box${boxID}`].startAnimation()});
+    if (this.ignoreBoxPressOut) return;
+    this.respondToClawTweenFinish = false;
+    // these things take time 
+    const coords = this.refs.claw.getCoordinates();
+    this.refs.claw.stopTween();
+    coords.top = coords.top 
+    const clawUpTween = this.setClawTweenUpFrom(coords);
+    console.log("!*! respondToClawTweenFinish = FALSE");
+    
+    this.safeSetState({ 
+      clawTweenOptions: clawUpTween,
+      allowBoxPress: true,
+      respondToClawTweenFinish: false,
+      clawIndex: clawSprite.animationIndex('IDLE'),
+    }, () => {
+      console.log("!*! respondToClawTweenFinish set false in boxPressOut");
+      this.refs.claw.startAnimation();
+      this.refs.claw.tweenSprite();
+    });    
   }
   
   setValidLongPress () {
@@ -267,6 +302,17 @@ export default class Boxes extends Component {
   
   boxPressIn (boxID) {
     if (!this.state.allowBoxPress) return;
+    this.respondToClawTweenFinish = true;
+    this.ignoreBoxPressOut = true;
+    // press box 
+    this.safeSetState({
+      // boxAnimationIndex: boxSprite.animationIndex("SQUEEZE"),
+      boxAnimationIndex: this.squeezeAnimationFor(boxID),
+    }, () => {
+      this.refs[`box${boxID}`].startAnimation();
+    });
+    
+    console.log("!*! respondToClawTweenFinish = TRUE");
     // this.setValidLongPress();
     this.validLongPress = true;
     this.longPressTimeout = this.setTimeout(() => {
@@ -279,7 +325,7 @@ export default class Boxes extends Component {
     if (this.audioPlaying) {
       return;
     }
-        
+          
     this.audio = new Sound(audioFile, Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
@@ -394,14 +440,26 @@ export default class Boxes extends Component {
   }
   
   pickupPressedBox () {
+    if(!this.respondToClawTweenFinish) {
+      console.log("!*! WTF pickupPressedBox");
+      return;
+    } else {
+      // if picking up box, then ignore boxPressOut.
+      this.ignoreBoxPressOut = true;
+    }
+    console.log("!*! pickupPressedBox");
     const boxes = this.currentShowStateforBoxes();
     this.safeSetState({ 
       clawIndex: clawSprite.animationIndex('CLAW_WITH_BOX_CLOSED'),
+      // boxAnimationIndex: boxSprite.animationIndex("IDLE"),
+      boxAnimationIndex: this.squeezeAnimationFor(-1),
       // respondToClawTweenFinish: true,    
     }, () => {
+      this.refs[`box${this.state.boxID}`].startAnimation();
       this.refs.claw.startAnimation();
+      const boxLoc = this.boxLocation(this.state.boxID);
       this.safeSetState({  
-        clawTweenOptions: this.setClawTweenUp(),
+        clawTweenOptions: this.setClawTweenUpFrom(boxLoc),
         respondToClawTweenFinish: false,
       }, () => {
         this.hideInactiveBoxes(boxes)
@@ -428,7 +486,8 @@ export default class Boxes extends Component {
   
   startClawReturnUp () {
     return new Promise((resolve) => {
-      const clawTweenUp = this.setClawTweenUp();
+      const boxLoc = this.boxLocation(this.state.boxID);
+      const clawTweenUp = this.setClawTweenUpFrom(boxLoc);
       this.safeSetState({
         clawIndex: clawSprite.animationIndex('RETURN_TO_NETURAL'),
         clawTweenOptions: clawTweenUp,
@@ -450,6 +509,16 @@ export default class Boxes extends Component {
     }
   }
   
+  flashButton (timeToWait = 3000) {
+    this.flashButtonTimeout = this.setTimeout(() => {
+      this.setState({
+        buttonAnimationIndex: buttonSprite.animationIndex("ATTENTION"),
+      }, () => {
+        this.refs.startTrialButton.startAnimation();
+      });
+    }, timeToWait);
+  }
+  
   returnBox (boxID) {
     const clawTweenOptions = this.setClawTweenDown(this.state.boxID);
     this.safeSetState({ clawTweenOptions }, 
@@ -463,7 +532,13 @@ export default class Boxes extends Component {
           this.sleep(1500)
           .then(() => {
             this.safeSetState({allowBoxPress: false, });
-            // this.setState({showBoxes: false});
+            this.setState({
+              showBoxes: false,
+              buttonAnimationIndex: buttonSprite.animationIndex("IDLE"),
+            }, () => {
+              this.refs.startTrialButton.startAnimation();
+              this.flashButton(2000);
+            });
             this.allowButtonPress = true;
           });
         })
@@ -515,6 +590,16 @@ export default class Boxes extends Component {
     }
   }
   
+  squeezeBox (boxId) {
+    this.safeSetState({
+      boxAnimationIndex: this.squeezeAnimationFor(boxId),
+    }, () => {
+      _.each([0, 1, 2, 3], (id) => {
+        this.refs[`box${id}`].startAnimation();
+      })
+    });
+  }
+  
   clawMoveSequence (index = 0) {
     const moveSeq = gameUtil.getClawMoveSeq();
     if (index >= moveSeq.length) {
@@ -524,6 +609,7 @@ export default class Boxes extends Component {
     
     if (index === moveSeq.length-1) {
       console.log('BOX: allow box press');
+      this.squeezeBox(-1);
       this.setState({
         clawTweenOptions,
         allowBoxPress: true
@@ -535,6 +621,7 @@ export default class Boxes extends Component {
         }, clawTweenOptions.duration);
       });
     } else {
+      this.squeezeBox(index);
       this.safeSetState(
         { 
           clawTweenOptions,
@@ -573,8 +660,8 @@ export default class Boxes extends Component {
         this.audio.release();
         this.setTimeout(() => {
           console.log(`BOX: newIndex = ${newIndex}`);
-          this.playAudioSequence(audioFiles, newIndex);
           this.clawMoveSequence(newIndex);
+          this.playAudioSequence(audioFiles, newIndex);
         }, AUDIO_SEQ_INTERVAL);
       });
       
@@ -582,8 +669,13 @@ export default class Boxes extends Component {
   }
   
   clawTweenFinish () {
-    if (!this.state.respondToClawTweenFinish) return;
-    this.pickupPressedBox(); 
+    console.log("!*! clawTweenFinish");
+    if (!this.state.respondToClawTweenFinish) {
+      console.log("!*! WTF clawTweenFinish");
+      return;
+    } else {
+      this.pickupPressedBox(); 
+    }
   }
   
   sleep (time) {
@@ -612,11 +704,24 @@ export default class Boxes extends Component {
   
   buttonPressIn () {
     clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.flashButtonTimeout);
     this.startInactivityMonitor(); 
     if (!this.allowButtonPress) {
       return;
     }
-    // this.setState({showBoxes: true});
+    
+    // play sound
+    if (!this.leverPlaying) {
+      this.leverPlaying = true;
+      this.leverSound.play(() => {this.leverPlaying = false;});
+    }
+    
+    this.setState({
+      showBoxes: true,
+      buttonAnimationIndex: buttonSprite.animationIndex("PRESSED"),
+    }, () => {
+      this.refs.startTrialButton.startAnimation();
+    });
     this.allowButtonPress = false;
     const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
     // At the end of the claw move sequence the bird will indicate the box to choose. 
@@ -624,7 +729,11 @@ export default class Boxes extends Component {
     this.playAudioSequence(boxAudioFiles);
   }
   
-  
+  buttonPressOut () {
+    console.log("BUTTON pressout");
+    const coords = this.refs.claw.getCoordinates();
+    console.log(`!*! claw location = ${JSON.stringify(coords)}`);
+  }
   
   cloudStyle () {
     const width = 193 * 1.25 * this.props.scale.image;
@@ -675,7 +784,9 @@ export default class Boxes extends Component {
   }
   
   foodTweenFinish () {
-    this.setState({showFood: false})
+    this.setState({
+      showFood: false,
+    });
   }
   
   render() {
@@ -721,7 +832,7 @@ export default class Boxes extends Component {
           <AnimatedSprite
             ref={'box0'}
             sprite={boxSprite}
-            animationFrameIndex={[0]}
+            animationFrameIndex={this.state.boxAnimationIndex[0]}
             loopAnimation={false}
             coordinates={this.boxLocation(0)}
             size={boxSprite.size(this.boxScale * this.scale.image)}
@@ -734,7 +845,7 @@ export default class Boxes extends Component {
           <AnimatedSprite
             ref={'box1'}
             sprite={boxSprite}
-            animationFrameIndex={[0]}
+            animationFrameIndex={this.state.boxAnimationIndex[1]}
             loopAnimation={false}
             coordinates={this.boxLocation(1)}
             size={boxSprite.size(this.boxScale * this.scale.image)}
@@ -747,7 +858,7 @@ export default class Boxes extends Component {
           <AnimatedSprite
             ref={'box2'}
             sprite={boxSprite}
-            animationFrameIndex={[0]}
+            animationFrameIndex={this.state.boxAnimationIndex[2]}
             loopAnimation={false}
             coordinates={this.boxLocation(2)}
             size={boxSprite.size(this.boxScale * this.scale.image)}
@@ -760,7 +871,7 @@ export default class Boxes extends Component {
           <AnimatedSprite
             ref={'box3'}
             sprite={boxSprite}
-            animationFrameIndex={[0]}
+            animationFrameIndex={this.state.boxAnimationIndex[3]}
             loopAnimation={false}
             coordinates={this.boxLocation(3)}
             size={boxSprite.size(this.boxScale * this.scale.image)}
@@ -779,6 +890,7 @@ export default class Boxes extends Component {
         tweenOptions={this.state.clawTweenOptions}
         tweenStart={'fromMethod'}
         onTweenFinish={() => this.clawTweenFinish()}
+        onTweenStopped={() => {}}
       />      
       
       {this.state.devMode ?
@@ -812,13 +924,15 @@ export default class Boxes extends Component {
       : null}
       
       <AnimatedSprite
+        ref={'startTrialButton'}
         sprite={buttonSprite}
-        animationFrameIndex={[0]}
+        animationFrameIndex={this.state.buttonAnimationIndex}
         loopAnimation={false}
         coordinates={this.buttonLocation()}
         size={this.buttonSize()}
         rotate={[{rotateY:'0deg'}]}
         onPressIn={() => this.buttonPressIn()}
+        onPressOut={() => this.buttonPressOut()}
       />
   
       {this.state.loadingScreen ?

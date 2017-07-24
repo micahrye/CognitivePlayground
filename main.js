@@ -101,15 +101,15 @@ class Main extends React.Component {
     debugger;
     const showIcons = _.filter(defaultIcons, (icon) => {
       const key = GAME_NAMES_TO_PREF_KEYS[icon.name]
-      // TODO: this is temp for dev
-      return true;
-      
-      // if (!key) return;
-      // if (prefs[key]) {
-      //   return prefs[key];
-      // } else {
-      //   return false;
-      // }
+      // // TODO: this is temp for dev
+      // return true;
+      // 
+      if (!key) return;
+      if (prefs[key]) {
+        return prefs[key];
+      } else {
+        return false;
+      }
     });
     return showIcons;
   }  
