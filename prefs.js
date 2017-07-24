@@ -107,7 +107,9 @@ class Prefs extends React.Component {
       <View style={{backgroundColor: '#ffffff', flex: 1}} >
         
         <ScrollView
-          style={{height: 800}}
+          style={{
+            height: 800,
+          }}
         >
           <View style={styles.button} >
             <Button          
@@ -115,21 +117,21 @@ class Prefs extends React.Component {
               title="Game Launcher"
             />
           </View>
+          
           <View style={styles.container}>
+            <TouchableHighlight 
+              style={styles.saveButton} 
+              onPress={() => this.onPress()} 
+              underlayColor='#99d9f4'
+            >
+              <Text style={styles.buttonText}>Save Changes</Text>
+            </TouchableHighlight>
             <Form
               ref="form"
               type={Person}
               value={this.state.value}
               options={{}}
             />
-          
-            <TouchableHighlight 
-              style={styles.saveButton} 
-              onPress={() => this.onPress()} 
-              underlayColor='#99d9f4'
-            >
-              <Text style={styles.buttonText}>Save</Text>
-            </TouchableHighlight>
           </View>
           
         </ScrollView>
@@ -152,9 +154,9 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     top: 60,
-    marginTop: 50,
+    marginTop: 30,
     marginBottom: 50,
-    padding: 20,
+    padding: 10,
     backgroundColor: '#ffffff',
   },
   title: {
@@ -173,6 +175,7 @@ const styles = StyleSheet.create({
   },
   saveButton: {
     height: 80,
+    width: 120,
     backgroundColor: '#48BBEC',
     borderColor: '#48BBEC',
     borderWidth: 1,

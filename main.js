@@ -104,12 +104,15 @@ class Main extends React.Component {
       // // TODO: this is temp for dev
       // return true;
       // 
+      if (!prefs) return true;
       if (!key) return;
       if (prefs[key]) {
         return prefs[key];
-      } else {
+      } 
+      else if (prefs[key] === false) {
         return false;
-      }
+      } 
+      return true;
     });
     return showIcons;
   }  
