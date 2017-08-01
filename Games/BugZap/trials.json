@@ -72,6 +72,51 @@
 		"leftSpotlight": false
 	},
   {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
     "frogColor": "blue",
     "frogSide": "left",
     "rotation": "180deg",
@@ -79,6 +124,96 @@
     "leftBug": "blue",
 		"rightSpotlight": false,
 		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": true,
+		"leftSpotlight": false
 	},
   {
     "frogColor": "blue",
@@ -99,9 +234,9 @@
 		"leftSpotlight": true
 	},
   {
-    "frogColor": "blue",
-    "frogSide": "left",
-    "rotation": "180deg",
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
     "rightBug": "green",
     "leftBug": "blue",
 		"rightSpotlight": false,
@@ -113,52 +248,250 @@
     "rotation": "0deg",
     "rightBug": "green",
     "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "green",
+    "leftBug": "blue",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "green",
+    "frogSide": "left",
+    "rotation": "180deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": false,
+		"leftSpotlight": true
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
 		"rightSpotlight": true,
 		"leftSpotlight": false
 	},
   {
     "frogColor": "blue",
-    "frogSide": "left",
-    "rotation": "180deg",
-    "rightBug": "green",
-    "leftBug": "blue",
-		"rightSpotlight": false,
-		"leftSpotlight": true
-	},
-  {
-    "frogColor": "blue",
-    "frogSide": "left",
-    "rotation": "180deg",
-    "rightBug": "green",
-    "leftBug": "blue",
-		"rightSpotlight": false,
-		"leftSpotlight": true
-	},
-  {
-    "frogColor": "green",
     "frogSide": "right",
     "rotation": "0deg",
-    "rightBug": "green",
-    "leftBug": "blue",
-		"rightSpotlight": false,
-		"leftSpotlight": true
-	},
-  {
-    "frogColor": "green",
-    "frogSide": "right",
-    "rotation": "0deg",
-    "rightBug": "green",
-    "leftBug": "blue",
+    "rightBug": "blue",
+    "leftBug": "green",
 		"rightSpotlight": true,
 		"leftSpotlight": false
 	},
   {
     "frogColor": "blue",
-    "frogSide": "left",
-    "rotation": "180deg",
-    "rightBug": "green",
-    "leftBug": "blue",
-		"rightSpotlight": false,
-		"leftSpotlight": true
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
+	},
+  {
+    "frogColor": "blue",
+    "frogSide": "right",
+    "rotation": "0deg",
+    "rightBug": "blue",
+    "leftBug": "green",
+		"rightSpotlight": true,
+		"leftSpotlight": false
 	}
 ]
