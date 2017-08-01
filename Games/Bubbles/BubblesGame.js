@@ -34,8 +34,11 @@ const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 const TOP_OFFSET = 20;
 
-const GAME_TIME_OUT = 60000;
+const GAME_INACTIVITY_TIME_OUT = 60000;
 const MAX_NUMBER_BUBBLES = 10;
+const GAME_END_CRITERIA = 12; // reversals, changes in step direction
+const UP = true;
+const DOWN = false;
 
 const STARTTIME = 0;
 const POPTIME = 0;
@@ -60,6 +63,8 @@ class BubblesGame extends React.Component {
       loadingScreen: true,
       devMode: false,
     };
+    
+    this.allowLeverPress = true;
     this.scale = this.props.scale;
     this.spriteUIDs = {};
     this.setDefaultAnimationState;
@@ -77,6 +82,7 @@ class BubblesGame extends React.Component {
     
     KeepAwake.activate();
     
+    this.reversals = -1;
     this.targetBubbleDuration = 3500 * this.scale.screenHeight;
     this.missedBubbles = 0;
     this.maxStepDowns = 10;
@@ -124,8 +130,14 @@ class BubblesGame extends React.Component {
         this.props.navigator.replace({
           id: "Main",
         });
-      }, GAME_TIME_OUT);
+      }, GAME_INACTIVITY_TIME_OUT);
     }
+  }
+  
+  endGame () {
+    this.props.navigator.replace({
+      id: "Main",
+    });
   }
 
   componentWillUnmount () {
@@ -283,10 +295,22 @@ class BubblesGame extends React.Component {
     };
   }
   
+  checkForReversal(direction) {
+    if (this.lastDirection != direction) {
+      this.reversals += 1;
+      this.lastDirection = direction;
+      console.log(`!*! REVERSAL, direction = ${direction}, last direction = ${this.lastDirection}`);
+      console.log(`num reversals = ${this.reversals}`);
+      return true;
+    }
+    return false;
+  }
+  
   stairCaseDuration () {
     const velocityChange = 300 * this.scale.screenHeight;
     // speed up
     if (this.targetPopped) {
+      this.checkForReversal(UP);
       console.log("!*! SPEED UP");
       if (this.targetBubbleDuration <= 500) {
         return this.targetBubbleDuration;
@@ -296,6 +320,7 @@ class BubblesGame extends React.Component {
     } 
     // slow down
     else {
+      this.checkForReversal(DOWN);
       console.log("!*! SLOW DOWN");
       if (this.missedBubbles > 0 && this.missedBubbles <= this.maxStepDowns) {
         this.targetBubbleDuration = this.targetBubbleDuration + velocityChange;
@@ -505,6 +530,12 @@ class BubblesGame extends React.Component {
       });
       clearInterval(this.eatInterval);
     }, 600);
+    
+    if (this.reversals >= GAME_END_CRITERIA) {
+      // stop and exit, DON"T allow press lever.
+      this.allowLeverPress = false;
+      this.setTimeout(() => this.endGame(), 500);
+    }
   }
 
   onFoodTweenFinish () {
@@ -549,6 +580,9 @@ class BubblesGame extends React.Component {
   }
 
   leverPressIn () {
+    if (!this.allowLeverPress) {
+      return;
+    }
     if (!this.leverPlaying) {
       this.leverPlaying = true;
       this.leverSound.play(() => {this.leverPlaying = false;});

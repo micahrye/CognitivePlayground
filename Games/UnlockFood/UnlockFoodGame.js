@@ -33,7 +33,8 @@ import gameTiles from './gameTiles';
 import styles from "./styles";
 import gameUtil from './gameUtil';
 
-const GAME_TIME_OUT = 60000;
+const GAME_INACTIVITY_TIME_OUT = 60000;
+const TRIAL_INACTIVITY_TIMEOUT = 15000;
 const Sound = require('react-native-sound');
 const SCREEN_WIDTH = require ('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require ('Dimensions').get('window').height;
@@ -86,6 +87,8 @@ class UnlockFoodGame extends React.Component {
       tweenOptions: {},
       coords: {top: 0, left: 0},
     };
+    this.inactivityCounter = 0;
+    this.totalNumberTriasl; 
     this.reverseOrder = false;
     this.remainingTilesInSeq  = 0;
     this.waitForUserSeq = false;
@@ -105,7 +108,7 @@ class UnlockFoodGame extends React.Component {
     this.bottomPlaying = false;
     this.disgustSound;
     this.disgustPlaying = false;
-    
+    this.endingGame = false;
     KeepAwake.activate();
   }
 
@@ -154,11 +157,14 @@ class UnlockFoodGame extends React.Component {
       }
       setTimeout(() => this.startInactivityMonitor(), 500);
     });
+    
+    this.totalNumberTriasl = gameTiles.totalNumberTriasl();
   }
 
   componentDidMount () {
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
+    this.setTimeout(() => this.startTrialInactivityMonitor(), 1000);
   }
 
   componentWillUnmount () {
@@ -170,8 +176,32 @@ class UnlockFoodGame extends React.Component {
     clearTimeout(this.btnTimeout);
     clearInterval(this.matrixShifterInterval);
     clearTimeout(this.blinkTimeout);
-    clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.trialInactiveTimeout);
     _.forEach(this.blinkTimeoutArray, blinkTimeout => clearTimeout(blinkTimeout));
+  }
+  
+  exitGame () {
+    this.props.navigator.replace({
+      id: "Main",
+    });
+  }
+  
+  startTrialInactivityMonitor () {
+    clearTimeout(this.trialInactiveTimeout);
+    if (!this.state.devMode) {
+      this.trialInactiveTimeout = this.setTimeout(() => {
+        console.warn("TRIAL INACTIVITY TIMEOUT");
+        if (this.inactivityCounter >= 16) {
+          this.exitGame();
+          return;
+        }
+        this.inactivityCounter += 1;
+        // GO TO NEXT TRIAL
+        this.nextTrial(this.state.trial + 1);
+        this.startTrialInactivityMonitor();
+        // game over when 15 seconds go by without bubble being popped
+      }, TRIAL_INACTIVITY_TIMEOUT);
+    }
   }
   
   startInactivityMonitor () {
@@ -181,7 +211,7 @@ class UnlockFoodGame extends React.Component {
           id: "Main",
         });
         // game over when 15 seconds go by without bubble being popped
-      }, GAME_TIME_OUT);
+      }, GAME_INACTIVITY_TIME_OUT);
     }
   }
 
@@ -252,6 +282,15 @@ class UnlockFoodGame extends React.Component {
     this.disgustSound.release();
   }
 
+  endGame (duration) {
+    this.endingGame = true;
+    this.setTimeout(() => {
+      this.props.navigator.replace({
+        id: "Main",
+      });
+    }, duration);
+  }
+  
   _handleAppStateChange = (appState) => {
     // release all sound objects
     if (appState === 'inactive' || appState === 'background') {
@@ -264,6 +303,11 @@ class UnlockFoodGame extends React.Component {
   }
   
   nextTrial (trial) {
+    if (trial >= this.totalNumberTriasl) {
+      this.endGame(2000);
+      return;
+    }
+    
     console.log("TRIAL = ", trial);
     this.reverseOrder = false;
     let arrowIndex = 0;
@@ -325,6 +369,8 @@ class UnlockFoodGame extends React.Component {
   }
 
   leverPressIn () {
+    clearTimeout(this.trialInactiveTimeout);
+    if (this.endingGame) return;
     if (this.waitForUserSeq) return;
 
     if (!this.leverPlaying) {
@@ -347,7 +393,7 @@ class UnlockFoodGame extends React.Component {
     this.blink(blinkSeq);
     clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
-    
+    this.startTrialInactivityMonitor();
     this.pressSequence = [];
   }
 
@@ -564,6 +610,7 @@ class UnlockFoodGame extends React.Component {
           this.celebratePlaying = true;
           this.celebrateSound.play(() => {this.celebratePlaying = false;});
         }
+        
         this.nextTrial(this.state.trial + 1);
         this.ledsOn = []; this.numPresses = 0;
         this.forwardMachine();
@@ -595,6 +642,7 @@ class UnlockFoodGame extends React.Component {
   }
 
   gameBoardTilePress (tile, index) {
+    clearTimeout(this.trialInactiveTimeout);
     if (!this.activeGameboard) return;
 
     this.playTilePressSound(index);
@@ -650,6 +698,7 @@ class UnlockFoodGame extends React.Component {
     }
     clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
+    this.startTrialInactivityMonitor();
   }
 
   onLoadScreenFinish () {

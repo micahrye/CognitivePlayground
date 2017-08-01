@@ -29,11 +29,10 @@ const Sound = require('react-native-sound');
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 // const PIXEL_RATIO = 1 / PixelRatio.get();
-const GAME_TIME_OUT = 60000;
+const TRIAL_INACTIVITY_TIME_OUT = 15000;
 const LEFT = 0;
 const RIGHT = 1;
 const MIDDLE = 1;
-const TRIAL_TIMEOUT = 15000;
 
 const LEVEL01 = 1;
 const LEVEL02 = 2;
@@ -60,6 +59,7 @@ class MatchByColorGame extends React.Component {
       loadingScreen: true,
       devMode: false,
     };
+    this.inactivityCounter = 0;
     this.trialCount = 0; 
     // this.numTrialsForCurrentLevel = 0;
     this.level = LEVEL01;
@@ -95,7 +95,7 @@ class MatchByColorGame extends React.Component {
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustPlaying = false;
-    
+    this.activeScene = false;
     KeepAwake.activate();
   }
 
@@ -104,8 +104,8 @@ class MatchByColorGame extends React.Component {
       lever: randomstring({ length: 7 }),
     };
 
-    const name = gameUtil.getValidCharacterNameForLevel(this.level);
-    this.loadCharacter(name, this.trialCount);
+    // const name = gameUtil.getValidCharacterNameForLevel(this.level);
+    this.loadCharacter(this.trialCount);
     // set offscreen
     this.leftFood.coords = this.foodStartLocation('left', this.scale);
     this.middleFood.coords = this.foodStartLocation('middle', this.scale);
@@ -127,7 +127,6 @@ class MatchByColorGame extends React.Component {
     AppState.addEventListener('change', this._handleAppStateChange);
   }
 
-
   componentWillUnmount () {
     // console.warn("WILL UNMOUNT");
     this.releaseSounds();
@@ -136,17 +135,32 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.setDefaultAnimationState);
     clearTimeout(this.eatTimeout);
     clearTimeout(this.switchCharacterTimeout);
-    clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.trialTimeout);
   }
-
+  
+  exitGame () {
+    this.props.navigator.replace({
+      id: "Main",
+    });
+  }
+  
   startInactivityMonitor () {
+    clearTimeout(this.trialTimeout);
     if (!this.state.devMode) {
-      this.timeoutGameOver = setTimeout(() => {
-        this.props.navigator.replace({
-          id: "Main",
-        });
-        // game over when 15 seconds go by without bubble being popped
-      }, GAME_TIME_OUT);
+      this.trialTimeout = this.setTimeout(() => {
+        if (this.inactivityCounter >= 16) {
+          this.exitGame();
+          return;
+        }
+        this.inactivityCounter += 1;
+        if (this.activeScene) {
+          this.clearScene();
+        } else {
+          this.incrementTrial();
+          this.loadCharacter(this.trialCount);
+        }
+        this.startInactivityMonitor();
+      }, TRIAL_INACTIVITY_TIME_OUT);
     }
   }
 
@@ -218,18 +232,11 @@ class MatchByColorGame extends React.Component {
    * used to load character image frames off screen so that image
    * frames are in memory.
    */
-  loadCharacter (characterName, trialNumber) {
-    // this.level = this.currentLevel(this.numTrialsForCurrentLevel);
-    // if (this.level === DONE) {
-    //   // TODO: should probably have sometype of finish screen/animation etc.
-    //   this.homeButtonPressed();
-    //   return;
-    // }
-    
+  loadCharacter (trialNumber) {
     // TODO: if all trials done then exit
     if (trialNumber == gameUtil.totalNumberTrials()) {
       // You are done. 
-      this.homeButtonPressed();
+      this.exitGame();
       return;
     }
 
@@ -247,12 +254,16 @@ class MatchByColorGame extends React.Component {
       clearTimeout(this.setDefaultAnimationState);
       this.setDefaultAnimationState = setTimeout(() => {
         this.setState({
-          buttonAnimationIndex: this.buttonSprite.animationIndex('BLINK_2'),
+          buttonAnimationIndex: this.buttonSprite.animationIndex('IDLE'),
           characterAnimationIndex: this.activeCharacter.animationIndex('IDLE'),
           loadingCharacter: false,
         });
-      }, 1200);
+      }, 1000);
     });
+    
+    this.blinkButtonTimeout = this.setTimeout(() => {
+      this.setState({ buttonAnimationIndex: this.buttonSprite.animationIndex('BLINK_2') });
+    }, 3000)
   }
 
   makeMoveTween (startXY=[40, 400], endXY=[600, 400], duration=1500) {
@@ -366,37 +377,15 @@ class MatchByColorGame extends React.Component {
         break;
     }
   }
-
-  // incrementTrialCount (trialCount) {    
-  //   return trialCount + 1;
-  // }
   
   incrementTrial () {
     this.trialCount = this.trialCount + 1;
     console.log(`this.trialCount = ${this.trialCount}`);
   }
 
-  // currentLevel (currentTrialNumber) {
-  //   // starts in level 1
-  //   const maxNumTrials = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
-  //   const levelTwo = LEVEL01_TRAILS + LEVEL02_TRIALS;
-  //   const levelThree = LEVEL01_TRAILS + LEVEL02_TRIALS + LEVEL03_TRIALS;
-  // 
-  //   if ((currentTrialNumber >= LEVEL01_TRAILS)
-  //   && (currentTrialNumber < levelTwo)) {
-  //     if (currentTrialNumber === LEVEL01_TRAILS-1) return;
-  //     return LEVEL02;
-  //   } else if ((currentTrialNumber >= levelTwo) &&
-  //   (currentTrialNumber < levelThree)) {
-  //     if (currentTrialNumber === levelTwo-1) return;
-  //     return LEVEL03;
-  //   } else if (currentTrialNumber >= maxNumTrials) {
-  //     return DONE;
-  //   }
-  //   return LEVEL01;
-  // }
-
   buttonPressIn () {
+    clearTimeout(this.blinkButtonTimeout);
+    clearTimeout(this.trialTimeout);
     if (this.state.loadingCharacter
       || this.state.signsVisable || this.clearingScene) {
       return;
@@ -405,8 +394,8 @@ class MatchByColorGame extends React.Component {
       this.leverPlaying = true;
       this.leverSound.play(() => {this.leverPlaying = false;});
     }
+    this.activeScene = true;
     this.incrementTrial();
-    // this.numTrialsForCurrentLevel = this.incrementTrialCount(this.numTrialsForCurrentLevel);
     
     // creature enter from left
     const startLocation = this.characterStartLocation(this.activeCharacter, this.scale.image);
@@ -428,11 +417,10 @@ class MatchByColorGame extends React.Component {
       // then interval to make food appear on sign.
       clearTimeout(this.showFoodTimeout);
       this.showFoodTimeout = setTimeout(() => {
-        this.displayFoods();
+        this.displayFoods(this.trialCount);
         this.foodActive = true;
       }, this.signDropTime);
     });
-    clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
   }
 
@@ -451,13 +439,13 @@ class MatchByColorGame extends React.Component {
     }
   }
 
-  displayFoods () {
+  displayFoods (trial) {
     const foods = gameUtil.getFoodsToDisplay(this.activeCharacter.name);
 
-    this.targetFoodPosition = gameUtil.getCorrectFoodSignId(this.trialCount);
+    this.targetFoodPosition = gameUtil.getCorrectFoodSignId(trial);
     
-    const leftFood = gameUtil.getFoodForLeft(this.trialCount);
-    const rightFood = gameUtil.getFoodForRight(this.trialCount);
+    const leftFood = gameUtil.getFoodForLeft(trial);
+    const rightFood = gameUtil.getFoodForRight(trial);
     
     this.leftFood.character = leftFood.sprite; //foods[order[0]];
     this.middleFood.character = rightFood.sprite; //foods[order[1]];
@@ -546,6 +534,7 @@ class MatchByColorGame extends React.Component {
   }
 
   foodPressed (foodId) {
+    clearTimeout(this.trialTimeout);
     if (!this.popPlaying) {
       this.popPlaying = true;
       this.popSound.play(() => {this.popPlaying = false;});
@@ -578,16 +567,20 @@ class MatchByColorGame extends React.Component {
         this.foodDropToCharacter('rightFood', foodCoord, foodDropTime);
         break;
     }
-    clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
   }
-
+  
+  sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+  
   clearScene () {
     console.log('!! clearScene()');
     this.clearingScene = true;
-    this.initializeMoveUpTweensForSigns();
+    this.activeScene = false;
+    // this.initializeMoveUpTweensForSigns()
 
-    const timeToExit = 1800;
+    const timeToExit = 1000;
     const characterAt = this.characterWaitForFoodAt(this.activeCharacter, this.scale.image, this.scale.screenWidth);
     const startFrom = [characterAt.left, characterAt.top];
     const exitTo = [SCREEN_WIDTH, characterAt.top];
@@ -601,19 +594,23 @@ class MatchByColorGame extends React.Component {
     clearTimeout(this.signTimeout);
     this.signTimeout = setTimeout(() => {
       this.setState({
-        buttonAnimationIndex: this.buttonSprite.animationIndex('IDLE'),
+        // buttonAnimationIndex: this.buttonSprite.animationIndex('IDLE'),
         characterAnimationIndex: this.activeCharacter.animationIndex('WALK'),
         signsVisable: false,
         characterAnimationLoop: true,
       }, () => {
-        this.hideFoods();
-        this.startSignsTween(this.level);
+        // this.hideFoods();
+        // this.startSignsTween(this.level);
         this.refs.characterRef.startTween();
         clearTimeout(this.switchCharacterTimeout);
         this.switchCharacterTimeout = setTimeout(() => {
+          this.initializeMoveUpTweensForSigns()
+          this.hideFoods();
+          this.startSignsTween(this.level);
+          
           this.clearingScene = false;
           console.log(`!! getValidCharacterNameForLevel`);
-          const name = gameUtil.getValidCharacterNameForLevel(this.level);
+          // const name = gameUtil.getValidCharacterNameForLevel(this.level);
           console.log(`!! next loadCharacter`);
           // TODO: if all trials done then exit
           if (this.trialCount >= gameUtil.totalNumberTrials()) {
@@ -621,7 +618,7 @@ class MatchByColorGame extends React.Component {
             this.homeButtonPressed();
             return;
           } else {
-            this.loadCharacter(name, this.trialCount);
+            this.loadCharacter(this.trialCount);
           }
         }, timeToExit);
       });

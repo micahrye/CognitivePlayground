@@ -225,23 +225,7 @@ export default class Boxes extends Component {
     return clawTweenOptions;
   }
   
-  longPress (boxID) {
-    // clearTimeout(this.longPressTimeout);
-    this.ignoreBoxPressOut = false;
-    debugger;
-    if (!this.validLongPress) {
-      console.log('!*! no long press');
-      return;
-    }
-    console.log('!*! in longpress');
-    this.validLongPress = true;
-    if (!this.state.allowBoxPress) return;
-    
-    if (!this.popPlaying) {
-      this.popPlaying = true;
-      this.popSound.play(() => {this.popPlaying = false;});
-    }
-    
+  startClawToBoxTween (boxID) {
     const clawTweenOptions = this.setClawTweenDown(boxID);
     this.safeSetState(
       { 
@@ -257,6 +241,25 @@ export default class Boxes extends Component {
     });
   }
   
+  longPress (boxID) {
+    // clearTimeout(this.longPressTimeout);
+    this.ignoreBoxPressOut = false;
+    debugger;
+    if (!this.validLongPress) {
+      console.log('!*! no long press');
+      return;
+    }
+    console.log('!*! in longpress');
+    this.validLongPress = false;
+    if (!this.state.allowBoxPress) return;
+    
+    if (!this.popPlaying) {
+      this.popPlaying = true;
+      this.popSound.play(() => {this.popPlaying = false;});
+    }
+    // this.startClawToBoxTween(boxID);
+  }
+  
   squeezeAnimationFor (boxId = -1) {
     return _.map(this.state.boxAnimationIndex, (animationIndex, index) => {
       if (boxId === -1) {
@@ -268,6 +271,36 @@ export default class Boxes extends Component {
     })
   }
   
+  boxPressIn (boxID) {
+    if (!this.state.allowBoxPress) return;
+    this.respondToClawTweenFinish = true;
+    // Changed to false to allow move on press
+    this.ignoreBoxPressOut = false;
+    // press box 
+    this.safeSetState({
+      // boxAnimationIndex: boxSprite.animationIndex("SQUEEZE"),
+      boxAnimationIndex: this.squeezeAnimationFor(boxID),
+    }, () => {
+      this.refs[`box${boxID}`].startAnimation();
+    });
+    
+    console.log("!*! respondToClawTweenFinish = TRUE");
+    // this.setValidLongPress();
+    this.validLongPress = true;
+    this.longPressTimeout = this.setTimeout(() => {
+      console.log('!*! WTF');
+      this.longPress(boxID);
+    }, 1000);
+    
+    const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
+    const audioFile = boxAudioFiles[boxID];
+    if (this.audioPlaying) {
+      return;
+    }
+    this.playAudioFile(audioFile);
+    this.startClawToBoxTween(boxID);
+  }
+  
   boxPressOut (boxID) {
     this.validLongPress = false;
     clearTimeout(this.longPressTimeout);
@@ -275,7 +308,9 @@ export default class Boxes extends Component {
       // boxAnimationIndex: boxSprite.animationIndex("IDLE"),
       boxAnimationIndex: this.squeezeAnimationFor(-1),
     }, () => {this.refs[`box${boxID}`].startAnimation()});
-    if (this.ignoreBoxPressOut) return;
+    if (this.ignoreBoxPressOut) {
+      return;
+    }
     this.respondToClawTweenFinish = false;
     // these things take time 
     const coords = this.refs.claw.getCoordinates();
@@ -300,32 +335,8 @@ export default class Boxes extends Component {
     this.validLongPress = true;
   }
   
-  boxPressIn (boxID) {
-    if (!this.state.allowBoxPress) return;
-    this.respondToClawTweenFinish = true;
-    this.ignoreBoxPressOut = true;
-    // press box 
-    this.safeSetState({
-      // boxAnimationIndex: boxSprite.animationIndex("SQUEEZE"),
-      boxAnimationIndex: this.squeezeAnimationFor(boxID),
-    }, () => {
-      this.refs[`box${boxID}`].startAnimation();
-    });
-    
-    console.log("!*! respondToClawTweenFinish = TRUE");
-    // this.setValidLongPress();
-    this.validLongPress = true;
-    this.longPressTimeout = this.setTimeout(() => {
-      console.log('!*! WTF');
-      this.longPress(boxID);
-    }, 1000);
-    
-    const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
-    const audioFile = boxAudioFiles[boxID];
-    if (this.audioPlaying) {
-      return;
-    }
-          
+  
+  playAudioFile (audioFile) {
     this.audio = new Sound(audioFile, Sound.MAIN_BUNDLE, (error) => {
       if (error) {
         console.warn('failed to load the sound', error);
@@ -562,20 +573,22 @@ export default class Boxes extends Component {
   }
   
   indicateCorrectBox () {
-    const speakAudio = gameUtil.getSpeakAudioFor(this.trialNumber);
-    if (speakAudio) {
+    const audio = gameUtil.getSpeakAudioFor(this.trialNumber);
+    if (audio.speakAudio) {
       this.setState({
         showThought: false,
       });
-      console.log(`BOX: speakAudio = ${speakAudio}`);
-      this.audio = new Sound(speakAudio, Sound.MAIN_BUNDLE, (error) => {
+      console.log(`BOX: speakAudio = ${audio.speakAudio}`);
+      console.log(`BOX: fileName = ${audio.audioFileName}`);
+      this.audio = new Sound(audio.audioFileName, Sound.MAIN_BUNDLE, (error) => {
         if (error) {
           console.warn('failed to load the sound', error);
           return;
         }
         this.audio.setNumberOfLoops(0);
         this.audio.setVolume(1);
-        this.birdSpeak(this.audio);
+        this.sleep(200)
+        .then(() => this.birdSpeak(this.audio));
       });
     } else {
       const thinkImage = gameUtil.getThinkImage(this.trialNumber);
@@ -616,9 +629,9 @@ export default class Boxes extends Component {
       }, () => {
         this.refs.claw.tweenSprite();
         // claw retuns then have character indicate box to choose
-        this.setTimeout(() => {
-          this.indicateCorrectBox();
-        }, clawTweenOptions.duration);
+        // this.setTimeout(() => {
+        //   this.indicateCorrectBox();
+        // }, clawTweenOptions.duration);
       });
     } else {
       this.squeezeBox(index);
@@ -709,24 +722,30 @@ export default class Boxes extends Component {
     if (!this.allowButtonPress) {
       return;
     }
-    
-    // play sound
-    if (!this.leverPlaying) {
-      this.leverPlaying = true;
-      this.leverSound.play(() => {this.leverPlaying = false;});
+    let delay = 500;
+    const audio = gameUtil.getSpeakAudioFor(this.trialNumber);
+    if (audio.speakAudio) {
+      delay = 1500;
     }
-    
-    this.setState({
-      showBoxes: true,
-      buttonAnimationIndex: buttonSprite.animationIndex("PRESSED"),
-    }, () => {
-      this.refs.startTrialButton.startAnimation();
+    this.indicateCorrectBox();
+    this.sleep(delay)
+    .then(() => {
+      if (!this.leverPlaying) {
+        this.leverPlaying = true;
+        this.leverSound.play(() => {this.leverPlaying = false;});
+      }
+      this.setState({
+        showBoxes: true,
+        buttonAnimationIndex: buttonSprite.animationIndex("PRESSED"),
+      }, () => {
+        this.refs.startTrialButton.startAnimation();
+      });
+      this.allowButtonPress = false;
+      const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
+      // At the end of the claw move sequence the bird will indicate the box to choose. 
+      this.clawMoveSequence(0);
+      this.playAudioSequence(boxAudioFiles);
     });
-    this.allowButtonPress = false;
-    const boxAudioFiles = gameUtil.getAllBoxAudioFor(this.trialNumber);
-    // At the end of the claw move sequence the bird will indicate the box to choose. 
-    this.clawMoveSequence();
-    this.playAudioSequence(boxAudioFiles);
   }
   
   buttonPressOut () {
@@ -825,7 +844,7 @@ export default class Boxes extends Component {
         loopAnimation={false}
         coordinates={this.birdLocation()}
         size={birdSprite.size(this.birdScale * this.scale.image)}
-        draggable={true}
+        draggable={false}
       />
       
       {this.state.showBoxes && this.state.activeBoxes[0] ? 

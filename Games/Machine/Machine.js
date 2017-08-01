@@ -328,16 +328,14 @@ export default class Machine extends Component {
     }
     this.activeTrial = true; 
     this.foodSprite.UID = randomstring({length: 7});
-    this.setState({
-      showFood: 1,
-    }, () => {
-      
+    this.setState({ showFood: 1 });
+    this.sleep(1000)
+    .then(() => {
       this.setState({
         cells: gameUtil.cellsForTrial(this.state.trialNumber),
         showMatrix: true,
       });
     });
-    
     clearTimeout(this.timeoutGameOver);
     clearTimeout(this.getUserAttentionTimeout);
     this.startInactivityMonitor()
@@ -452,6 +450,10 @@ export default class Machine extends Component {
         this.refs.buttonSprite.startAnimation()
       }
     });
+    this.sleep(1700)
+    .then(() => {
+      this.setState({ showMatrix: false });
+    });
   }
   
   birdDisapointed () {
@@ -469,6 +471,10 @@ export default class Machine extends Component {
       if (this.refs.buttonSprite) {
         this.refs.buttonSprite.startAnimation()
       }
+    });
+    this.sleep(1000)
+    .then(() => {
+      this.setState({ showMatrix: false });
     });
   }
   

@@ -2,7 +2,7 @@
   {
     "thinkImage": "Letter_A",
     "boxAudioFiles": ["c_sound.wav","a_sound.wav","j_sound.wav","m_sound.wav"],
-    "speakAudio":  false,
+    "speakAudio":  true,
     "correct": "a_sound"
   },
   {
@@ -14,7 +14,7 @@
   {
     "boxAudioFiles": ["s_name.wav", "q_name.wav", "x_name.wav", "a_name.wav"],
     "correct": "x_name",
-    "speakAudio": false,
+    "speakAudio": true,
     "thinkImage": "Letter_X"
   },
   {

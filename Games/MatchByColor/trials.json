@@ -128,7 +128,7 @@
 	{
 		"characterName": "YELLOW_MONSTER",
 		"correctSelection": "CAN_YELLOW",
-		"correctLocation": 1,
+		"correctLocation": 0,
 		"leftSign": "CAN_YELLOW",
 		"rightSign": "BUG_GREEN"
 	},

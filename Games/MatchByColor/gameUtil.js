@@ -3,6 +3,7 @@ import _ from 'lodash';
 import blueMonster from '../../sprites/blueMonster/blueMonsterCharacter';
 import redMonster from '../../sprites/redMonster/redMonsterCharacter';
 import greenMonster from '../../sprites/greenMonster/greenMonsterCharacter';
+import yellowMonster from '../../sprites/yellowMonster/yellowMonsterCharacter';
 
 import goat from '../../sprites/goat/goatCharacter';
 import dog from '../../sprites/dog/dogCharacter';
@@ -121,8 +122,8 @@ function getCharacterForTrial (trialNumber) {
       greenMonster.rotate = [{rotateY:'180deg'}];
       return greenMonster;
     case 'YELLOW_MONSTER':
-      greenMonster.rotate = [{rotateY:'180deg'}];
-      return greenMonster;
+      yellowMonster.rotate = [{rotateY:'180deg'}];
+      return yellowMonster;
     case 'GOAT':
       goat.rotate = [{rotateY:'0deg'}];
       return goat;

@@ -83,7 +83,8 @@ const getAllBoxAudioFor = function trialBoxAudio (trialNumber) {
 const getSpeakAudioFor = function SpeakAudio (trialNumber) {
   const trialIndex = getTrialIndex(trialNumber);
   const speakAudio = trials[trialIndex].speakAudio;
-  return speakAudio;
+  const audioFileName = trials[trialIndex].correct + ".wav";
+  return {speakAudio, audioFileName};
 }
 
 const checkCorrectSelection = function correctSelection (trialNumber, selection) {

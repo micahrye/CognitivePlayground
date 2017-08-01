@@ -36,7 +36,8 @@ import styles from "./BugZapStyles";
 import gameUtil from './gameUtil';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 60000;
+const GAME_INACTIVITY_TIME_OUT = 60000;
+const TRIAL_TIMEOUT = 10000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
@@ -69,7 +70,7 @@ class BugZapGameRedesign extends React.Component {
 
     this.state = {
       loadingScreen: true,
-      leverAnimationIndex: lever.animationIndex('IDLE'),
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
       frogAnimationIndex: this.activeFrogColor.animationIndex('IDLE'),
       greenFrogAnimationIndex: [],
       blueFrogAnimationIndex: [],
@@ -152,6 +153,7 @@ class BugZapGameRedesign extends React.Component {
   componentDidMount () {
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
+    this.flashButton(3000);
   }
 
   componentWillUnmount () {
@@ -169,7 +171,7 @@ class BugZapGameRedesign extends React.Component {
           id: "Main",
         });
         // game over when 15 seconds go by without bubble being popped
-      }, GAME_TIME_OUT);
+      }, GAME_INACTIVITY_TIME_OUT);
     }
   }
   
@@ -271,6 +273,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   leverPressIn () {
+    clearTimeout(this.flashButtonTimeout);
     if (!this.leverPressable) return;
     if (!this.leverSoundPlaying) {
       this.leverSoundPlaying = true;
@@ -283,7 +286,7 @@ class BugZapGameRedesign extends React.Component {
     }
 
     this.setState({
-      leverAnimationIndex: lever.animationIndex('SWITCH_ON'),
+      buttonAnimationIndex: buttonSprite.animationIndex('PRESSED'),
     });
 
     this.leverInterval = setTimeout (() => {
@@ -301,14 +304,14 @@ class BugZapGameRedesign extends React.Component {
         || this.state.blackout) {
       this.retractSign();
       this.leverPressable = false;
+      this.flashButton(3000);
     }
     // if finger up before timeout complete
     clearTimeout(this.leverInterval);
     this.setState({
-      leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
       blackout: false,
     });
-    
   }
 
   signDown () {
@@ -451,6 +454,7 @@ class BugZapGameRedesign extends React.Component {
               () => {
                 console.log("!*! call startSignRetractTimeout");
                 // this.startSignRetractTimeout();
+                this.flashButton(5000);
               }
           );
           this.leverPressable = false;
@@ -523,6 +527,12 @@ class BugZapGameRedesign extends React.Component {
       }
     }, this.signDownDuration);
   }
+  
+  startTrialTimeoutPeriod () {
+    this.setTimeout(() => {
+      console.log(`TRIAL TIMEOUT`);
+    }, TRIAL_TIMEOUT);
+  }
 
   onAnimationFinish (character) {
     switch (character) {
@@ -530,6 +540,8 @@ class BugZapGameRedesign extends React.Component {
         if (!this.trialOver && !this.retractingSign && !this.state.blackout) {
           this.setState({showFrog: true},
               () => {
+                this.startTrialTimeoutPeriod();
+                this.bugCanBePressed = true;
                 console.log("!*! call startSignRetractTimeout");
                 this.startSignRetractTimeout();
               });
@@ -681,6 +693,17 @@ class BugZapGameRedesign extends React.Component {
     } else {
       return this.getBugCoordinates('left');
     }
+  }
+  
+  flashButton (timeToWait = 3000) {
+    this.flashButtonTimeout = this.setTimeout(() => {
+      this.setState({
+        buttonAnimationIndex: buttonSprite.animationIndex("ATTENTION"),
+      }, () => {
+        this.refs.startTrialButton.startAnimation();
+      });
+      this.flashButton();
+    }, timeToWait);
   }
 
   render () {
@@ -857,9 +880,10 @@ class BugZapGameRedesign extends React.Component {
 
           <AnimatedSprite
             sprite={buttonSprite}
+            ref={'startTrialButton'}
             coordinates={gameUtil.getCoordinates('lever', this.props.scale.screenHeight,
                           this.props.scale.screenWidth, null)}
-            animationFrameIndex={this.state.leverAnimationIndex}
+            animationFrameIndex={this.state.buttonAnimationIndex}
             size={gameUtil.getSize('lever', this.props.scale.image)}
             onPressIn={() => this.leverPressIn()}
             onPressOut={() => this.leverPressOut()}

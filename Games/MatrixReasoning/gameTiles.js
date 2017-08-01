@@ -53,10 +53,14 @@ function gameBoardTilesWithSelectionResult (trialNumber, selectionFrame) {
   return tiles;
 }
 
+const totalNumberTrials = function () {
+  return trials.length;
+}
 
 export default {
   gameBoardTilesForTrial,
   selectionTilesForTrial,
   correctSelection,
   gameBoardTilesWithSelectionResult,
+  totalNumberTrials,
 };

@@ -18,6 +18,8 @@ const buttonSprite = {
         return [1];
       case 'PRESSED':
         return [2];
+      case 'ATTENTION':
+        return [2, 2, 1, 1, 2, 2, 1, 1, 0];
       case 'ALL':
         return [0,1,2];
       default:
