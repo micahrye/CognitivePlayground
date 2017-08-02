@@ -33,6 +33,8 @@ const gameIcon = {
     require("./game6_icon_color.png"),
     require("./game7_icon_bw.png"),
     require("./game7_icon_color.png"),
+    require("./game8_icon_color.png"),
+    require("./game9_icon_color.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {
@@ -64,6 +66,10 @@ const gameIcon = {
         return [12];
       case 'GAME_7_UNLOCKED':
         return [13];
+      case 'GAME_8_UNLOCKED':
+        return [14];
+      case 'GAME_9_UNLOCKED':
+        return [15];
       case 'ALL':
         return [0,1,2,3,4,5,6,7,8,9,10,11,12,13];
     }

@@ -24,7 +24,7 @@ const button3Sprite = {
         if (_.includes(animationType, 'BLINK_')) {
           const parts = _.split(animationType, '_');
           const seqNum = Number(_.last(parts));
-          const seq = _.concat(_.fill(Array(4 * seqNum), 0), [0, 1, 1, 0]);
+          const seq = _.map(_.repeat('01110', seqNum).split(''), (x) => Number(x));
           return seq;
         }
         return [0];

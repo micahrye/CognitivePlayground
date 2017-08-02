@@ -6,6 +6,9 @@ const appleCharacter = {
   animationTypes: ['IDLE', 'ALL'],
   frames: [
     require("./apple.png"),
+    require("./apple_blue.png"),
+    require("./apple_red.png"),
+    require("./apple_green.png"),
   ],
   animationIndex: function getAnimationIndex (animationType) {
     switch (animationType) {

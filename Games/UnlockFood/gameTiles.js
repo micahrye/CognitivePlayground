@@ -45,8 +45,13 @@ function ledController (ledsOn, numLeds) {
   return createTilesArray(ledTiles, sprites, frameKeys);
 }
 
+const totalNumberTriasl = function () {
+  return trials.length;
+}
+
 export default {
   gameBoardTilesForTrial,
   tileBlinkSequence,
   ledController,
+  totalNumberTriasl,
 };

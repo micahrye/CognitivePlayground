@@ -6,6 +6,9 @@ import {
   AsyncStorage,
 } from 'react-native';
 
+import reactMixin from 'react-mixin';
+import TimerMixin from 'react-timer-mixin';
+
 // NOTES for myself to look back on as I continue to redo things
 // spotlight style goes in styles instead of hard coded in here
 // frog fps necessary?
@@ -16,6 +19,7 @@ import _ from 'lodash';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
 import HomeButton from '../../components/HomeButton/HomeButton';
 import LoadScreen from '../../components/LoadScreen';
+import KeepAwake from 'react-native-keep-awake';
 
 import greenFrogCharacter from '../../sprites/swimingGreenFrog/greenFrogSprite';
 import blueFrogCharacter from '../../sprites/swimingBlueFrog/blueFrogSprite';
@@ -32,9 +36,14 @@ import styles from "./BugZapStyles";
 import gameUtil from './gameUtil';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 15000;
+const GAME_INACTIVITY_TIME_OUT = 60000;
+const TRIAL_TIMEOUT = 10000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
+
+// stair case 
+const FASTER = true;
+const SLOWER = false;
 
 const BLUE_BUG = 2;
 const GREEN_BUG = 1;
@@ -61,7 +70,7 @@ class BugZapGameRedesign extends React.Component {
 
     this.state = {
       loadingScreen: true,
-      leverAnimationIndex: lever.animationIndex('IDLE'),
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
       frogAnimationIndex: this.activeFrogColor.animationIndex('IDLE'),
       greenFrogAnimationIndex: [],
       blueFrogAnimationIndex: [],
@@ -93,7 +102,22 @@ class BugZapGameRedesign extends React.Component {
     this.disgustPlaying = false;
     this.leftBugColorIndex = GREEN_BUG;
     this.rightBugColorIndex = BLUE_BUG;
+    this.bugCanBePressed = true;
     this.blackoutTimeout;
+    this.gotoNextTrialOnTimeout;
+    
+    this.signDownDuration = 3000; // miliseconds
+    this.signDurationStepSize = 500; // miliseconds
+    this.signStepDownIncrement = 0;
+    this.signStepUpIncrement = 0;
+    this.maxSignStepDowns = 20; // signDownDuration / signDurationStepSize
+    this.maxSignStepUps = 20;
+    
+    this.bugPressed = false;
+    this.beeAppearDuration; 
+    this.bee_appear_duration; 
+    
+    KeepAwake.activate();
   }
 
   componentWillMount () {
@@ -129,6 +153,7 @@ class BugZapGameRedesign extends React.Component {
   componentDidMount () {
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
+    this.flashButton(3000);
   }
 
   componentWillUnmount () {
@@ -146,7 +171,7 @@ class BugZapGameRedesign extends React.Component {
           id: "Main",
         });
         // game over when 15 seconds go by without bubble being popped
-      }, GAME_TIME_OUT);
+      }, GAME_INACTIVITY_TIME_OUT);
     }
   }
   
@@ -248,6 +273,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   leverPressIn () {
+    clearTimeout(this.flashButtonTimeout);
     if (!this.leverPressable) return;
     if (!this.leverSoundPlaying) {
       this.leverSoundPlaying = true;
@@ -260,7 +286,7 @@ class BugZapGameRedesign extends React.Component {
     }
 
     this.setState({
-      leverAnimationIndex: lever.animationIndex('SWITCH_ON'),
+      buttonAnimationIndex: buttonSprite.animationIndex('PRESSED'),
     });
 
     this.leverInterval = setTimeout (() => {
@@ -278,14 +304,14 @@ class BugZapGameRedesign extends React.Component {
         || this.state.blackout) {
       this.retractSign();
       this.leverPressable = false;
+      this.flashButton(3000);
     }
     // if finger up before timeout complete
     clearTimeout(this.leverInterval);
     this.setState({
-      leverAnimationIndex: lever.animationIndex('SWITCH_OFF'),
+      buttonAnimationIndex: buttonSprite.animationIndex('IDLE'),
       blackout: false,
     });
-    
   }
 
   signDown () {
@@ -349,6 +375,16 @@ class BugZapGameRedesign extends React.Component {
   }
 
   onBugPress (pressedBug) {
+    // TODO: consider changing so that bug can only be pressed after the 
+    // frog has fully appeard. 
+    if (!this.bugCanBePressed) {
+      console.log("NO BUG PRESS");
+      return;
+    }
+    this.bugPressed = true;
+    this.stairCaseSignRetractDuration(FASTER);
+    clearTimeout(this.signRetractTimeout);
+    
     if (pressedBug === 'bugRight') {
       if (this.activeFrogColor.name.includes('green')) {
         if (this.rightBugColorIndex === GREEN_BUG) {
@@ -381,6 +417,7 @@ class BugZapGameRedesign extends React.Component {
   }
 
   correctBugTapped (bugSide) {
+    this.bugCanBePressed = false;
     clearTimeout(this.displayBeeTimeout);
     if (bugSide == 'left') {
       this.refs.bugLeftRef.startTween();
@@ -413,7 +450,13 @@ class BugZapGameRedesign extends React.Component {
     switch (character) {
       case 'signRight':
         if (!this.retractingSign) {
-          this.setState({showBugRight: true, showSplashCharacter: true});
+          this.setState({showBugRight: true, showSplashCharacter: true},
+              () => {
+                console.log("!*! call startSignRetractTimeout");
+                // this.startSignRetractTimeout();
+                this.flashButton(5000);
+              }
+          );
           this.leverPressable = false;
           // we are in active game state.
           if (this.trialNumber >= END_BLACKOUT) {
@@ -422,6 +465,7 @@ class BugZapGameRedesign extends React.Component {
               this.displayBee();
             }, 1500);
           }
+          // startDuration
         }
         else {
           this.leverPressable = true;
@@ -429,7 +473,12 @@ class BugZapGameRedesign extends React.Component {
         break;
       case 'signLeft':
         if (!this.retractingSign) {
-          this.setState({showBugLeft: true});
+          this.setState({showBugLeft: true},
+              () => {
+                console.log("!*! call startSignRetractTimeout");
+                // this.startSignRetractTimeout();
+              }
+          );
         }
         break;
       case 'bugRight':
@@ -446,13 +495,56 @@ class BugZapGameRedesign extends React.Component {
       }
     }
   }
+  
+  // mutating 
+  stairCaseSignRetractDuration (direction) {
+    // speed up
+    if (direction && this.signStepDownIncrement < this.maxSignStepDowns) {
+      console.log("!*! STEP UP");
+      this.signDownDuration = this.signDownDuration - this.signDurationStepSize;
+      this.signStepDownIncrement += 1;
+      this.signStepUpIncrement -= 1;
+    }
+    // slow down
+    if (!direction && this.signStepUpIncrement < this.maxSignStepUps) {
+      console.log("!*! STEP DOWN");
+      this.signDownDuration = this.signDownDuration + this.signDurationStepSize;
+      this.signStepDownIncrement -= 1;
+      this.signStepUpIncrement += 1;
+    }
+    console.log(`DURATION = ${this.signDownDuration}`);
+  }
+  
+  startSignRetractTimeout () {
+    console.log("\n\nSTARTING RETRACT TIMEOUT");
+    this.signRetractTimeout = this.setTimeout(() => {
+      // protect against race condition
+      if (!this.bugPressed) {
+        this.bugCanBePressed = false;
+        this.resetTrialSettings(false);
+        // if this runs it means no bug was pressed. 
+        this.stairCaseSignRetractDuration(SLOWER);
+      }
+    }, this.signDownDuration);
+  }
+  
+  startTrialTimeoutPeriod () {
+    this.setTimeout(() => {
+      console.log(`TRIAL TIMEOUT`);
+    }, TRIAL_TIMEOUT);
+  }
 
   onAnimationFinish (character) {
     switch (character) {
       case 'splash':
         if (!this.trialOver && !this.retractingSign && !this.state.blackout) {
-          console.log("SHOWING FROG FROM animationFinish")
-          this.setState({showFrog: true});
+          this.setState({showFrog: true},
+              () => {
+                this.startTrialTimeoutPeriod();
+                this.bugCanBePressed = true;
+                console.log("!*! call startSignRetractTimeout");
+                this.startSignRetractTimeout();
+              });
         }
         this.setState({showSplashCharacter: false});
         break;
@@ -475,7 +567,9 @@ class BugZapGameRedesign extends React.Component {
     }
   }
 
-  resetTrialSettings () {
+  resetTrialSettings (incrementTrial = true) {
+    this.bugCanBePressed = true;
+    this.bugPressed = false;
     this.clearScene = setTimeout(() => {
       this.setState({
         showBugRight: false,
@@ -485,11 +579,14 @@ class BugZapGameRedesign extends React.Component {
       this.retractSign();
       this.trialOver = false;
       this.leverPressable = true;
-      this.trialNumber = this.trialNumber + 1;
-    }, 1000);
+      if (incrementTrial) {
+        this.trialNumber = this.trialNumber + 1;
+      }
+    }, 100);
   }
 
   showBackgroundCircle () {
+    const sides = gameUtil.spotLightLocation(this.trialNumber);
     let left, right = false;
     if (this.frogSide === 'right') {
       right = true;
@@ -497,8 +594,8 @@ class BugZapGameRedesign extends React.Component {
       left = true;
     }
     this.setState({
-      bgRight: right,
-      bgLeft: left,
+      bgRight: sides.right,
+      bgLeft: sides.left,
     }, () => {
       setTimeout(() => {
         this.setState({
@@ -511,7 +608,6 @@ class BugZapGameRedesign extends React.Component {
 
   blackoutTrial () {
     clearTimeout(this.blackoutTimeout);
-    console.log("BLACKOUT CALLED");
     this.setState({
       lightbulbImgIndex: 1,
       blackout: true,
@@ -526,6 +622,10 @@ class BugZapGameRedesign extends React.Component {
         showFrog: true,
         blackout: false,
         lightbulbImgIndex: 0,
+      },
+        () => {
+          console.log("!*! call startSignRetractTimeout");
+          this.startSignRetractTimeout();
       });
     }, 1000);
   }
@@ -561,6 +661,10 @@ class BugZapGameRedesign extends React.Component {
     )
   }
 
+  hideBee () {
+    this.setState({ showBee: false });
+  }
+  
   displayBee () {
     // need to hide corresponding bug
     //frogSide
@@ -575,7 +679,12 @@ class BugZapGameRedesign extends React.Component {
         showBugLeft: false,
       });
     }
-
+    
+    this.gotoNextTrialOnTimeout = this.setTimeout(() => {
+      this.hideBee();
+      this.resetTrialSettings();
+    }, 1000);
+    
   }
 
   beeLocation (frogSide) {
@@ -584,6 +693,17 @@ class BugZapGameRedesign extends React.Component {
     } else {
       return this.getBugCoordinates('left');
     }
+  }
+  
+  flashButton (timeToWait = 3000) {
+    this.flashButtonTimeout = this.setTimeout(() => {
+      this.setState({
+        buttonAnimationIndex: buttonSprite.animationIndex("ATTENTION"),
+      }, () => {
+        this.refs.startTrialButton.startAnimation();
+      });
+      this.flashButton();
+    }, timeToWait);
   }
 
   render () {
@@ -760,9 +880,10 @@ class BugZapGameRedesign extends React.Component {
 
           <AnimatedSprite
             sprite={buttonSprite}
+            ref={'startTrialButton'}
             coordinates={gameUtil.getCoordinates('lever', this.props.scale.screenHeight,
                           this.props.scale.screenWidth, null)}
-            animationFrameIndex={this.state.leverAnimationIndex}
+            animationFrameIndex={this.state.buttonAnimationIndex}
             size={gameUtil.getSize('lever', this.props.scale.image)}
             onPressIn={() => this.leverPressIn()}
             onPressOut={() => this.leverPressOut()}
@@ -787,4 +908,5 @@ BugZapGameRedesign.propTypes = {
   route: React.PropTypes.object,
 };
 
+reactMixin.onClass(BugZapGameRedesign, TimerMixin);
 export default BugZapGameRedesign;

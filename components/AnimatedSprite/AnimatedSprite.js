@@ -78,9 +78,9 @@ class AnimatedSprite extends React.Component {
     // need to stop tween
     this.isUnmounting = true;
     clearInterval(this.defaultAnimationInterval);
-    _.forEach(this.tweenablValues, (value) => {
-      value.stopAnimation((value) => console.log("Final Value: " + value), 0);
-    });
+    // _.forEach(this.tweenablValues, (value) => {
+    //   value.stopAnimation((value) => console.log("Final Value: " + value), 0);
+    // });
     
   }
 

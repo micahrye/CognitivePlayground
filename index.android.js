@@ -22,6 +22,9 @@ import MatrixReasoningGame from './Games/MatrixReasoning/MatrixReasoningGame';
 import SymbolDigitCodingGame from './Games/SymbolDigitCoding/SymbolDigitCodingGame';
 import UnlockFoodGame from './Games/UnlockFood/UnlockFoodGame';
 
+import BoxeGame from './Games/Boxes/Boxes';
+import FoodMachineGame from './Games/Machine/Machine';
+
 const Sound = require('react-native-sound');
 
 const baseHeight = 800;
@@ -96,6 +99,18 @@ class CogPlay extends React.Component {
         />);
     } else if (route.id === 'UnlockFoodGame') {
       return (<UnlockFoodGame
+          navigator={navigator}
+          route={route}
+          scale={this.scale}
+        />);
+    } else if (route.id === 'BoxGame') {
+      return (<BoxeGame
+          navigator={navigator}
+          route={route}
+          scale={this.scale}
+        />);
+    } else if (route.id === 'FoodMachineGame') {
+      return (<FoodMachineGame
           navigator={navigator}
           route={route}
           scale={this.scale}

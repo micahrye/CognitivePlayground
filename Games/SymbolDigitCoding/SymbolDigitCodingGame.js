@@ -10,6 +10,7 @@ import _ from 'lodash';
 import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
+import KeepAwake from 'react-native-keep-awake';
 
 import styles from './styles';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
@@ -23,7 +24,8 @@ import Signs from './Signs';
 import gameUtil from './gameUtil';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 15000;
+const GAME_TIME_OUT = 120000;
+const TRIAL_INACTIVITY_TIMEOUT = 5000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
 
@@ -47,13 +49,16 @@ class SymbolDigitCodingGame extends React.Component {
       coords: {},
       size: {},
     };
-
+    
+    this.inactivityCounter = 0;
     this.popSound;
     this.popPlaying = false;
     this.celebrateSound;
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustSound = false;
+    this.numberUniqueTrials = gameUtil.numberOfTrials();
+    KeepAwake.activate();
   }
 
   componentWillMount () {
@@ -74,7 +79,7 @@ class SymbolDigitCodingGame extends React.Component {
       if (prefs) {
         this.setState({ devMode: prefs.developMode });
       }
-      setTimeout(() => this.startInactivityMonitor(), 500);
+      this.setTimeout(() => this.startTrialInactivityMonitor(), 2000);
     });
   }
 
@@ -90,22 +95,43 @@ class SymbolDigitCodingGame extends React.Component {
   componentDidMount () {
     this.initSounds();
     AppState.addEventListener('change', this._handleAppStateChange);
+    this.gameTimeout();
   }
 
   componentWillUnmount () {
     this.releaseSounds();
     clearTimeout(this.stateTimeout);
-    clearTimeout(this.timeoutGameOver);
+    clearTimeout(this.trialInactiveTimeout);
   }
   
-  startInactivityMonitor () {
+  exitGame () {
+    this.props.navigator.replace({
+      id: "Main",
+    });
+  }
+  
+  gameTimeout () {
     if (!this.state.devMode) {
-      this.timeoutGameOver = setTimeout(() => {
-        this.props.navigator.replace({
-          id: "Main",
-        });
+      this.timeoutGameOver = this.setTimeout(() => {
+        this.exitGame();
         // game over when 15 seconds go by without bubble being popped
       }, GAME_TIME_OUT);
+    }
+  }
+  
+  startTrialInactivityMonitor () {
+    clearTimeout(this.trialInactiveTimeout);
+    if (!this.state.devMode) {
+      this.trialInactiveTimeout = this.setTimeout(() => {
+        console.warn("TRIAL INACTIVITY TIMEOUT");
+        if (this.inactivityCounter >= 4) {
+          this.exitGame();
+        }
+        this.inactivityCounter += 1;
+        // GO TO NEXT TRIAL
+        this.nextTrial();
+        // game over when 15 seconds go by without bubble being popped
+      }, TRIAL_INACTIVITY_TIMEOUT);
     }
   }
 
@@ -220,7 +246,7 @@ class SymbolDigitCodingGame extends React.Component {
       },
     () => {
       this.refs.food.tweenSprite();
-      this.stateTimeout = setTimeout(() => {
+      this.stateTimeout = this.setTimeout(() => {
         if (!this.celebratePlaying) {
           this.celebratePlaying = true;
           this.celebrateSound.play(() => {this.celebratePlaying = false;});
@@ -231,17 +257,24 @@ class SymbolDigitCodingGame extends React.Component {
   }
 
   nextTrial () {
-    const trial = this.state.trial + 1;
+    let trial = this.state.trial + 1;
+    if (trial === this.numberUniqueTrials) {
+      trial = 0;
+    }
     const symbolOrder = gameUtil.symbols(trial);
     this.food.sprite = gameUtil.foodSprite(trial);
+    const thoughtTiles = gameUtil.thoughtTilesForTrial(trial);
     this.setState({
       trial,
+      thoughtTiles,
       symbolOrder: symbolOrder,
-      thoughtTiles: gameUtil.thoughtTilesForTrial(trial),
+    }, () => {
+      this.startTrialInactivityMonitor()
     });
   }
 
   signPressed (signInfo) {
+    clearTimeout(this.trialInactiveTimeout);
     if (!this.popPlaying) {
       this.popPlaying = true;
       this.popSound.play(() => {this.popPlaying = false;});
@@ -256,7 +289,7 @@ class SymbolDigitCodingGame extends React.Component {
       this.setState({
         symbolOrder: showSymbols,
       }, () => {
-        this.stateTimeout = setTimeout(() => {
+        this.stateTimeout = this.setTimeout(() => {
           this.foodFall(signInfo.signNumber);
         }, 120 * this.props.scale.screenHeight);
 
@@ -270,13 +303,12 @@ class SymbolDigitCodingGame extends React.Component {
         monsterAnimationIndex: monsterSprite.animationIndex('DISGUST'),
         resetTrial: true,
       }, () => {
-        this.stateTimeout = setTimeout(() => {
+        this.stateTimeout = this.setTimeout(() => {
           this.nextTrial();
         }, 500 * this.props.scale.screenHeight);
       });
     }
-    clearTimeout(this.timeoutGameOver);
-    this.startInactivityMonitor();
+    this.startTrialInactivityMonitor();
   }
 
   onFoodTweenFinish () {

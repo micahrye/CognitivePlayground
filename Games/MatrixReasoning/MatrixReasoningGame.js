@@ -11,6 +11,7 @@ import reactMixin from 'react-mixin';
 import TimerMixin from 'react-timer-mixin';
 import randomstring from 'random-string';
 import styles from './styles';
+import KeepAwake from 'react-native-keep-awake';
 
 import HomeButton from '../../components/HomeButton/HomeButton';
 import AnimatedSprite from '../../components/AnimatedSprite/AnimatedSprite';
@@ -20,10 +21,10 @@ import dogSprite from '../../sprites/dog/dogCharacter';
 import gameTiles from './gameTiles';
 
 const Sound = require('react-native-sound');
-const GAME_TIME_OUT = 15000;
+const TRIAL_INACTIVITY_TIME_OUT = 90000;
 const SCREEN_WIDTH = require('Dimensions').get('window').width;
 const SCREEN_HEIGHT = require('Dimensions').get('window').height;
-
+const TIME_TO_READY_TRIAL = 2000;
 const LEFT_EDGE = 950;
 
 class MatrixReasoningGame extends React.Component {
@@ -47,10 +48,13 @@ class MatrixReasoningGame extends React.Component {
     this.celebratePlaying = false;
     this.disgustSound;
     this.disgustPlaying = false;
+    this.allowTileSelection = true;
+    this.inactiveCounter = 0;
+    KeepAwake.activate();
   }
 
   componentWillMount () {
-    this.readyTrial(0);
+    this.startNextTrial(0);
     this.loadCharacter();
     AsyncStorage.getItem('@User:pref', (err, result) => {
       console.log(`GETTING = ${JSON.stringify(result)}`);
@@ -73,15 +77,27 @@ class MatrixReasoningGame extends React.Component {
     clearTimeout(this.readyTrialTimeout);
     clearTimeout(this.timeoutGameOver);
   }
+
+  startNextTrial (trial) {
+    if (trial === gameTiles.totalNumberTrials()) {
+      this.endGame(100);
+    } else {
+      this.readyTrial(trial);
+    }
+  }
   
   startInactivityMonitor () {
     if (!this.state.devMode) {
       this.timeoutGameOver = setTimeout(() => {
-        this.props.navigator.replace({
-          id: "Main",
-        });
+        if(this.inactiveCounter >= 3) {
+          this.props.navigator.replace({
+            id: "Main",
+          });
+        }
+        this.inactiveCounter += 1
+        this.readyTrial(this.state.trial + 1);
         // game over when 15 seconds go by without bubble being popped
-      }, GAME_TIME_OUT);
+      }, TRIAL_INACTIVITY_TIME_OUT);
     }
   }
 
@@ -129,6 +145,18 @@ class MatrixReasoningGame extends React.Component {
     }
   }
 
+  sendCustomJSON (velocityMS, startMS, popMS, popX, popY) {
+    const obj = {
+      custom_data: {
+        velocity: velocityMS,
+        startTime: startMS,
+        pop_time: popMS,
+        popPos: [popX,popY],
+      }
+    }
+    curious.reportCustom(JSON.stringify(obj));
+  }
+
   loadCharacter () {
     let dog = _.cloneDeep(this.state.dog);
     dog.frameIndex = _.concat(
@@ -165,6 +193,15 @@ class MatrixReasoningGame extends React.Component {
       selectionTiles: gameTiles.selectionTilesForTrial(trial),
     });
   }
+  
+  endGame (duration) {
+    this.endingGame = true;
+    this.setTimeout(() => {
+      this.props.navigator.replace({
+        id: "Main",
+      });
+    }, duration);
+  }
 
   gameCharacterAction (action) {
     if (!this.celebratePlaying && (action === 'CELEBRATE')) {
@@ -180,11 +217,11 @@ class MatrixReasoningGame extends React.Component {
       dogSprite.animationIndex(action),
       dogSprite.animationIndex(action)
     );
-    this.setState({ dog }, 
+    this.setState({ dog },
       () => {
         this.readyTrialTimeout = setTimeout(() => {
-          this.readyTrial(this.state.trial + 1);
-      }, 2000);
+          startNextTrial(this.state.trial + 1);
+      }, TIME_TO_READY_TRIAL);
     });
 
   }
@@ -195,10 +232,19 @@ class MatrixReasoningGame extends React.Component {
     const top = (SCREEN_HEIGHT - size.height) / 2;
     return {top, left};
   }
-
-  pressStub () {}
-
+  
+  sleep (time) {
+    return new Promise((resolve) => setTimeout(resolve, time));
+  }
+  
+  setAllowTileSelection (value) {
+    this.allowTileSelection = value;
+  }
+  
   selectionTilePress (tile, index) {
+    if (!this.allowTileSelection) {
+      return; 
+    }
     if (!this.popPlaying) {
       this.popPlaying = true;
       this.popSound.play(() => {this.popPlaying = false;});
@@ -210,8 +256,14 @@ class MatrixReasoningGame extends React.Component {
         gameBoardTiles: gameTiles.gameBoardTilesWithSelectionResult(trial, tile.frameKey),
       });
       this.gameCharacterAction('CELEBRATE');
+      this.setAllowTileSelection(false);
+      this.sleep(TIME_TO_READY_TRIAL + 200)
+      .then(() => this.setAllowTileSelection(true));
     } else {
       this.gameCharacterAction('DISGUST');
+      this.setAllowTileSelection(false);
+      this.sleep(TIME_TO_READY_TRIAL + 200)
+      .then(() => this.setAllowTileSelection(true));
     }
     clearTimeout(this.timeoutGameOver);
     this.startInactivityMonitor();
@@ -227,7 +279,7 @@ class MatrixReasoningGame extends React.Component {
 
   render () {
     return (
-        <Image source={require('../../media/backgrounds/Game_4_Background_1280.png')} 
+        <Image source={require('../../media/backgrounds/Game_4_Background_1280.png')}
           style={styles.backgroundImage}>
         <AnimatedSprite
           sprite={dogSprite}
@@ -297,7 +349,6 @@ class MatrixReasoningGame extends React.Component {
       </Image>
     );
   }
-
 }
 
 MatrixReasoningGame.propTypes = {
